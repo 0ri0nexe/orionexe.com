@@ -51,7 +51,8 @@ ssh_do "
 "
 
 step "Verifying"
-CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 "${SITE_URL}" || echo 000)"
+CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 "${SITE_URL}" 2>/dev/null)"
+CODE="${CODE:-000}"
 if [[ "$CODE" == "200" ]]; then
 	printf '\033[1;32m==> Live at %s (HTTP %s, release %s)\033[0m\n' "$SITE_URL" "$CODE" "$RELEASE"
 else
