@@ -13,8 +13,6 @@
 #
 set -euo pipefail
 
-REMOTE_USER="${REMOTE_USER:-ubuntu}"
-REMOTE_HOST="${REMOTE_HOST:-51.91.253.130}"
 APP_DIR="${APP_DIR:-/srv/orionexe}"
 SITE_NAME="${SITE_NAME:-orionexe.com}"
 
@@ -27,7 +25,7 @@ fail() { printf '\n\033[1;31m==> %s\033[0m\n' "$1" >&2; exit 1; }
 # shellcheck disable=SC1091
 set -a; . ./.env; set +a
 
-for var in EDT_USER EDT_PASS EDT_WEB_USER EDT_WEB_PASS; do
+for var in REMOTE_USER REMOTE_HOST EDT_USER EDT_PASS EDT_WEB_USER EDT_WEB_PASS; do
 	[[ -n "${!var:-}" ]] || fail "$var missing from .env"
 done
 
@@ -105,7 +103,9 @@ printf 'EDT_WEB_USER=%s\nEDT_WEB_HASH=%s\n' "$(shquote "$EDT_WEB_USER")" "$(shqu
 	"
 
 step "Refresh trigger service"
-scp -q deploy/edt-refresh.service "${REMOTE_USER}@${REMOTE_HOST}:/tmp/edt-refresh.service"
+# The unit names the account it runs as: filled in here so the repo does not.
+sed "s|__REMOTE_USER__|${REMOTE_USER}|g" deploy/edt-refresh.service |
+	ssh_do "cat > /tmp/edt-refresh.service"
 ssh_do "
 	set -euo pipefail
 	sudo mv /tmp/edt-refresh.service /etc/systemd/system/edt-refresh.service

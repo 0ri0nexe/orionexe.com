@@ -5,7 +5,7 @@ and writes it to schedule.json, consumed by the static frontend (index.html).
 
 Credentials: EDT_USER / EDT_PASS environment variables, otherwise prompted for.
 
-    EDT_USER=emongin EDT_PASS='...' python3 scrape.py --from 2026-09 --to 2027-07
+    EDT_USER='<your-login>' EDT_PASS='...' python3 scrape.py --from 2026-09 --to 2027-07
 """
 import argparse
 import getpass

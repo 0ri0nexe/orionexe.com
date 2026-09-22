@@ -1,5 +1,5 @@
 <svelte:head>
-	<title>orionexe</title>
+	<title>Hey ! Welcome </title>
 	<meta name="description" content="orionexe — personal site." />
 </svelte:head>
 

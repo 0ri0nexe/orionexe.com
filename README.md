@@ -35,10 +35,12 @@ production. A deploy uploads a new timestamped release and flips a symlink.
 
 ### First time only
 
-Install your SSH key on the server, then provision it:
+Copy `.env.example` to `.env` and fill in `REMOTE_USER` / `REMOTE_HOST` — the
+scripts read them from there, so the repo names no host. Then install your SSH
+key on the server and provision it:
 
 ```sh
-ssh-copy-id ubuntu@51.91.253.130
+ssh-copy-id "$REMOTE_USER@$REMOTE_HOST"
 ./scripts/provision.sh
 ```
 
@@ -66,14 +68,14 @@ either the old release or the new one, never a partial upload.
 
 ### Overrides
 
-All scripts read these environment variables:
+All scripts source `.env`, then read these environment variables:
 
-| Variable      | Default                |
-| ------------- | ---------------------- |
-| `REMOTE_USER` | `ubuntu`               |
-| `REMOTE_HOST` | `51.91.253.130`        |
-| `APP_DIR`     | `/srv/orionexe`        |
-| `SITE_URL`    | `https://orionexe.com` |
+| Variable      | Default                 |
+| ------------- | ----------------------- |
+| `REMOTE_USER` | _required, from `.env`_ |
+| `REMOTE_HOST` | _required, from `.env`_ |
+| `APP_DIR`     | `/srv/orionexe`         |
+| `SITE_URL`    | `https://orionexe.com`  |
 
 ## Timetable (`/edt/`)
 
@@ -132,7 +134,7 @@ details already known for unchanged event ids. Steady state is about a dozen
 requests per hour.
 
 ```sh
-ssh ubuntu@51.91.253.130 tail -n 30 /srv/orionexe/edt/refresh.log
+ssh "$REMOTE_USER@$REMOTE_HOST" tail -n 30 /srv/orionexe/edt/refresh.log
 ```
 
 ### When the portal misbehaves

@@ -8,8 +8,18 @@
 #
 set -euo pipefail
 
-REMOTE_USER="${REMOTE_USER:-ubuntu}"
-REMOTE_HOST="${REMOTE_HOST:-51.91.253.130}"
+cd "$(dirname "$0")/.."
+
+# Host and account live in .env (gitignored) so the repo names no infrastructure.
+if [[ -f .env ]]; then
+	# shellcheck disable=SC1091
+	set -a
+	. ./.env
+	set +a
+fi
+
+REMOTE_USER="${REMOTE_USER:?set REMOTE_USER in .env (see .env.example)}"
+REMOTE_HOST="${REMOTE_HOST:?set REMOTE_HOST in .env (see .env.example)}"
 APP_DIR="${APP_DIR:-/srv/orionexe}"
 
 TARGET="${1:-}"

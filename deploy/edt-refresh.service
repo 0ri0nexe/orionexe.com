@@ -1,6 +1,7 @@
 # Timetable scrape trigger, behind /edt/refresh.
 #
-# Installed by scripts/provision-edt.sh. Listens on the loopback only:
+# Installed by scripts/provision-edt.sh, which fills in __REMOTE_USER__.
+# Listens on the loopback only:
 # authentication is Caddy's, on /edt/*.
 
 [Unit]
@@ -9,8 +10,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=ubuntu
-Group=ubuntu
+User=__REMOTE_USER__
+Group=__REMOTE_USER__
 WorkingDirectory=/srv/orionexe/edt
 ExecStart=/srv/orionexe/edt/venv/bin/python /srv/orionexe/edt/trigger.py
 Restart=on-failure

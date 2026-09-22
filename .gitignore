@@ -12,6 +12,10 @@ node_modules
 .DS_Store
 Thumbs.db
 
+# Python build artefacts
+__pycache__/
+*.py[cod]
+
 # Timetable: personal data, local copy for development only.
 # In production the JSON lives in /srv/orionexe/shared/edt/ on the VPS.
 /static/edt/
