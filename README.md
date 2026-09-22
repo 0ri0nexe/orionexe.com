@@ -75,6 +75,75 @@ All scripts read these environment variables:
 | `APP_DIR`     | `/srv/orionexe`        |
 | `SITE_URL`    | `https://orionexe.com` |
 
+## Timetable (`/edt/`)
+
+`/edt/` shows my IMT timetable. The page is prerendered like everything else and
+fetches its data client-side from `/edt/schedule.json`.
+
+That JSON is **not** part of a release. It is written hourly on the VPS by
+`edt/scrape.py`, which logs into the school portal (SAML → Shibboleth → CAS) and
+scrapes the agenda module. It lives in `/srv/orionexe/shared/edt/`, outside
+`releases/`, so a deploy never overwrites it and the cron never fights a deploy.
+
+```
+/srv/orionexe/
+├── current -> releases/...        # Caddy's root
+├── shared/edt/schedule.json       # rewritten hourly, served at /edt/schedule.json
+└── edt/                           # scraper, venv, .env (mode 600), refresh.log
+```
+
+The page and the JSON are both behind HTTP basic auth — the timetable carries my
+name, my groups and my teachers. The bcrypt hash lives in `/etc/caddy/edt.env`
+(root:caddy, 640), injected into Caddy through a systemd `EnvironmentFile`, so no
+secret is ever committed.
+
+### Setup
+
+Fill in `.env` (see [`.env.example`](.env.example)), then:
+
+```sh
+npm run deploy               # ship the page
+./scripts/provision-edt.sh   # scraper, venv, secrets, cron, Caddy — idempotent
+```
+
+`provision-edt.sh` seeds the whole academic year on its first run (a few
+minutes), then a cron at `:17` keeps it fresh.
+
+### Manual refresh
+
+The page has a refresh button. Since the site is static, Caddy cannot run a
+script, so a tiny service (`edt/trigger.py`, `edt-refresh.service`) listens on
+`127.0.0.1:8899` and Caddy reverse-proxies `/edt/refresh` to it — already covered
+by the same basic auth. It has no auth of its own and is not reachable from
+outside the box.
+
+`POST` starts a run and returns immediately; the page polls `GET` until it is
+done, then reloads the JSON. A run already in progress returns `409`, and a
+second run within a minute returns `429`, so the button cannot be used to hammer
+the school portal. `refresh.sh` also takes an `flock`, so the cron and the button
+can never scrape at the same time.
+
+### Why the hourly run is cheap
+
+A full-year scrape is ~300 requests to the portal. Hourly, that would be rude.
+`refresh.sh` instead re-scrapes only the current and next month with
+`scrape.py --merge`, which keeps the rest of the year and reuses room/teacher
+details already known for unchanged event ids. Steady state is about a dozen
+requests per hour.
+
+```sh
+ssh ubuntu@51.91.253.130 tail -n 30 /srv/orionexe/edt/refresh.log
+```
+
+### When the portal misbehaves
+
+It throttles: log in a few times in a row and it starts returning pages with no
+form, or stops answering. Every request therefore carries a timeout — `requests`
+sets none by default, and a silent portal once froze a run indefinitely — and
+`connect()` retries four times with growing pauses. A run that still fails leaves
+the previous `schedule.json` untouched, so the page shows slightly stale data
+rather than nothing.
+
 ## Adding pages
 
 Routes live in `src/routes/`. Everything is prerendered (`src/routes/+layout.ts`),

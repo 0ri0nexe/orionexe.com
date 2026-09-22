@@ -1,0 +1,27 @@
+# Timetable scrape trigger, behind /edt/refresh.
+#
+# Installed by scripts/provision-edt.sh. Listens on the loopback only:
+# authentication is Caddy's, on /edt/*.
+
+[Unit]
+Description=Manual trigger for the timetable scrape
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/srv/orionexe/edt
+ExecStart=/srv/orionexe/edt/venv/bin/python /srv/orionexe/edt/trigger.py
+Restart=on-failure
+RestartSec=5
+
+# The service must touch nothing outside its own directory and its output.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/orionexe/edt /srv/orionexe/shared/edt
+
+[Install]
+WantedBy=multi-user.target

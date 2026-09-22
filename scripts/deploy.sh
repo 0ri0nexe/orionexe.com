@@ -35,7 +35,10 @@ RELEASE_DIR="${APP_DIR}/releases/${RELEASE}"
 
 step "Uploading release ${RELEASE}"
 ssh_do "mkdir -p '${RELEASE_DIR}'"
+# The local copy of the timetable must never be shipped: in production Caddy
+# serves the JSON from shared/, rewritten hourly by the cron.
 rsync -az --delete --info=stats1 \
+	--exclude 'edt/schedule.json*' \
 	-e "ssh -o ConnectTimeout=10" \
 	build/ "${REMOTE_USER}@${REMOTE_HOST}:${RELEASE_DIR}/"
 

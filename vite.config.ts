@@ -4,6 +4,15 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+	server: {
+		proxy: {
+			// En production c'est Caddy qui renvoie /edt/refresh au declencheur.
+			// En dev, lancer le service a la main pour que le bouton reponde :
+			//   EDT_DIR=edt python3 edt/trigger.py
+			'/edt/refresh': 'http://127.0.0.1:8899'
+		}
+	},
+
 	plugins: [
 		tailwindcss(),
 		sveltekit({

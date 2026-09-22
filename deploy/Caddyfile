@@ -5,6 +5,27 @@
 
 orionexe.com {
 	root * /srv/orionexe/current
+
+	# Timetable: personal data, behind a password.
+	# The bcrypt hash comes from /etc/caddy/edt.env (see scripts/provision-edt.sh),
+	# it is not versioned.
+	@edt path /edt /edt/ /edt/*
+	basicauth @edt {
+		{$EDT_WEB_USER} {$EDT_WEB_HASH}
+	}
+
+	# "Refresh" button: a local service (edt-refresh.service) re-runs the scrape.
+	# It has no auth of its own — it listens on 127.0.0.1 only, and the @edt
+	# matcher above already covers /edt/refresh.
+	@edt_refresh path /edt/refresh
+	reverse_proxy @edt_refresh 127.0.0.1:8899
+
+	# The JSON is rewritten hourly by the cron: it lives outside the releases,
+	# otherwise a deploy would replace it with a stale copy.
+	@edt_data path /edt/schedule.json
+	root @edt_data /srv/orionexe/shared
+	header @edt_data Cache-Control "no-store"
+
 	encode zstd gzip
 	file_server {
 		precompressed zstd gzip
