@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Antisèche Cisco IOS · Introduction aux réseaux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Introduction aux réseaux</a>
+    <div class="course-code">DIV 8404 · Annexe</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Annexe</div>
+    <h1>Antisèche Cisco IOS</h1>
+    <p class="lead">Uniquement les commandes tapées en TP, dans l'ordre d'une séance : se connecter, configurer, vérifier.</p>
+
+    <!-- ============================================================ -->
+    <h2 id="acces">1. Se connecter et se repérer</h2>
+    <pre data-label="Linux"><code><span class="prompt">$</span> sudo screen /dev/ttyUSB0 9600    <span class="cmt"># câble console, puis Entrée</span>
+<span class="cmt"># pour sortir : Ctrl-A, puis k, puis y</span></code></pre>
+    <p>Au premier démarrage, répondre <code>n</code> à <em>initial configuration dialog</em>. Sous Windows, même chose avec PuTTY (Serial, 9600).</p>
+
+    <figure>
+      <svg viewBox="0 0 720 150" role="img" aria-label="Enchaînement des modes IOS">
+        <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="muted"/></marker></defs>
+        <rect class="box" x="10" y="45" width="130" height="56" rx="10"/>
+        <text x="75" y="70" text-anchor="middle" font-weight="600">Utilisateur</text>
+        <text x="75" y="90" text-anchor="middle" class="muted" font-size="13">S1&gt;</text>
+        <rect class="box" x="200" y="45" width="130" height="56" rx="10"/>
+        <text x="265" y="70" text-anchor="middle" font-weight="600">Privilégié</text>
+        <text x="265" y="90" text-anchor="middle" class="muted" font-size="13">S1#</text>
+        <rect class="accent" x="390" y="45" width="140" height="56" rx="10"/>
+        <text x="460" y="70" text-anchor="middle" font-weight="600">Config globale</text>
+        <text x="460" y="90" text-anchor="middle" class="muted" font-size="13">S1(config)#</text>
+        <rect class="box" x="580" y="10" width="130" height="36" rx="8"/>
+        <text x="645" y="33" text-anchor="middle" font-size="12">(config-if)#</text>
+        <rect class="box" x="580" y="56" width="130" height="36" rx="8"/>
+        <text x="645" y="79" text-anchor="middle" font-size="12">(config-vlan)#</text>
+        <rect class="box" x="580" y="102" width="130" height="36" rx="8"/>
+        <text x="645" y="125" text-anchor="middle" font-size="12">(config-line)#</text>
+        <line class="line" x1="140" y1="65" x2="198" y2="65" marker-end="url(#arr)"/>
+        <text x="169" y="58" text-anchor="middle" font-size="11" class="muted">enable</text>
+        <line class="line" x1="330" y1="65" x2="388" y2="65" marker-end="url(#arr)"/>
+        <text x="359" y="58" text-anchor="middle" font-size="11" class="muted">conf t</text>
+        <line class="line" x1="390" y1="85" x2="332" y2="85" marker-end="url(#arr)"/>
+        <text x="361" y="100" text-anchor="middle" font-size="11" class="muted">end</text>
+        <line class="line" x1="530" y1="60" x2="578" y2="28" marker-end="url(#arr)"/>
+        <line class="line" x1="530" y1="73" x2="578" y2="74" marker-end="url(#arr)"/>
+        <line class="line" x1="530" y1="86" x2="578" y2="120" marker-end="url(#arr)"/>
+      </svg>
+      <figcaption><code>show</code> se tape en mode <code>#</code>. Configurer se fait sous <code>(config)#</code>. <code>exit</code> remonte d'un cran, <code>end</code> revient à <code>#</code>.</figcaption>
+    </figure>
+    <p><kbd>?</kbd> liste ce qu'on peut taper, <kbd>Tab</kbd> complète, et les abréviations marchent (<code>conf t</code>, <code>sh run</code>, <code>int f0/1</code>). Préfixer par <code>no</code> annule une commande. Sur Catalyst 9200, <code>f0/X</code> s'écrit <code>g1/0/X</code>.</p>
+
+    <!-- ============================================================ -->
+    <h2 id="base">2. Configuration de base <span class="badge">TP1</span> <span class="badge">TP2</span></h2>
+    <pre data-label="Cisco IOS"><code><span class="prompt">Switch&gt;</span> enable
+<span class="prompt">Switch#</span> delete vlan.dat                 <span class="cmt">! repartir sans VLANs (TP5)</span>
+<span class="prompt">Switch#</span> clock set 15:08:00 Oct 26 2026
+<span class="prompt">Switch#</span> configure terminal
+<span class="prompt">Switch(config)#</span> hostname S1
+<span class="prompt">S1(config)#</span> no ip domain-lookup          <span class="cmt">! une faute de frappe ne bloque plus 30 s</span>
+<span class="prompt">S1(config)#</span> enable secret class         <span class="cmt">! mot de passe du mode #</span>
+<span class="prompt">S1(config)#</span> line console 0
+<span class="prompt">S1(config-line)#</span> password cisco
+<span class="prompt">S1(config-line)#</span> login                  <span class="cmt">! sans login, le mot de passe n'est pas demandé</span>
+<span class="prompt">S1(config-line)#</span> exit
+<span class="prompt">S1(config)#</span> banner motd # Acces reserve #</code></pre>
+
+    <!-- ============================================================ -->
+    <h2 id="svi">3. Adresse IP du switch (SVI) <span class="badge">TP2</span> <span class="badge">TP5</span></h2>
+    <pre data-label="Cisco IOS"><code><span class="prompt">S1(config)#</span> interface vlan 99             <span class="cmt">! vlan 1 en TP2</span>
+<span class="prompt">S1(config-if)#</span> ip address 192.168.1.11 255.255.255.0
+<span class="prompt">S1(config-if)#</span> no shutdown</code></pre>
+    <div class="callout explain"><span class="callout-title">Pour comprendre</span><p>Les ports d'un switch n'ont pas d'IP : il transmet des trames sans les lire au niveau IP. Pour pouvoir le <code>ping</code>er, on lui donne une IP sur une interface virtuelle, la <strong>SVI</strong>, rattachée à un VLAN. Elle n'est <strong>up</strong> que si au moins un port actif de ce VLAN existe. Dans le TP5, <code>vlan 99</code> reste down tant qu'aucun port n'y est affecté.</p></div>
+
+    <!-- ============================================================ -->
+    <h2 id="vlans">4. VLANs et trunks <span class="badge">TP5</span> <span class="badge">TP6</span></h2>
+    <pre data-label="Cisco IOS"><code><span class="cmt">! créer</span>
+<span class="prompt">S1(config)#</span> vlan 10
+<span class="prompt">S1(config-vlan)#</span> name Operations
+<span class="prompt">S1(config-vlan)#</span> exit
+<span class="cmt">! port vers un PC : un seul VLAN</span>
+<span class="prompt">S1(config)#</span> interface f0/6
+<span class="prompt">S1(config-if)#</span> switchport mode access
+<span class="prompt">S1(config-if)#</span> switchport access vlan 10
+<span class="prompt">S1(config-if)#</span> no shutdown
+<span class="cmt">! lien vers un autre switch : tous les VLANs</span>
+<span class="prompt">S1(config)#</span> interface f0/1
+<span class="prompt">S1(config-if)#</span> switchport mode trunk
+<span class="prompt">S1(config-if)#</span> switchport trunk native vlan 1000   <span class="cmt">! même valeur des deux côtés</span></code></pre>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : access ou trunk</span><p>Un port <strong>access</strong> appartient à un seul VLAN et ne marque pas les trames : le PC ne sait même pas qu'il est dans un VLAN. Un port <strong>trunk</strong> transporte plusieurs VLANs sur un câble. Il ajoute à chaque trame une étiquette 802.1Q avec le numéro de VLAN, sauf pour le <strong>VLAN natif</strong>, envoyé sans étiquette. Si les deux bouts n'ont pas le même VLAN natif, ces trames atterrissent dans le mauvais VLAN.</p></div>
+    <p>Dans le TP5, on teste aussi <code>switchport mode dynamic desirable</code> : le trunk est alors négocié par DTP au lieu d'être forcé. Il se forme si l'autre côté est en <code>trunk</code>, <code>desirable</code> ou <code>auto</code>. <strong>auto + auto ne donne pas de trunk</strong>, car aucun des deux ne propose.</p>
+
+    <!-- ============================================================ -->
+    <h2 id="stp">5. Spanning Tree <span class="badge">TP6</span></h2>
+    <pre data-label="Cisco IOS"><code><span class="prompt">S1(config)#</span> spanning-tree mode pvst
+<span class="prompt">S1(config)#</span> spanning-tree vlan 1,10,30 root primary      <span class="cmt">! S1 racine de ces VLANs</span>
+<span class="prompt">S2(config)#</span> spanning-tree vlan 1,10,30 root secondary    <span class="cmt">! S2 en secours</span>
+<span class="cmt">! sur les ports vers les PC uniquement</span>
+<span class="prompt">S1(config)#</span> interface f0/11
+<span class="prompt">S1(config-if)#</span> spanning-tree portfast
+<span class="prompt">S1(config-if)#</span> spanning-tree bpduguard enable</code></pre>
+    <div class="callout explain"><span class="callout-title">Pour comprendre</span><p><code>root primary</code> baisse la priorité du switch pour qu'il gagne l'élection du pont racine dans ces VLANs. Avec PVST+, il y a un arbre par VLAN : S1 racine de certains VLANs et S3 des autres, les trois liens servent au lieu d'en laisser un inutilisé. <strong>PortFast</strong> fait passer un port vers PC en forwarding tout de suite, au lieu d'attendre 30 s. <strong>BPDU Guard</strong> coupe ce port si un switch y est branché par erreur.</p></div>
+
+    <!-- ============================================================ -->
+    <h2 id="verifier">6. Vérifier <span class="badge">tous les TP</span></h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Je veux savoir...</th><th>Commande</th></tr></thead>
+      <tbody>
+        <tr><td>Quels ports sont actifs, avec quelle IP</td><td><code>show ip interface brief</code></td></tr>
+        <tr><td>Toute la configuration en cours</td><td><code>show running-config</code></td></tr>
+        <tr><td>Version d'IOS, modèle</td><td><code>show version</code></td></tr>
+        <tr><td>Quels VLANs existent, quels ports y sont</td><td><code>show vlan brief</code></td></tr>
+        <tr><td>Quels ports sont en trunk, VLAN natif</td><td><code>show interfaces trunk</code></td></tr>
+        <tr><td>Qui est racine, état de mes ports</td><td><code>show spanning-tree vlan 10</code></td></tr>
+        <tr><td>Quelle MAC est derrière quel port (TP4)</td><td><code>show mac address-table</code><br><code>clear mac address-table dynamic</code></td></tr>
+        <tr><td>Si une machine répond</td><td><code>ping 192.168.1.12</code></td></tr>
+      </tbody>
+    </table></div>
+
+    <p>Dans <code>show ip interface brief</code>, lire les colonnes <em>Status / Protocol</em> :</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Affiché</th><th>Cause</th><th>Solution</th></tr></thead>
+      <tbody>
+        <tr><td><code>up / up</code></td><td>Tout va bien</td><td></td></tr>
+        <tr><td><code>administratively down</code></td><td>Port en <code>shutdown</code></td><td><code>no shutdown</code></td></tr>
+        <tr><td><code>down / down</code></td><td>Rien de branché, mauvais câble</td><td>Vérifier le câblage</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="callout warn"><span class="callout-title">Le ping ne passe pas ? Dans l'ordre</span><p>1. Ports <code>up/up</code> ? 2. Les deux PC dans le même VLAN (<code>show vlan brief</code>) ? 3. Le lien entre switchs est-il un trunk (<code>show interfaces trunk</code>) ? 4. Même sous-réseau sur les deux PC, pare-feu coupé ?</p></div>
+
+    <div class="callout warn"><span class="callout-title">Règles de la salle B107</span><p>Ne jamais sauvegarder (<code>write</code> ou <code>copy running-config startup-config</code>) : la config reste en RAM et disparaît au redémarrage, c'est voulu. En fin de TP : <code>delete vlan.dat</code>, puis remettre câbles et équipements en place.</p></div>
+
+    <div class="chapter-nav">
+      <a class="prev" href="08-transport-application.html"><span>← Précédent</span>Transport, application et DHCPv4</a>
+      <a class="next" href="index.html"><span>Retour →</span>Sommaire</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

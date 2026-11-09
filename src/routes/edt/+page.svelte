@@ -1,3 +1,7 @@
+<!-- This part of the website is just a tool to be more convenient to me 
+ and is not related to the portfolio in any way. 
+ Beaware that it's also fully vibe-coded and is intended to be a working tool rather than a cool coding thingy
+-->
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';

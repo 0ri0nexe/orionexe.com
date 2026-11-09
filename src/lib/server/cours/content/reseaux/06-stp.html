@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spanning Tree (STP) · Introduction aux réseaux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Introduction aux réseaux</a>
+    <div class="course-code">DIV 8404 · Chapitre 06</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 06</div>
+    <h1>Spanning Tree (STP)</h1>
+    <p class="lead">On relie les switchs par plusieurs chemins pour survivre à une panne, mais Ethernet ne supporte pas les boucles. Spanning Tree garde les liens redondants câblés et en bloque logiquement juste assez pour qu'il ne reste qu'un seul chemin actif.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>Une boucle de niveau 2 provoque une <strong>tempête de broadcast</strong> : la trame Ethernet n'a pas de TTL, elle tourne indéfiniment.</li>
+        <li>STP construit un arbre en 4 étapes : <strong>1)</strong> élire le pont racine (plus petit BID), <strong>2)</strong> un port racine par switch non-racine, <strong>3)</strong> un port désigné par lien, <strong>4)</strong> bloquer tout le reste.</li>
+        <li><strong>BID</strong> = priorité (32768 par défaut, multiple de 4096) + n° de VLAN + MAC. Coût : 100 Mb/s = 19, 1 Gb/s = 4. <strong>Partout, le plus petit gagne.</strong></li>
+        <li>Un port passe par blocking, listening (15 s), learning (15 s), puis forwarding.</li>
+        <li><strong>PVST+</strong> (défaut Cisco) : un arbre par VLAN, donc une racine différente par groupe de VLANs pour répartir la charge. <strong>PortFast + BPDU Guard</strong> sur les ports reliés aux PC.</li>
+      </ul>
+    </div>
+
+    <h2 id="boucles">Le problème : les boucles de niveau 2</h2>
+    <p>Relier un switch au cœur du réseau par <strong>deux liens</strong> assure la redondance, mais crée une <strong>boucle</strong>. Or un switch inonde sur tous ses ports (sauf celui d'entrée) les broadcasts, les multicasts et l'<strong>unicast inconnu</strong> (MAC destination absente de sa table). Dans une boucle, chaque switch renvoie la trame à ses voisins, sans fin. Trois conséquences :</p>
+    <ul>
+      <li><strong>Tempête de broadcast</strong> : les copies saturent liens et CPU en quelques secondes.</li>
+      <li><strong>Instabilité de la table MAC</strong> : la même MAC arrive par plusieurs ports.</li>
+      <li><strong>Trames dupliquées</strong> chez le destinataire.</li>
+    </ul>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : pourquoi IP survit aux boucles et pas Ethernet</span>
+      <p>Un paquet IP porte un <strong>TTL</strong> que chaque routeur décrémente : arrivé à 0, le paquet est détruit, donc une boucle de routage finit toujours par s'éteindre. La trame Ethernet n'a <strong>aucun champ équivalent</strong> : un switch la réémet telle quelle : elle tourne jusqu'à ce qu'on débranche un câble. Faute de pouvoir tuer ces trames, STP empêche la boucle d'exister.</p>
+    </div>
+
+    <p>Le <strong>Spanning Tree Protocol (STP)</strong> est donc un protocole de prévention des boucles : il <strong>bloque logiquement</strong> certains ports pour obtenir un arbre sans boucle, et les <strong>réouvre</strong> automatiquement si un lien actif tombe. Il est activé par défaut sur les switchs Cisco.</p>
+
+    <h2 id="algorithme">L'algorithme en 4 étapes</h2>
+    <p>Les switchs échangent toutes les 2 secondes des <strong>BPDU</strong> (Bridge Protocol Data Units). qui annoncent le BID de l'émetteur, la racine qu'il connaît et son coût vers elle. Chaque switch en déduit :</p>
+    <ol>
+      <li><strong>Élire le pont racine</strong> (root bridge) : le switch au plus petit BID. Il est unique.</li>
+      <li><strong>Choisir un port racine</strong> (root port) sur chaque switch non-racine : celui qui mène à la racine au plus petit coût.</li>
+      <li><strong>Choisir un port désigné</strong> (designated port) sur chaque lien : le bout le plus proche de la racine.</li>
+      <li><strong>Bloquer les autres ports</strong> (rôle <em>alternate</em>, état blocking).</li>
+    </ol>
+
+    <h3 id="bid">Les deux critères : BID et coût</h3>
+        <figure>
+      <svg viewBox="0 0 640 190" role="img" aria-label="Structure du Bridge ID sur 8 octets : priorité 4 bits, extended system ID 12 bits, adresse MAC 48 bits">
+        <text x="320" y="20" text-anchor="middle" font-weight="700">Bridge ID (8 octets = 64 bits)</text>
+        <rect class="accent" x="20" y="40" width="110" height="60" rx="6"/>
+        <text x="75" y="66" text-anchor="middle" font-weight="600">Priorité</text>
+        <text x="75" y="86" text-anchor="middle" class="muted" font-size="13">4 bits</text>
+        <rect class="accent" x="130" y="40" width="170" height="60" rx="6"/>
+        <text x="215" y="66" text-anchor="middle" font-weight="600">Extended System ID</text>
+        <text x="215" y="86" text-anchor="middle" class="muted" font-size="13">12 bits = n° de VLAN</text>
+        <rect class="box" x="300" y="40" width="320" height="60" rx="6"/>
+        <text x="460" y="66" text-anchor="middle" font-weight="600">Adresse MAC du switch</text>
+        <text x="460" y="86" text-anchor="middle" class="muted" font-size="13">48 bits</text>
+        <path class="line" d="M20 112 v8 h280 v-8"/>
+        <text x="160" y="140" text-anchor="middle" font-size="13">« Priorité » affichée par IOS</text>
+        <text x="160" y="158" text-anchor="middle" font-size="13" class="muted">ex. 32768 + 1 = 32769 (VLAN 1)</text>
+        <text x="460" y="140" text-anchor="middle" font-size="13">Départage final</text>
+        <text x="460" y="158" text-anchor="middle" font-size="13" class="muted">plus petite MAC (en hexa) gagne</text>
+        <text x="320" y="184" text-anchor="middle" font-size="13" class="muted">Comparaison champ par champ : le plus petit BID devient pont racine</text>
+      </svg>
+      <figcaption>Structure du BID. La priorité n'occupe que 4 bits de poids fort, d'où les pas de 4096 (2<sup>12</sup>).</figcaption>
+    </figure>
+    <p>La priorité vaut <strong>32768 par défaut</strong> et se règle de 0 à 61440 <strong>par pas de 4096</strong>. IOS affiche la somme priorité + VLAN : 32769 pour le VLAN 1, 32778 pour le VLAN 10. Sans configuration, c'est donc la <strong>plus petite MAC</strong> qui décide (souvent le switch le plus ancien) : il faut <strong>fixer la racine</strong> en baissant sa priorité.</p>
+    <p>Le <strong>coût vers la racine</strong> (root path cost) dépend du débit : <strong>19</strong> pour 100 Mb/s, <strong>4</strong> pour 1 Gb/s, <strong>2</strong> pour 10 Gb/s. La racine annonce un coût de 0 ; chaque switch qui reçoit un BPDU <strong>ajoute le coût du port de réception</strong>, puis réannonce ce total plus loin.</p>
+
+    <div class="callout warn"><span class="callout-title">Piège classique : quel coût compter ?</span>
+      <p>On additionne les coûts des ports <strong>d'entrée</strong> (ceux qui reçoivent le BPDU, tournés vers la racine), jamais ceux de la racine. Un switch relié directement à la racine en FastEthernet a un coût de <strong>19</strong>, pas 38. Et STP compare le coût, pas le nombre de sauts : deux liens 1 Gb/s (4 + 4 = 8) battent un lien direct à 100 Mb/s (19).</p>
+    </div>
+
+    <h3 id="exemple" data-toc="Exemple : le triangle">Exemple déroulé : le triangle à 3 switchs</h3>
+    <p>Trois switchs S1, S2, S3 en triangle, reliés par des liens FastEthernet (coût 19). Priorité par défaut (32769, VLAN 1) partout. MAC : S1 <code>000A.0001.1111</code>, S2 <code>000A.0002.2222</code>, S3 <code>000A.0003.3333</code>.</p>
+    <ol class="steps">
+      <li><strong>Pont racine.</strong> Chaque switch se croit d'abord racine, puis adopte toute racine annoncée plus petite. Priorités égales, on compare les MAC : <strong>S1 est la racine</strong>.</li>
+      <li><strong>Ports racine.</strong> S2 peut joindre S1 en direct (coût 19) ou via S3 (19 + 19 = 38) : son port racine est <strong>F0/1</strong>, vers S1. Même raisonnement pour S3 : <strong>F0/1</strong>. La racine n'a aucun port racine.</li>
+      <li><strong>Ports désignés.</strong> Tous les ports de la racine sont désignés (S1 F0/1 et F0/2), ce qui règle les liens S1-S2 et S1-S3. Reste le lien <strong>S2-S3</strong> : S2 et S3 annoncent tous deux un coût de 19, égalité. On départage par le <strong>BID de l'émetteur</strong> : S2 (MAC …0002…) &lt; S3 (…0003…), donc <strong>S2 F0/2 est désigné</strong>.</li>
+      <li><strong>Port bloqué.</strong> <strong>S3 F0/2</strong> n'est ni racine ni désigné : il devient <strong>alternate</strong> et passe en blocking. Il écoute toujours les BPDU mais ne transmet plus de données : la boucle est cassée.</li>
+    </ol>
+
+    <figure>
+      <svg viewBox="0 0 640 360" role="img" aria-label="Triangle S1 S2 S3 avec S1 racine, ports racine, ports désignés et port alternate bloqué sur S3 F0/2">
+        <line class="line" x1="160" y1="70" x2="480" y2="70" stroke-width="3"/>
+        <line class="line" x1="480" y1="70" x2="320" y2="270" stroke-width="3"/>
+        <line class="line" x1="160" y1="70" x2="320" y2="270" stroke-width="3" stroke-dasharray="8 6"/>
+        <text x="320" y="58" text-anchor="middle" class="muted" font-size="12">Trunk3 · coût 19</text>
+        <text x="430" y="185" text-anchor="start" class="muted" font-size="12">Trunk1 · coût 19</text>
+        <text x="210" y="185" text-anchor="end" class="muted" font-size="12">Trunk2 · coût 19</text>
+        <rect class="box" x="100" y="45" width="120" height="50" rx="8"/>
+        <text x="160" y="68" text-anchor="middle" font-weight="700">S3</text>
+        <text x="160" y="86" text-anchor="middle" class="muted" font-size="11">32769 · …0003…</text>
+        <rect class="accent" x="420" y="45" width="120" height="50" rx="8"/>
+        <text x="480" y="68" text-anchor="middle" font-weight="700">S1 (racine)</text>
+        <text x="480" y="86" text-anchor="middle" class="muted" font-size="11">32769 · …0001…</text>
+        <rect class="box" x="260" y="245" width="120" height="50" rx="8"/>
+        <text x="320" y="268" text-anchor="middle" font-weight="700">S2</text>
+        <text x="320" y="286" text-anchor="middle" class="muted" font-size="11">32769 · …0002…</text>
+        <text x="232" y="38" font-size="12" font-weight="600">F0/1 · RP</text>
+        <text x="330" y="38" font-size="12" font-weight="600">F0/2 · DP</text>
+        <text x="548" y="120" font-size="12" font-weight="600">F0/1 · DP</text>
+        <text x="392" y="232" font-size="12" font-weight="600">F0/1 · RP</text>
+        <text x="190" y="232" font-size="12" font-weight="600">F0/2 · DP</text>
+        <text x="60" y="122" font-size="12" font-weight="600">F0/2 · ALT</text>
+        <text x="60" y="138" font-size="11" class="muted">(blocking)</text>
+        <g class="stroke" stroke-width="3">
+          <line x1="168" y1="100" x2="188" y2="120"/>
+          <line x1="188" y1="100" x2="168" y2="120"/>
+        </g>
+        <text x="320" y="335" text-anchor="middle" font-size="12" class="muted">RP = port racine · DP = port désigné · ALT = port alternatif (bloqué) · trait pointillé = lien sans trafic de données</text>
+      </svg>
+      <figcaption>Résultat : S1 est racine, S3 F0/2 est bloqué. Si le lien S1-S2 ou S1-S3 tombe, STP recalcule et débloque S3 F0/2.</figcaption>
+    </figure>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : « chacun regarde vers la racine »</span>
+      <p>Imaginez la racine comme un château d'eau. Chaque switch garde <strong>un seul tuyau qui remonte</strong> vers le château : son port racine. Sur chaque tuyau, un seul bout est chargé de distribuer l'eau vers l'aval : le port désigné, toujours du côté le plus proche du château. Un tuyau qui ne sert ni à remonter ni à distribuer ne ferait que créer un circuit fermé : on ferme sa vanne (port alternate).</p>
+    </div>
+
+    <p><strong>En cas d'égalité de coût</strong>, on compare dans l'ordre, au plus petit : le <strong>BID de l'émetteur</strong>, puis sa <strong>priorité de port</strong> (128 par défaut), puis son <strong>numéro de port</strong> (utile seulement avec deux câbles parallèles).</p>
+
+    <h2 id="etats-timers">États des ports et timers</h2>
+    <p>Un port ne passe pas directement de blocking à forwarding, sinon il risquerait une boucle temporaire avant que la topologie soit connue. Il traverse des états intermédiaires réglés par des timers.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>État</th><th>BPDU</th><th>Apprend les MAC</th><th>Transmet les données</th><th>Durée</th></tr></thead>
+      <tbody>
+        <tr><td>Blocking</td><td>Reçoit seulement</td><td>Non</td><td>Non</td><td>Jusqu'à <strong>max age</strong> (20 s) sans BPDU</td></tr>
+        <tr><td>Listening</td><td>Reçoit et envoie</td><td>Non</td><td>Non</td><td><strong>Forward delay</strong> (15 s)</td></tr>
+        <tr><td>Learning</td><td>Reçoit et envoie</td><td><strong>Oui</strong></td><td>Non</td><td>Forward delay (15 s)</td></tr>
+        <tr><td>Forwarding</td><td>Reçoit et envoie</td><td>Oui</td><td><strong>Oui</strong></td><td>État normal</td></tr>
+        <tr><td>Disabled</td><td>Non</td><td>Non</td><td>Non</td><td>Port éteint (<code>shutdown</code>)</td></tr>
+      </tbody>
+    </table></div>
+    <p>Le <strong>hello</strong> (2 s) est l'intervalle entre deux BPDU. Conséquences à retenir : un port qui s'allume attend <strong>30 s</strong> (15 + 15) avant de transmettre, et une panne indirecte peut demander jusqu'à <strong>50 s</strong> (20 + 15 + 15). Les timers se règlent sur le pont racine, qui les impose via ses BPDU.</p>
+
+    <h2 id="pvst">PVST+, PortFast et variantes</h2>
+    <p>Avec STP classique, il n'y a qu'<strong>un arbre pour tout le réseau</strong> : dans le triangle, un lien sur trois ne transporte jamais rien. <strong>PVST+</strong> (Per-VLAN Spanning Tree, mode par défaut des switchs Cisco) fait tourner <strong>une instance STP par VLAN</strong>, chacune avec sa propre racine. C'est à cela que sert le numéro de VLAN dans le BID.</p>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : le partage de charge</span>
+      <p>Si S1 est racine des VLANs pairs et S3 racine des VLANs impairs, chaque arbre bloque un lien <strong>différent</strong>. Le lien bloqué pour les VLANs pairs transporte le trafic des impairs, et inversement : les trois liens du triangle travaillent, au lieu d'en laisser un dormir.</p>
+    </div>
+
+    <pre data-label="Cisco IOS · choisir la racine"><code><span class="prompt">S1(config)#</span> spanning-tree vlan 10 root primary     <span class="cmt">! 24576 (ou moins si nécessaire)</span>
+<span class="prompt">S2(config)#</span> spanning-tree vlan 10 root secondary   <span class="cmt">! 28672 : racine de secours</span>
+<span class="prompt">S1(config)#</span> spanning-tree vlan 10 priority 24576   <span class="cmt">! variante : priorité explicite</span>
+<span class="prompt">S1#</span> show spanning-tree vlan 10</code></pre>
+    <pre data-label="Sortie (extrait)"><code><span class="out">  Root ID    Priority    <span class="hl">24586</span>
+             <span class="hl">This bridge is the root</span>
+Interface        Role Sts Cost      Prio.Nbr Type
+Fa0/1            <span class="hl">Desg FWD</span> 19        128.1    P2p
+Fa0/2            <span class="hl">Desg FWD</span> 19        128.2    P2p</span></code></pre>
+    <p>À lire : <strong>Role</strong> (Root, Desg, Altn) et <strong>Sts</strong> (FWD, BLK). 24586 = 24576 + 10.</p>
+
+    <h3 id="portfast">PortFast et BPDU Guard</h3>
+    <p>Quand on branche un PC, son port attend 30 s en listening puis learning, et le client DHCP peut abandonner avant d'obtenir une adresse. <strong>PortFast</strong> fait passer le port <strong>immédiatement en forwarding</strong>. <strong>BPDU Guard</strong> est le garde-fou : si un BPDU arrive sur ce port (donc qu'un switch y a été branché), le port passe en <strong>err-disabled</strong> et doit être réactivé à la main (<code>shutdown</code> puis <code>no shutdown</code>).</p>
+    <pre data-label="Cisco IOS"><code><span class="prompt">S3(config)#</span> interface f0/11
+<span class="prompt">S3(config-if)#</span> spanning-tree portfast
+<span class="prompt">S3(config-if)#</span> spanning-tree bpduguard enable</code></pre>
+
+    <div class="callout warn"><span class="callout-title">Piège classique : PortFast entre deux switchs</span>
+      <p>PortFast se met <strong>uniquement sur les ports reliés à un hôte</strong>. Vers un autre switch, il saute la vérification et peut créer une boucle, d'où l'association systématique avec BPDU Guard.</p>
+    </div>
+
+    <h3 id="variantes">Les variantes</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Variante</th><th>Norme</th><th>Instances</th><th>À retenir</th></tr></thead>
+      <tbody>
+        <tr><td><strong>STP</strong></td><td>IEEE 802.1D</td><td>Une seule</td><td>Version d'origine, convergence lente (30 à 50 s).</td></tr>
+        <tr><td><strong>PVST+</strong></td><td>Cisco</td><td>Une par VLAN</td><td><strong>Défaut Cisco.</strong> Permet le partage de charge.</td></tr>
+        <tr><td><strong>RSTP</strong></td><td>IEEE 802.1w</td><td>Une seule</td><td>Même algorithme, convergence rapide (états discarding, learning, forwarding).</td></tr>
+        <tr><td><strong>Rapid PVST+</strong></td><td>Cisco</td><td>Une par VLAN</td><td>RSTP par VLAN. À activer : <code>spanning-tree mode rapid-pvst</code>.</td></tr>
+        <tr><td><strong>MSTP</strong></td><td>IEEE 802.1s</td><td>Quelques-unes</td><td>Regroupe plusieurs VLANs dans une même instance.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="tp">Travaux pratiques</h2>
+    <section class="tp">
+      <h3 id="tp-pvst">TP · Configurer PVST+ <span class="badge">Packet Tracer / switchs 2960</span></h3>
+      <p><strong>Objectif :</strong> sur un triangle S1-S2-S3, répartir la charge en choisissant une racine différente par groupe de VLANs, puis protéger les ports des PC.</p>
+      <ol class="steps">
+        <li>Créer les VLANs (10 à 80 et 99) sur les trois switchs, mettre F0/1 et F0/2 en trunk avec VLAN natif 99 (voir chapitre 05).</li>
+        <li>S1 racine des VLANs 1, 10, 30, 50, 70 ; S3 racine des VLANs 20, 40, 60, 80, 99 ; S2 secours de tous :
+<pre data-label="Cisco IOS"><code><span class="prompt">S1(config)#</span> spanning-tree vlan 1,10,30,50,70 root primary
+<span class="prompt">S3(config)#</span> spanning-tree vlan 20,40,60,80,99 root primary
+<span class="prompt">S2(config)#</span> spanning-tree vlan 1,10,20,30,40,50,60,70,80,99 root secondary</code></pre></li>
+        <li>Vérifier avec <code>show spanning-tree vlan 10</code> puis <code>vlan 20</code> sur chaque switch.</li>
+        <li>Sur les ports des PC : <code>spanning-tree portfast</code> et <code>spanning-tree bpduguard enable</code>.</li>
+      </ol>
+      <details><summary>Sur S1, <code>show spanning-tree vlan 20</code> : qui est racine, et quel port de S1 est bloqué ?</summary>
+        <p>La racine est <strong>S3</strong> (24596 = 24576 + 20). S1 F0/1, relié à S3, est <strong>port racine</strong>. Sur le lien S1-S2, les deux sont à coût 19 de la racine ; S2 a le plus petit BID (secondaire : 28692 contre 32788 pour S1). S2 F0/2 est donc désigné et <strong>S1 F0/2 est bloqué</strong>. Pour le VLAN 10, c'est S3 F0/2 qui est bloqué : les trois liens servent.</p></details>
+      <details><summary>Que se passe-t-il si on branche un switch sur S3 F0/11 après avoir activé BPDU Guard ?</summary>
+        <p>Le port reçoit un BPDU et passe immédiatement en <strong>err-disabled</strong>. On le réactive avec <code>shutdown</code> puis <code>no shutdown</code>.</p></details>
+    </section>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. Pourquoi une boucle est-elle catastrophique en Ethernet et pas en IP ?</summary>
+      <p>La trame Ethernet n'a pas de TTL : elle tourne indéfiniment (tempête de broadcast). Le paquet IP est détruit quand son TTL atteint 0.</p></details>
+    <details><summary>2. Trois switchs ont la priorité par défaut. Lequel devient racine, et quelle priorité peut-on configurer pour forcer le choix : 1000, 4096 ou 32769 ?</summary>
+      <p>Celui qui a la <strong>plus petite MAC</strong>. Pour forcer le choix : <strong>4096</strong>, car la priorité est un multiple de 4096. 32769 est une valeur affichée (32768 + VLAN 1).</p></details>
+    <details><summary>3. Un switch joint la racine soit par un lien direct à 100 Mb/s, soit via un autre switch par deux liens 1 Gb/s. Quel est son port racine ?</summary>
+      <p>Direct : 19. Indirect : 4 + 4 = 8. Le port racine est celui du chemin à <strong>8</strong> : STP compare le coût, pas le nombre de sauts.</p></details>
+    <details><summary>4. Combien de ports racine sur le pont racine ? Combien de ports désignés par lien ?</summary>
+      <p><strong>Zéro</strong> port racine sur la racine (tous ses ports sont désignés), <strong>un</strong> port désigné par lien, un port racine par switch non-racine.</p></details>
+    <details><summary>5. Pourquoi un PC branché sur un port sans PortFast attend-il 30 secondes, et dans quel état le port apprend-il les MAC ?</summary>
+      <p>Le port passe 15 s en listening puis 15 s en learning (forward delay) avant forwarding. C'est en <strong>learning</strong> qu'il remplit sa table MAC, sans encore transmettre.</p></details>
+    <details><summary>6. Quel est l'intérêt de PVST+ par rapport à STP classique ?</summary>
+      <p>Un arbre et une racine par VLAN : en choisissant des racines différentes selon les VLANs, chaque arbre bloque un lien différent et <strong>tous les liens transportent du trafic</strong> (partage de charge).</p></details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="05-vlans.html"><span>← Précédent</span>Les VLANs</a>
+      <a class="next" href="07-ipv4.html"><span>Suivant →</span>Couche réseau et IPv4</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

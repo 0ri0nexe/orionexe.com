@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Les réseaux aujourd'hui · Introduction aux réseaux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Introduction aux réseaux</a>
+    <div class="course-code">DIV 8404 · Chapitre 01</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 01</div>
+    <h1>Les réseaux aujourd'hui</h1>
+    <p class="lead">De quoi un réseau est fait, comment on classe les réseaux (LAN, WAN, Internet) et ce qui fait qu'un réseau est fiable. C'est le vocabulaire de base de tout le reste du cours.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>Un réseau = des <strong>terminaux</strong> (source ou destination des données) + des <strong>équipements intermédiaires</strong> (switch, routeur, point d'accès, pare-feu) + des <strong>supports</strong> (cuivre, fibre, sans fil).</li>
+        <li><strong>LAN</strong> : petite zone, appartient à l'entreprise, très haut débit, construit avec des <strong>switches</strong>.</li>
+        <li><strong>WAN</strong> : relie des LAN sur de longues distances, loué à un <strong>opérateur</strong>, débit plus faible, construit avec des <strong>routeurs</strong>.</li>
+        <li>Topologie <strong>physique</strong> = où sont les équipements et les câbles ; topologie <strong>logique</strong> = ports et adresses IP.</li>
+        <li>Un réseau fiable repose sur 4 piliers : <strong>tolérance aux pannes, évolutivité, QoS, sécurité</strong>.</li>
+      </ul>
+    </div>
+
+    <h2 id="composants">Les composants d'un réseau</h2>
+    <p>Tout réseau, de la box familiale au réseau d'une multinationale, se décompose en trois familles d'éléments.</p>
+    <ul>
+      <li>Les <strong>terminaux (end devices, ou hôtes)</strong> sont les équipements d'où part un message ou où il arrive : PC, serveur, imprimante, téléphone IP, smartphone.</li>
+      <li>Les <strong>équipements intermédiaires</strong> relient les terminaux entre eux : <strong>switches</strong>, <strong>points d'accès Wi-Fi</strong>, <strong>routeurs</strong>, <strong>pare-feu</strong>. Ils régénèrent les signaux, connaissent les chemins du réseau et signalent les erreurs.</li>
+      <li>Les <strong>supports (media)</strong> transportent le signal : <strong>cuivre</strong> (impulsions électriques, prise RJ45), <strong>fibre optique</strong> (impulsions lumineuses, longues distances), <strong>sans fil</strong> (ondes radio, Wi-Fi).</li>
+    </ul>
+
+    <figure>
+      <svg viewBox="0 0 640 170" role="img" aria-label="Deux PC reliés par un switch et un routeur">
+        <rect class="box" x="10" y="60" width="90" height="46" rx="8"/><text x="55" y="88" text-anchor="middle">PC A</text>
+        <rect class="accent" x="170" y="60" width="110" height="46" rx="8"/><text x="225" y="88" text-anchor="middle">Switch</text>
+        <rect class="accent" x="350" y="60" width="110" height="46" rx="8"/><text x="405" y="88" text-anchor="middle">Routeur</text>
+        <rect class="box" x="530" y="60" width="100" height="46" rx="8"/><text x="580" y="88" text-anchor="middle">Serveur B</text>
+        <line class="line" x1="100" y1="83" x2="170" y2="83" stroke-width="2"/>
+        <line class="line" x1="280" y1="83" x2="350" y2="83" stroke-width="2"/>
+        <line class="line" x1="460" y1="83" x2="530" y2="83" stroke-width="2"/>
+        <text x="55" y="40" text-anchor="middle" class="muted" font-size="13">terminal (source)</text>
+        <text x="315" y="40" text-anchor="middle" class="muted" font-size="13">équipements intermédiaires</text>
+        <text x="580" y="40" text-anchor="middle" class="muted" font-size="13">terminal (destination)</text>
+        <text x="320" y="145" text-anchor="middle" class="muted" font-size="13">supports : câble cuivre, fibre optique ou ondes radio</text>
+      </svg>
+      <figcaption>Terminaux aux extrémités, équipements intermédiaires au milieu, supports entre les deux.</figcaption>
+    </figure>
+
+    <p>Pour représenter un réseau, on utilise deux types de schémas. La <strong>topologie physique</strong> montre l'emplacement réel des équipements et le câblage (salle, étage, baie). La <strong>topologie logique</strong> montre les équipements, les ports utilisés et le plan d'adressage IP.</p>
+    <div class="callout warn"><span class="callout-title">Piège classique</span><p>« Où sont les câbles » relève de la topologie <em>physique</em> ; « quel port, quelle adresse IP » relève de la topologie <em>logique</em>. Deux réseaux câblés de façon identique peuvent avoir des topologies logiques très différentes.</p></div>
+
+    <h2 id="types-reseaux">LAN, WAN et Internet</h2>
+    <p>On classe les réseaux surtout selon la zone couverte et la <strong>zone de responsabilité</strong> : qui possède et administre le réseau.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th></th><th>LAN (Local Area Network)</th><th>WAN (Wide Area Network)</th></tr></thead>
+      <tbody>
+        <tr><td>Zone</td><td>Maison, bâtiment, campus (jusqu'à 1-2 km)</td><td>Villes, pays, monde</td></tr>
+        <tr><td>Rôle</td><td>Interconnecte des terminaux</td><td>Interconnecte des LAN</td></tr>
+        <tr><td>Propriétaire</td><td>L'entreprise elle-même</td><td>Un opérateur (Service Provider), loué par abonnement</td></tr>
+        <tr><td>Débit</td><td>Très élevé</td><td>Plus faible, payé selon la bande passante</td></tr>
+        <tr><td>Équipement clé</td><td>Switch</td><td>Routeur</td></tr>
+      </tbody>
+    </table></div>
+    <p>Entre les deux, le <strong>MAN</strong> (Metropolitan Area Network) couvre une agglomération (50 à 100 km). Ordre des débits : <strong>LAN &gt; MAN &gt; WAN</strong>.</p>
+
+    <p><strong>Internet</strong> est l'ensemble mondial des LAN et WAN interconnectés, concrètement l'interconnexion de tous les <strong>fournisseurs d'accès (ISP)</strong>. Il n'appartient à personne.</p>
+    <p>Une organisation peut aussi avoir son propre réseau privé :</p>
+    <ul>
+      <li>un <strong>intranet</strong> est un ensemble privé de LAN et WAN réservé aux membres de l'organisation ;</li>
+      <li>un <strong>extranet</strong> ouvre un accès sécurisé à une partie de ce réseau à des personnes d'une <em>autre</em> organisation (fournisseurs, clients, partenaires).</li>
+    </ul>
+
+    <h2 id="lan">Comment est construit un LAN</h2>
+    <p>Le <strong>switch</strong> est la brique de base du LAN : un ordinateur spécialisé (CPU, RAM, stockage) qui connecte terminaux et autres switches par ses ports RJ45 (cuivre) ou fibre. Dans un bâtiment, chaque étage a un <strong>switch d'accès</strong> dans un local technique, qui dessert les PC, imprimantes et points d'accès Wi-Fi. Tous remontent en fibre vers un <strong>switch de cœur</strong>, qui relie aussi le data center et le <strong>routeur</strong> de sortie vers le WAN.</p>
+    <p>Cette organisation suit le <strong>modèle hiérarchique</strong> en trois couches :</p>
+    <ul>
+      <li><strong>accès</strong> : là où se branchent les terminaux ;</li>
+      <li><strong>distribution</strong> : agrège les switches d'accès et applique les règles de contrôle ;</li>
+      <li><strong>cœur (backbone)</strong> : relie les distributions le plus vite possible.</li>
+    </ul>
+
+    <figure>
+      <svg viewBox="0 0 640 300" role="img" aria-label="Modèle hiérarchique en trois couches : cœur, distribution, accès">
+        <text x="20" y="55" font-size="14" font-weight="600">Cœur</text>
+        <text x="20" y="145" font-size="14" font-weight="600">Distribution</text>
+        <text x="20" y="245" font-size="14" font-weight="600">Accès</text>
+        <rect class="accent" x="240" y="30" width="100" height="40" rx="8"/><text x="290" y="55" text-anchor="middle" font-size="13">Cœur 1</text>
+        <rect class="accent" x="400" y="30" width="100" height="40" rx="8"/><text x="450" y="55" text-anchor="middle" font-size="13">Cœur 2</text>
+        <rect class="box" x="240" y="120" width="100" height="40" rx="8"/><text x="290" y="145" text-anchor="middle" font-size="13">Distrib 1</text>
+        <rect class="box" x="400" y="120" width="100" height="40" rx="8"/><text x="450" y="145" text-anchor="middle" font-size="13">Distrib 2</text>
+        <rect class="box" x="150" y="220" width="80" height="36" rx="6"/><text x="190" y="243" text-anchor="middle" font-size="12">Accès 1</text>
+        <rect class="box" x="270" y="220" width="80" height="36" rx="6"/><text x="310" y="243" text-anchor="middle" font-size="12">Accès 2</text>
+        <rect class="box" x="390" y="220" width="80" height="36" rx="6"/><text x="430" y="243" text-anchor="middle" font-size="12">Accès 3</text>
+        <rect class="box" x="510" y="220" width="80" height="36" rx="6"/><text x="550" y="243" text-anchor="middle" font-size="12">Accès 4</text>
+        <line class="line" x1="340" y1="50" x2="400" y2="50"/>
+        <line class="line" x1="290" y1="70" x2="290" y2="120"/><line class="line" x1="450" y1="70" x2="450" y2="120"/>
+        <line class="line" x1="290" y1="70" x2="450" y2="120"/><line class="line" x1="450" y1="70" x2="290" y2="120"/>
+        <g class="line">
+          <line class="line" x1="290" y1="160" x2="190" y2="220"/><line class="line" x1="290" y1="160" x2="310" y2="220"/><line class="line" x1="290" y1="160" x2="430" y2="220"/><line class="line" x1="290" y1="160" x2="550" y2="220"/>
+          <line class="line" x1="450" y1="160" x2="190" y2="220"/><line class="line" x1="450" y1="160" x2="310" y2="220"/><line class="line" x1="450" y1="160" x2="430" y2="220"/><line class="line" x1="450" y1="160" x2="550" y2="220"/>
+        </g>
+        <text x="370" y="285" text-anchor="middle" class="muted" font-size="13">terminaux (PC, imprimantes, points d'accès)</text>
+      </svg>
+      <figcaption>Chaque switch d'accès est relié aux deux switches de distribution, eux-mêmes reliés aux deux switches de cœur : aucune panne unique ne coupe le réseau.</figcaption>
+    </figure>
+    <div class="callout explain"><span class="callout-title">Pour comprendre</span><p>Pensez au réseau routier. La couche accès, ce sont les rues de quartier : beaucoup d'entrées, peu de trafic chacune. La distribution, ce sont les boulevards qui collectent les rues d'un quartier, et c'est là qu'on place les feux et les contrôles. Le cœur, c'est l'autoroute qui relie les quartiers sans arrêt. On ne construit pas de maison au bord de l'autoroute : de même, <strong>les utilisateurs se branchent uniquement sur la couche accès</strong>. Dans un petit bâtiment, distribution et cœur peuvent être fusionnés (« cœur réduit », collapsed core).</p></div>
+
+    <h2 id="wan">Le WAN et l'accès à Internet</h2>
+    <p>L'entreprise <strong>ne possède pas</strong> son WAN : elle loue le service à un <strong>opérateur (SP)</strong>, ou à un <strong>fournisseur d'accès Internet (ISP)</strong> pour sortir sur Internet. Le contrat fixe les engagements de débit et de disponibilité (le <strong>SLA</strong>). Le <strong>routeur</strong> est la brique de base du WAN : il relie le LAN (haut débit) au lien WAN (débit plus faible).</p>
+    <p>Le bâtiment est raccordé au central de l'opérateur (<strong>Central Office</strong>) par la <strong>boucle locale</strong>, en cuivre (ADSL) ou en fibre. Le réseau de l'opérateur et Internet sont surdimensionnés ; c'est donc souvent la boucle locale qui limite le débit. Le débit de bout en bout est celui du maillon le plus lent : un LAN à 1 Gbit/s derrière une boucle ADSL à 20 Mbit/s donne au mieux 20 Mbit/s.</p>
+    <div class="callout warn"><span class="callout-title">Piège classique</span><p>« WAN » et « Internet » ne sont pas synonymes. Un WAN privé loué à un SP garde le trafic de l'entreprise dans le réseau de l'opérateur, donc confidentiel. Passer par Internet expose le trafic, qu'il faut alors protéger soi-même (chiffrement, VPN).</p></div>
+
+    <h2 id="fiabilite">Les 4 caractéristiques d'un réseau fiable</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Caractéristique</th><th>Ce que ça veut dire</th><th>Comment on l'obtient</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Tolérance aux pannes</strong></td><td>Une panne n'interrompt pas le service</td><td>Redondance : plusieurs chemins, équipements doublés (switch de cœur)</td></tr>
+        <tr><td><strong>Évolutivité (scalability)</strong></td><td>On peut ajouter des utilisateurs et des services sans tout refaire</td><td>Modèle hiérarchique, protocoles standards</td></tr>
+        <tr><td><strong>Qualité de service (QoS)</strong></td><td>Le trafic sensible passe en priorité quand le lien sature</td><td>Files d'attente et priorités sur le routeur</td></tr>
+        <tr><td><strong>Sécurité</strong></td><td>Confidentialité, intégrité et disponibilité des données</td><td>Pare-feu, contrôle d'accès, chiffrement</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : la tolérance aux pannes</span><p>Regardez le schéma du modèle hiérarchique : chaque switch d'accès a <strong>deux</strong> liens vers la distribution, et il y a <strong>deux</strong> switches de cœur. Si un câble est coupé ou un switch tombe, le trafic emprunte l'autre chemin. Sans cette redondance, le switch de cœur serait un <strong>point de défaillance unique</strong> : sa panne couperait tout le bâtiment.</p></div>
+
+    <figure>
+      <svg viewBox="0 0 600 190" role="img" aria-label="Entonnoir LAN vers WAN au niveau du routeur">
+        <path class="line" d="M20 30 C200 30 240 75 330 75 H580" stroke-width="2"/>
+        <path class="line" d="M20 160 C200 160 240 115 330 115 H580" stroke-width="2"/>
+        <circle class="box" cx="70" cy="70" r="10"/><circle class="box" cx="95" cy="70" r="10"/><circle class="box" cx="70" cy="95" r="10"/><circle class="box" cx="95" cy="95" r="10"/><circle class="box" cx="70" cy="120" r="10"/><circle class="box" cx="95" cy="120" r="10"/>
+        <circle class="accent" cx="140" cy="80" r="10"/><circle class="accent" cx="140" cy="105" r="10"/><circle class="accent" cx="165" cy="92" r="10"/>
+        <circle class="accent" cx="360" cy="95" r="10" stroke-width="3"/><circle class="accent" cx="390" cy="95" r="10" stroke-width="3"/><circle class="accent" cx="420" cy="95" r="10" stroke-width="3"/>
+        <text x="30" y="185" class="muted" font-size="13">LAN (haut débit)</text>
+        <text x="480" y="185" class="muted" font-size="13">WAN (débit limité)</text>
+        <text x="265" y="22" text-anchor="middle" font-size="13">routeur : qui passe en premier ?</text>
+        <text x="390" y="135" text-anchor="middle" class="muted" font-size="12">trafic prioritaire (voix)</text>
+      </svg>
+      <figcaption>Le routeur est l'endroit où le débit chute : c'est là que se forment les embouteillages et qu'intervient la QoS.</figcaption>
+    </figure>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : la QoS</span><p>Un LAN à 1 Gbit/s débouche sur un lien WAN à 100 Mbit/s : le routeur peut recevoir 10 fois plus qu'il ne peut envoyer. Sans QoS, tous les paquets attendent dans une seule file, et un gros téléchargement retarde la voix : la conversation hache. Avec la QoS, c'est une voie réservée aux ambulances : la <strong>voix</strong> (peu de débit mais très sensible au retard) passe d'abord, la <strong>vidéo</strong> a une part de bande passante garantie, les <strong>données</strong> (e-mail, web), qui tolèrent un peu d'attente, prennent le reste.</p></div>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. Lequel n'est PAS un équipement intermédiaire : switch, point d'accès, serveur, pare-feu ?</summary><p>Le <strong>serveur</strong> : c'est un terminal, source ou destination des données.</p></details>
+    <details><summary>2. Un schéma indique les ports utilisés et les adresses IP de chaque équipement. Topologie physique ou logique ?</summary><p><strong>Logique</strong>. La topologie physique montre l'emplacement des équipements et le câblage.</p></details>
+    <details><summary>3. Citez deux différences entre un LAN et un WAN.</summary><p>Le LAN couvre une petite zone et appartient à l'entreprise (débit élevé, switches) ; le WAN relie des LAN sur une grande zone et est loué à un opérateur (débit plus faible, routeurs).</p></details>
+    <details><summary>4. Une entreprise ouvre une partie de son réseau à un fournisseur externe. Intranet ou extranet ?</summary><p><strong>Extranet</strong> : accès sécurisé pour une autre organisation. L'intranet est réservé aux membres de l'organisation.</p></details>
+    <details><summary>5. Pourquoi le switch de cœur est-il presque toujours doublé ? Quelle caractéristique d'un réseau fiable cela illustre-t-il ?</summary><p>Tout le trafic passe par lui : le doubler supprime le point de défaillance unique. C'est la <strong>tolérance aux pannes</strong>.</p></details>
+    <details><summary>6. Quel type de trafic la QoS doit-elle faire passer en premier, et où agit-elle ?</summary><p>La <strong>voix</strong>, peu gourmande mais très sensible au retard. La QoS agit sur le <strong>routeur</strong>, là où le débit chute entre LAN et WAN.</p></details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="00-environnement.html"><span>← Précédent</span>Environnement de travail et bootcamp</a>
+      <a class="next" href="02-configuration-switch.html"><span>Suivant →</span>Configuration de base d'un commutateur</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L'environnement radio · Réseaux cellulaires</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Réseaux cellulaires</a>
+    <div class="course-code">NET 8465 · Chapitre 01</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 01</div>
+    <h1>L'environnement radio</h1>
+    <p class="lead">Pourquoi un lien radio est plus difficile qu'un câble, et comment la modulation s'y adapte.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>Trois dégradations : <strong>affaiblissement de parcours</strong> (distance), <strong>masquage</strong> (obstacles, variations lentes), <strong>évanouissement</strong> (trajets multiples, variations rapides).</li>
+        <li>En espace libre, la puissance reçue décroît en <strong>1/d<sup>2</sup></strong> : <strong>-6 dB par doublement de distance</strong>.</li>
+        <li>Les <strong>trajets multiples</strong> étalent le signal dans le temps et provoquent de l'<strong>interférence entre symboles</strong> ; la <strong>mobilité</strong> ajoute l'effet Doppler.</li>
+        <li>Plus le <strong>SNR</strong> est élevé, plus le <strong>BER</strong> est faible. Une modulation dense donne plus de débit mais exige un meilleur SNR.</li>
+      </ul>
+    </div>
+
+    <h2 id="propagation">Propagation et affaiblissement</h2>
+    <p>Autour d'un émetteur, trois <strong>portées</strong> emboîtées : de <strong>transmission</strong> (communication avec peu d'erreurs), de <strong>détection</strong> (signal détecté, trop d'erreurs pour communiquer), d'<strong>interférence</strong> (signal indétectable mais qui s'ajoute au bruit de fond).</p>
+    <p>L'<strong>affaiblissement de parcours</strong> (<em>pathloss</em>) dépend de la distance et de la fréquence (moindre aux basses fréquences). Le <strong>masquage</strong> (<em>shadowing</em>) vient des obstacles et provoque des variations lentes. L'<strong>évanouissement</strong> (<em>fading</em>) rapide vient des trajets multiples. S'y ajoutent les <strong>interférences co-canal</strong> (cellule voisine sur la même fréquence), de <strong>canal adjacent</strong> et le bruit ambiant.</p>
+
+    <h3 id="espace-libre">Affaiblissement en espace libre</h3>
+    <p>Une source isotrope répartit sa puissance P<sub>t</sub> sur une sphère de surface 4πd<sup>2</sup>. Avec des antennes de gains G<sub>t</sub> et G<sub>r</sub> :</p>
+    <div class="formula">P<sub>r</sub> = P<sub>t</sub> · G<sub>t</sub> · G<sub>r</sub> · ( λ / (4π d) )<sup>2</sup>
+      <span class="where">où λ est la longueur d'onde et d la distance (m). L'affaiblissement vaut PL(dB) = -10 log<sub>10</sub>(P<sub>r</sub>/P<sub>t</sub>). En pratique (antennes isotropes) :</span></div>
+    <div class="formula">FSPL(dB) = 20 log<sub>10</sub>(d) + 20 log<sub>10</sub>(f) + 92,45
+      <span class="where">où d est en <strong>km</strong> et f en <strong>GHz</strong> (la constante dépend de ces unités).</span></div>
+    <p>Ce modèle idéal ne vaut qu'en vue directe (<em>LOS, Line Of Sight</em>) : satellites, courte portée. En réalité on garde une <strong>loi en puissance</strong> P<sub>r</sub> ∝ d<sup>-n</sup>, avec n = 2 en espace libre et typiquement 3 à 5 en ville.</p>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : la loi en distance</span>
+      <p>Comme la lumière d'une ampoule : doublez la distance, la sphère a une surface 4 fois plus grande, la puissance reçue est divisée par 4, soit <strong>-6 dB</strong>. Doublez la fréquence : encore -6 dB.</p>
+      <p>Exemple : d = 1 km, f = 2 GHz. FSPL ≈ 0 + 6 + 92,45 = <strong>98,5 dB</strong>. À 10 km : 118,5 dB (+20 dB par décade). Avec n = 4 en ville, ce serait +40 dB par décade : la portée s'effondre.</p>
+    </div>
+
+    <h2 id="trajets-multiples">Trajets multiples et mobilité</h2>
+    <p>L'onde rencontre des obstacles : <strong>réflexion</strong> sur les grandes surfaces, <strong>diffusion</strong> (<em>scattering</em>) sur les petits objets, <strong>diffraction</strong> sur les arêtes. Le récepteur reçoit plusieurs copies du signal : c'est la <strong>propagation par trajets multiples</strong> (<em>multipath</em>). Avantage : on communique sans vue directe. Inconvénients :</p>
+
+    <figure>
+      <svg viewBox="0 0 640 230" role="img" aria-label="Trajets multiples entre une station de base et un mobile, et réception de plusieurs échos décalés dans le temps">
+        <rect class="box" x="20" y="120" width="70" height="40" rx="6"/>
+        <text x="55" y="145" text-anchor="middle" font-size="13">Émetteur</text>
+        <rect class="box" x="330" y="120" width="70" height="40" rx="6"/>
+        <text x="365" y="145" text-anchor="middle" font-size="13">Mobile</text>
+        <rect class="box" x="170" y="20" width="90" height="26" rx="4"/>
+        <text x="215" y="38" text-anchor="middle" font-size="12">Immeuble</text>
+        <rect class="box" x="170" y="200" width="90" height="22" rx="4"/>
+        <text x="215" y="216" text-anchor="middle" font-size="12">Sol</text>
+        <line class="line" x1="90" y1="140" x2="330" y2="140" stroke-width="2.5" style="stroke:var(--accent)"/>
+        <polyline class="line" points="90,128 215,46 330,128" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <polyline class="line" points="90,155 215,200 330,155" stroke-width="1.5" stroke-dasharray="2 4"/>
+        <text x="210" y="132" text-anchor="middle" font-size="11" class="muted">direct (court)</text>
+        <text x="300" y="84" font-size="11" class="muted">réfléchi (long)</text>
+        <line class="line" x1="440" y1="180" x2="630" y2="180"/>
+        <text x="630" y="198" text-anchor="end" font-size="11" class="muted">temps</text>
+        <rect class="accent" x="455" y="100" width="40" height="80"/>
+        <rect class="box" x="510" y="130" width="40" height="50"/>
+        <rect class="box" x="565" y="150" width="40" height="30"/>
+        <text x="475" y="94" text-anchor="middle" font-size="11">direct</text>
+        <text x="530" y="124" text-anchor="middle" font-size="11">écho 1</text>
+        <text x="585" y="144" text-anchor="middle" font-size="11">écho 2</text>
+        <line class="line" x1="455" y1="60" x2="605" y2="60"/>
+        <text x="530" y="52" text-anchor="middle" font-size="11">étalement des délais</text>
+      </svg>
+      <figcaption>Un même symbole arrive plusieurs fois, atténué et retardé.</figcaption>
+    </figure>
+
+    <ol class="steps">
+      <li><strong>Étalement des délais</strong> (<em>delay spread</em>) : les copies arrivent à des instants différents et « bavent » sur les symboles voisins, c'est l'<strong>interférence entre symboles</strong> (<em>ISI, Inter Symbol Interference</em>). Étalement = (trajet le plus long - trajet le plus court) / c.</li>
+      <li><strong>Évanouissement de Rayleigh</strong> : les copies déphasées s'additionnent tantôt en phase, tantôt en opposition : la puissance fluctue très vite (<strong>évanouissement rapide</strong>).</li>
+      <li><strong>Décalage Doppler</strong> : la vitesse relative décale la fréquence reçue, différemment sur chaque trajet (f<sub>D</sub> = v/λ · cos θ).</li>
+    </ol>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : l'interférence entre symboles</span>
+      <p>Parlez dans une cathédrale : lentement, l'écho s'éteint avant la syllabe suivante ; vite, l'écho de « ba » recouvre « bo ». Le débit est limité par la durée de l'écho, pas seulement par la puissance.</p>
+      <p>En chiffres : un écho qui parcourt 300 m de plus arrive 300 / (3·10<sup>8</sup>) = <strong>1 µs</strong> plus tard. Symboles de 5 µs : recouvrement de <strong>20 %</strong>. Symboles de 0,5 µs : l'écho recouvre deux symboles entiers. D'où l'idée de l'OFDM (plus tard) : des symboles longs en parallèle.</p>
+    </div>
+
+    <h3 id="mobilite" data-toc="Effet de la mobilité">Effet de la mobilité</h3>
+    <p>Quand le mobile bouge, trajets, délais et phases changent : la puissance varie <strong>vite</strong> (évanouissement à court terme). La distance et les obstacles lointains changent <strong>lentement</strong> la puissance moyenne (évanouissement à long terme). Doppler à 120 km/h (33 m/s) et 2 GHz (λ = 15 cm) : f<sub>D</sub> max ≈ <strong>220 Hz</strong>.</p>
+
+    <h3 id="bande" data-toc="Bande étroite / large bande">Bande étroite ou large bande</h3>
+    <p>En <strong>bande étroite</strong> (<em>narrowband</em>), le spectre est découpé en nombreux canaux étroits partagés. En <strong>large bande</strong> (<em>wideband</em>), chaque mobile utilise tout le spectre, ce qui impose un partage dans le temps (TDM) ou par codes (CDM). Le duplexage (FDD, TDD) est vu au chapitre suivant.</p>
+
+    <h2 id="reseau-sans-fil">Éléments d'un réseau sans fil</h2>
+    <div class="grid">
+      <div class="card"><h4>Hôte sans fil</h4><p>Smartphone, portable. Sans fil ne veut pas dire mobile.</p></div>
+      <div class="card"><h4>Station de base</h4><p>Reliée au réseau filaire, relaie les paquets de sa zone (antenne 2G à 5G, point d'accès Wi-Fi).</p></div>
+      <div class="card"><h4>Lien sans fil</h4><p>Relie mobile et station de base ; un protocole d'accès multiple le partage.</p></div>
+    </div>
+    <p>En <strong>mode infrastructure</strong>, la station de base raccorde les mobiles au réseau filaire ; changer de station de base est un <strong>transfert intercellulaire</strong> (<em>handover</em>). En <strong>mode ad hoc</strong>, pas de station de base : les nœuds routent entre eux.</p>
+
+    <h2 id="lien">Caractéristiques d'un lien sans fil</h2>
+    <p>La qualité d'un lien radio se mesure par le <strong>rapport signal sur bruit</strong> (<em>SNR, Signal-to-Noise Ratio</em>) :</p>
+    <div class="formula">SNR(dB) = 10 log<sub>10</sub>( P<sub>signal</sub> / P<sub>bruit</sub> )
+      <span class="where">où 20 dB signifie un signal 100 fois plus puissant que le bruit. Le <strong>taux d'erreur binaire</strong> (<em>BER</em>) est la proportion de bits faux.</span></div>
+    <p>À modulation fixée, <strong>augmenter le SNR diminue le BER</strong>. À SNR fixé, on <strong>choisit la modulation</strong> au meilleur débit qui respecte le BER exigé, et on l'<strong>adapte dynamiquement</strong> car le SNR varie avec la mobilité.</p>
+
+    <div class="callout warn"><span class="callout-title">Piège classique</span>
+      <p>+3 dB = puissance ×2, +10 dB = ×10. Un SNR de 0 dB ne veut pas dire « pas de signal » mais signal = bruit.</p>
+    </div>
+
+    <h2 id="modulation">Principes de modulation</h2>
+    <p>Moduler, c'est faire varier une <strong>porteuse</strong> : son <strong>amplitude</strong> (<strong>ASK</strong>, <em>Amplitude Shift Keying</em>), sa <strong>fréquence</strong> (<strong>FSK</strong>), sa <strong>phase</strong> (<strong>PSK</strong>) ou amplitude et phase (<strong>QAM</strong>). Chaque état est un <strong>symbole</strong> ; avec M états, un symbole porte <strong>log<sub>2</sub>(M) bits</strong>.</p>
+
+    <figure>
+      <svg viewBox="0 0 640 210" role="img" aria-label="Constellations BPSK, QPSK et 16-QAM">
+        <g transform="translate(110,95)">
+          <line class="line" x1="-70" y1="0" x2="70" y2="0"/><line class="line" x1="0" y1="-70" x2="0" y2="70"/>
+          <circle class="accent" cx="-45" cy="0" r="7"/><circle class="accent" cx="45" cy="0" r="7"/>
+          <text x="-45" y="-14" text-anchor="middle" font-size="11">0</text><text x="45" y="-14" text-anchor="middle" font-size="11">1</text>
+          <text x="0" y="100" text-anchor="middle" font-size="13">BPSK : 2 états, 1 bit</text>
+        </g>
+        <g transform="translate(320,95)">
+          <line class="line" x1="-70" y1="0" x2="70" y2="0"/><line class="line" x1="0" y1="-70" x2="0" y2="70"/>
+          <circle class="accent" cx="35" cy="-35" r="7"/><circle class="accent" cx="-35" cy="-35" r="7"/>
+          <circle class="accent" cx="-35" cy="35" r="7"/><circle class="accent" cx="35" cy="35" r="7"/>
+          <text x="0" y="100" text-anchor="middle" font-size="13">QPSK : 4 états, 2 bits</text>
+        </g>
+        <g transform="translate(530,95)">
+          <line class="line" x1="-70" y1="0" x2="70" y2="0"/><line class="line" x1="0" y1="-70" x2="0" y2="70"/>
+          <circle class="accent" cx="-48" cy="-48" r="5"/><circle class="accent" cx="-16" cy="-48" r="5"/><circle class="accent" cx="16" cy="-48" r="5"/><circle class="accent" cx="48" cy="-48" r="5"/>
+          <circle class="accent" cx="-48" cy="-16" r="5"/><circle class="accent" cx="-16" cy="-16" r="5"/><circle class="accent" cx="16" cy="-16" r="5"/><circle class="accent" cx="48" cy="-16" r="5"/>
+          <circle class="accent" cx="-48" cy="16" r="5"/><circle class="accent" cx="-16" cy="16" r="5"/><circle class="accent" cx="16" cy="16" r="5"/><circle class="accent" cx="48" cy="16" r="5"/>
+          <circle class="accent" cx="-48" cy="48" r="5"/><circle class="accent" cx="-16" cy="48" r="5"/><circle class="accent" cx="16" cy="48" r="5"/><circle class="accent" cx="48" cy="48" r="5"/>
+          <text x="0" y="100" text-anchor="middle" font-size="13">16-QAM : 16 états, 4 bits</text>
+        </g>
+      </svg>
+      <figcaption>À puissance égale, plus la constellation est dense, plus les points sont proches et faciles à confondre.</figcaption>
+    </figure>
+
+    <p>Exemple du cours, <strong>QAM-8</strong> : 2 amplitudes × 4 phases = 8 symboles de 3 bits ; 100 001 011 110 tient en 4 symboles. Pour comparer les modulations, on trace le BER en fonction de <strong>E<sub>b</sub>/N<sub>0</sub></strong> (énergie par bit sur densité de bruit) : pour un BER d'environ 10<sup>-5</sup>, il faut à peu près 10 dB en BPSK/QPSK, 13 dB en 8-PSK, 17 dB en 16-PSK.</p>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : débit contre robustesse</span>
+      <p>Une cible de fléchettes : avec 2 zones, même un lanceur maladroit (canal bruité) touche la bonne ; avec 256 petites zones, il faut une main très sûre (SNR élevé). Doubler le nombre de symboles ajoute 1 bit mais rapproche les points.</p>
+      <p>Courbes du cours : BPSK à 1 Mbit/s, QAM-16 à 4 Mbit/s, QAM-256 à 8 Mbit/s, chacune exigeant plus de SNR pour le même BER. Près de l'antenne, QAM dense ; en bord de cellule, retour à QPSK ou BPSK (<strong>adaptation de lien</strong>).</p>
+    </div>
+
+    <div class="callout warn"><span class="callout-title">Piège classique</span>
+      <p>BPSK et QPSK ont la <strong>même courbe BER / E<sub>b</sub>/N<sub>0</sub></strong>, bien que QPSK porte 2 bits par symbole. Ne pas confondre E<sub>b</sub>/N<sub>0</sub> (par bit) et SNR (sur toute la bande).</p>
+    </div>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. On passe de 1 km à 4 km en espace libre. De combien augmente l'affaiblissement ?</summary>
+      <p><strong>+12 dB</strong> (deux doublements), puissance divisée par 16.</p>
+    </details>
+    <details><summary>2. Calculez FSPL pour d = 10 km et f = 1 GHz.</summary>
+      <p>20 log<sub>10</sub>(10) + 20 log<sub>10</sub>(1) + 92,45 = 20 + 0 + 92,45 = <strong>112,45 dB</strong>.</p>
+    </details>
+    <details><summary>3. Deux trajets diffèrent de 600 m. Symboles de 4 µs : quel recouvrement ?</summary>
+      <p>600 / 3·10<sup>8</sup> = 2 µs, soit <strong>50 %</strong> du symbole.</p>
+    </details>
+    <details><summary>4. Masquage ou trajets multiples : lequel cause l'évanouissement rapide ?</summary>
+      <p>Les <strong>trajets multiples</strong> (Rayleigh). Le masquage cause les variations lentes.</p>
+    </details>
+    <details><summary>5. Combien de bits par symbole en 64-QAM ? Pourquoi ne l'utilise-t-on pas en bord de cellule ?</summary>
+      <p><strong>6 bits</strong>. Points très proches : il faut un SNR élevé, absent loin de l'antenne. On passe en QPSK.</p>
+    </details>
+    <details><summary>6. Quelle différence entre mode infrastructure et mode ad hoc ? Où intervient le handover ?</summary>
+      <p>Infrastructure : une station de base relie les mobiles au réseau ; le <strong>handover</strong> est le changement de station de base. Ad hoc : les nœuds se relaient entre eux.</p>
+    </details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="index.html"><span>← Précédent</span>Accueil</a>
+      <a class="next" href="02-acces-multiple.html"><span>Suivant →</span>Partage des ressources radio</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

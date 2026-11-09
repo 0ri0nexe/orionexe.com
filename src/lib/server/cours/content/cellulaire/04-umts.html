@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3G : UMTS (UTRAN) · Réseaux cellulaires</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Réseaux cellulaires</a>
+    <div class="course-code">NET 8465 · Chapitre 04</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 04</div>
+    <h1>3G : UMTS (UTRAN)</h1>
+    <p class="lead">L'UMTS garde le cœur GSM/GPRS mais change complètement l'accès radio. Qui fait quoi dans l'UTRAN, comment le cœur évolue vers le tout-IP, comment la QoS est découpée en « tuyaux » (bearers), et quels protocoles circulent sur chaque interface.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li><strong>UTRAN</strong> = <strong>Node B</strong> (radio WCDMA) + <strong>RNC</strong> (contrôle, gestion des ressources radio). Interfaces : <strong>Uu</strong> (radio), <strong>Iub</strong> (Node B–RNC), <strong>Iur</strong> (RNC–RNC, nouveau en 3G), <strong>Iu</strong> (vers le cœur, coupé en Iu-CS et Iu-PS).</li>
+        <li>Le cœur garde deux domaines : <strong>CS</strong> (MSC/VLR, GMSC, vers le RTC) et <strong>PS</strong> (SGSN, GGSN, vers Internet).</li>
+        <li><strong>R99</strong> réutilise le cœur 2G ; <strong>Rel-4</strong> sépare contrôle et média (MSC Server + MGW) ; <strong>Rel-5</strong> introduit l'<strong>IMS</strong>, le transport IP et HSDPA.</li>
+        <li>Un <strong>bearer</strong> est un « tuyau à bits » avec une QoS donnée. 4 classes : <strong>conversational, streaming, interactive, background</strong>.</li>
+        <li>Les protocoles UTRAN se rangent en <strong>plan de contrôle / plan usager</strong> et en <strong>couche réseau radio / couche transport</strong>. Sur Uu : <strong>RRC</strong> (contrôle), <strong>PDCP</strong>, <strong>RLC</strong>, <strong>MAC</strong>.</li>
+      </ul>
+    </div>
+
+    <h2 id="architecture">Architecture : UTRAN et cœur de réseau</h2>
+    <p>L'UTRAN (<em>UMTS Terrestrial Radio Access Network</em>) transporte trafic usager et signalisation jusqu'au cœur de réseau. Dès la première version, il diffère nettement du réseau d'accès 2G. Deux équipements :</p>
+    <ul>
+      <li><strong>Node B</strong> : la station de base. Il réalise l'accès radio physique WCDMA vers le mobile (UE, <em>User Equipment</em>) et la transmission vers le RNC.</li>
+      <li><strong>RNC</strong> (<em>Radio Network Controller</em>) : le cerveau. Gestion des ressources radio (RRM), contrôle de puissance, contrôle d'admission et allocation des codes, ajout/retrait de cellules pendant le <strong>soft handover</strong>, macro-diversité, interface avec le MSC/VLR et le SGSN.</li>
+    </ul>
+
+    <figure>
+      <svg viewBox="0 0 760 300" role="img" aria-label="Architecture UMTS : UE, Node B, RNC, puis domaines CS et PS du cœur de réseau">
+        <rect class="line" x="125" y="12" width="265" height="262" rx="10" stroke-dasharray="6 4"/>
+        <text x="257" y="292" text-anchor="middle" class="muted" font-size="12">UTRAN (réseau d'accès)</text>
+        <rect class="line" x="455" y="12" width="295" height="262" rx="10" stroke-dasharray="6 4"/>
+        <text x="602" y="292" text-anchor="middle" class="muted" font-size="12">Cœur de réseau (CS en haut, PS en bas)</text>
+        <rect class="box" x="10" y="120" width="70" height="44" rx="8"/><text x="45" y="147" text-anchor="middle" font-weight="700">UE</text>
+        <rect class="box" x="140" y="48" width="90" height="44" rx="8"/><text x="185" y="75" text-anchor="middle">Node B</text>
+        <rect class="box" x="140" y="192" width="90" height="44" rx="8"/><text x="185" y="219" text-anchor="middle">Node B</text>
+        <rect class="accent" x="290" y="48" width="85" height="44" rx="8"/><text x="332" y="75" text-anchor="middle" font-weight="700">RNC</text>
+        <rect class="accent" x="290" y="192" width="85" height="44" rx="8"/><text x="332" y="219" text-anchor="middle" font-weight="700">RNC</text>
+        <rect class="box" x="470" y="30" width="100" height="44" rx="8"/><text x="520" y="57" text-anchor="middle">MSC/VLR</text>
+        <rect class="box" x="640" y="30" width="100" height="44" rx="8"/><text x="690" y="57" text-anchor="middle">GMSC</text>
+        <rect class="box" x="470" y="210" width="100" height="44" rx="8"/><text x="520" y="237" text-anchor="middle">SGSN</text>
+        <rect class="box" x="640" y="210" width="100" height="44" rx="8"/><text x="690" y="237" text-anchor="middle">GGSN</text>
+        <rect class="box" x="560" y="120" width="100" height="44" rx="8"/><text x="610" y="140" text-anchor="middle" font-size="13">HLR / AuC</text><text x="610" y="156" text-anchor="middle" class="muted" font-size="11">abonnés</text>
+        <line class="line" x1="80" y1="135" x2="140" y2="76" stroke-width="2" stroke-dasharray="3 3"/>
+        <line class="line" x1="80" y1="150" x2="140" y2="208" stroke-width="2" stroke-dasharray="3 3"/>
+        <text x="96" y="105" class="muted" font-size="12">Uu</text>
+        <line class="line" x1="230" y1="70" x2="290" y2="70" stroke-width="2"/><text x="260" y="63" text-anchor="middle" class="muted" font-size="12">Iub</text>
+        <line class="line" x1="230" y1="214" x2="290" y2="214" stroke-width="2"/><text x="260" y="207" text-anchor="middle" class="muted" font-size="12">Iub</text>
+        <line class="line" x1="332" y1="92" x2="332" y2="192" stroke-width="2"/><text x="340" y="146" class="muted" font-size="12">Iur</text>
+        <line class="line" x1="375" y1="62" x2="470" y2="52" stroke-width="2"/><text x="420" y="47" text-anchor="middle" class="muted" font-size="12">Iu-CS</text>
+        <line class="line" x1="375" y1="222" x2="470" y2="232" stroke-width="2"/><text x="420" y="248" text-anchor="middle" class="muted" font-size="12">Iu-PS</text>
+        <line class="line" x1="375" y1="80" x2="470" y2="222"/>
+        <line class="line" x1="375" y1="204" x2="470" y2="62"/>
+        <line class="line" x1="570" y1="52" x2="640" y2="52" stroke-width="2"/>
+        <line class="line" x1="570" y1="232" x2="640" y2="232" stroke-width="2"/><text x="605" y="225" text-anchor="middle" class="muted" font-size="12">Gn</text>
+        <line class="line" x1="540" y1="74" x2="580" y2="120" stroke-dasharray="4 3"/>
+        <line class="line" x1="540" y1="210" x2="580" y2="164" stroke-dasharray="4 3"/>
+        <text x="690" y="94" text-anchor="middle" class="muted" font-size="12">→ RTC</text>
+        <text x="690" y="270" text-anchor="middle" class="muted" font-size="12">→ Internet</text>
+      </svg>
+      <figcaption>Chaque RNC est relié aux deux domaines du cœur : Iu-CS vers le MSC (circuit), Iu-PS vers le SGSN (paquet). Iur relie deux RNC.</figcaption>
+    </figure>
+
+    <p><strong>Iur</strong> n'a pas d'équivalent en 2G : il permet un soft handover entre deux Node B qui dépendent de RNC différents. Un RNC joue alors des rôles différents vis-à-vis d'un mobile donné :</p>
+    <ul>
+      <li><strong>SRNC</strong> (<em>Serving</em>) : porte l'interface Iu pour ce mobile. Un seul SRNC par UE.</li>
+      <li><strong>DRNC</strong> (<em>Drift</em>) : prête des ressources radio supplémentaires au SRNC, via Iur, sans interface Iu pour cet UE.</li>
+      <li><strong>CRNC</strong> (<em>Controlling</em>) : contrôle ses Node B (charge, admission, codes), sans lien direct avec un UE particulier.</li>
+    </ul>
+
+    <div class="table-wrap"><table>
+      <thead><tr><th>Sigle</th><th>Signification</th></tr></thead>
+      <tbody>
+        <tr><td>UE / Node B / RNC</td><td>User Equipment / station de base 3G / Radio Network Controller</td></tr>
+        <tr><td>CS / PS</td><td>Circuit Switched / Packet Switched (domaines du cœur)</td></tr>
+        <tr><td>RAB</td><td>Radio Access Bearer (tuyau entre le mobile et le MSC ou SGSN)</td></tr>
+        <tr><td>NBAP / RNSAP / RANAP</td><td>Signalisation sur Iub / Iur / Iu</td></tr>
+        <tr><td>RRC / RLC / MAC / PDCP</td><td>Protocoles de l'interface radio Uu</td></tr>
+        <tr><td>MGW / IMS</td><td>Media Gateway / IP Multimedia Subsystem</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="releases">Évolution du cœur : R99, Rel-4, Rel-5</h2>
+    <p>La première version (<strong>Release 99</strong>) réutilise autant que possible le cœur GSM/GPRS ; son évolution propre est laissée aux versions suivantes.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Version</th><th>Ce qui change</th><th>Transport</th></tr></thead>
+      <tbody>
+        <tr><td><strong>R99</strong></td><td>Nouvel accès UTRAN. Cœur 2G mis à niveau : MSC → 3G MSC, SGSN → 3G SGSN, AuC renforcé (sécurité 3G). GMSC et GGSN inchangés.</td><td>ATM dans l'UTRAN (techno mature, multiservice, avec QoS)</td></tr>
+        <tr><td><strong>Rel-4</strong></td><td>Domaine CS découpé : le <strong>MSC Server</strong> gère la signalisation d'appel, la <strong>MGW</strong> (<em>Media Gateway</em>) commute les flux voix, la <strong>SGW</strong> (<em>Signalling Gateway</em>) convertit SS7 ↔ IP (Sigtran). Nouvel accès possible : <strong>GERAN</strong> (GSM/EDGE).</td><td>La voix du cœur peut passer sur IP</td></tr>
+        <tr><td><strong>Rel-5</strong></td><td><strong>IMS</strong> : sessions multimédia sur IP, contrôlées par <strong>SIP</strong>, via le domaine PS ; le <strong>HSS</strong> succède au HLR (base des abonnés). Côté radio, <strong>HSDPA</strong> (<em>High Speed Downlink Packet Access</em>) accélère fortement le débit descendant.</td><td><strong>IP remplace ATM</strong> sur Iub/Iur/Iu (IPv6 obligatoire, UDP pour les données, SCTP pour la signalisation)</td></tr>
+      </tbody>
+    </table></div>
+    <p>L'idée générale : passer de deux domaines séparés (CS et PS) à une solution <strong>tout-IP</strong>, IP étant déployé partout et bon marché.</p>
+
+    <h2 id="qos">Bearers et classes de QoS</h2>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : le bearer</span>
+      <p>Un bearer est un <strong>tuyau à bits</strong> entre deux entités, avec un contrat : débit, délai, taux d'erreur. Pensez à un colis envoyé en express de Paris à Tokyo : vous signez un contrat « livré en 48 h » avec le transporteur, qui le sous-traite à un coursier local, une compagnie aérienne, puis un livreur japonais. Chaque maillon a son propre contrat, et c'est leur enchaînement qui tient la promesse de bout en bout.</p>
+      <p>En UMTS, c'est pareil : le service de bout en bout repose sur un <strong>bearer UMTS</strong> (le seul que la norme spécifie), lui-même découpé en <strong>RAB</strong> (mobile → MSC ou SGSN, à travers la radio, l'UTRAN et Iu) et <strong>bearer cœur</strong> (jusqu'au GMSC ou GGSN).</p>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 760 240" role="img" aria-label="Hiérarchie des bearers UMTS : bout en bout, bearer UMTS, RAB, bearer radio, Iu et backbone">
+        <text x="60" y="22" text-anchor="middle" font-size="12" font-weight="700">TE</text>
+        <text x="170" y="22" text-anchor="middle" font-size="12" font-weight="700">MT</text>
+        <text x="300" y="22" text-anchor="middle" font-size="12" font-weight="700">UTRAN</text>
+        <text x="450" y="22" text-anchor="middle" font-size="12" font-weight="700">MSC / SGSN</text>
+        <text x="590" y="22" text-anchor="middle" font-size="12" font-weight="700">GMSC / GGSN</text>
+        <text x="700" y="22" text-anchor="middle" font-size="12" font-weight="700">TE</text>
+        <line class="line" x1="170" y1="30" x2="170" y2="220" stroke-dasharray="3 3"/>
+        <line class="line" x1="300" y1="30" x2="300" y2="220" stroke-dasharray="3 3"/>
+        <line class="line" x1="450" y1="30" x2="450" y2="220" stroke-dasharray="3 3"/>
+        <line class="line" x1="590" y1="30" x2="590" y2="220" stroke-dasharray="3 3"/>
+        <rect class="box" x="40" y="38" width="680" height="34" rx="5"/><text x="380" y="60" text-anchor="middle" font-size="13">Service de bout en bout</text>
+        <rect class="box" x="40" y="82" width="130" height="34" rx="5"/><text x="105" y="104" text-anchor="middle" font-size="12">Bearer local</text>
+        <rect class="accent" x="170" y="82" width="420" height="34" rx="5"/><text x="380" y="104" text-anchor="middle" font-size="13" font-weight="700">Bearer UMTS</text>
+        <rect class="box" x="590" y="82" width="130" height="34" rx="5"/><text x="655" y="104" text-anchor="middle" font-size="12">Bearer externe</text>
+        <rect class="accent" x="170" y="126" width="280" height="34" rx="5"/><text x="310" y="148" text-anchor="middle" font-size="13" font-weight="700">RAB (Radio Access Bearer)</text>
+        <rect class="box" x="450" y="126" width="140" height="34" rx="5"/><text x="520" y="148" text-anchor="middle" font-size="12">Bearer cœur (CN)</text>
+        <rect class="box" x="170" y="170" width="130" height="34" rx="5"/><text x="235" y="192" text-anchor="middle" font-size="12">Bearer radio</text>
+        <rect class="box" x="300" y="170" width="150" height="34" rx="5"/><text x="375" y="192" text-anchor="middle" font-size="12">Bearer Iu</text>
+        <rect class="box" x="450" y="170" width="140" height="34" rx="5"/><text x="520" y="192" text-anchor="middle" font-size="12">Bearer backbone</text>
+      </svg>
+      <figcaption>Chaque niveau s'appuie sur ceux du dessous (TS 23.107). TE = terminal (ex. PC), MT = partie mobile du terminal.</figcaption>
+    </figure>
+
+    <p>Chaque bearer est paramétré selon l'une des <strong>4 classes de QoS</strong>. Le critère qui les sépare est la sensibilité au délai :</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Classe</th><th>Exigence</th><th>Radio</th><th>Exemples</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Conversational</strong></td><td>Délai faible (&lt; 400 ms) <em>et</em> gigue faible ; erreurs tolérées</td><td>Temps réel</td><td>Voix (codec AMR), visiophonie</td></tr>
+        <tr><td><strong>Streaming</strong></td><td>Délai et gigue raisonnablement faibles ; peu d'erreurs</td><td>Temps réel</td><td>Vidéo et audio en streaming</td></tr>
+        <tr><td><strong>Interactive</strong></td><td>Aller-retour court (&lt; quelques s) ; gigue sans importance ; pas d'erreurs</td><td>Non temps réel</td><td>Web, jeux interactifs, services de localisation</td></tr>
+        <tr><td><strong>Background</strong></td><td>Délai non critique ; pas d'erreurs</td><td>Non temps réel</td><td>SMS, MMS, e-mail, transfert de fichiers</td></tr>
+      </tbody>
+    </table></div>
+    <p>Le streaming est unidirectionnel : le mobile peut <strong>bufferiser</strong> et démarrer la lecture avec un peu de retard, ce qui absorbe la gigue. Une conversation, elle, ne peut pas attendre.</p>
+
+    <h2 id="modele" data-toc="Modèle de protocoles">Modèle général de protocoles UTRAN</h2>
+    <p>Les protocoles de l'UTRAN se découpent selon deux axes indépendants.</p>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : les deux axes du modèle</span>
+      <p><strong>Plan de contrôle et plan usager.</strong> Dans un aéroport, la tour de contrôle (plan de contrôle) échange des messages pour décider qui décolle et sur quelle piste ; les avions eux-mêmes (plan usager) transportent les passagers. Le plan de contrôle transporte la <strong>signalisation</strong> (établir, modifier, libérer), le plan usager les <strong>données</strong> (voix, vidéo, paquets IP).</p>
+      <p><strong>Couche réseau radio (RNL) et couche transport (TNL).</strong> La RNL contient tout ce qui est propre à l'UMTS (que dire au Node B, à l'autre RNC, au cœur). La TNL est le « camion » qui achemine ces messages : ATM en R99, IP en Rel-5. Changer de camion ne touche pas au contenu : c'est exactement ce qui a permis de passer à l'IP sans réécrire les protocoles UMTS.</p>
+    </div>
+
+    <p>La TNL a même son propre plan de contrôle (<strong>ALCAP</strong>, Q.2630.1) dont le seul rôle est d'ouvrir les connexions AAL2 qui portent les données. Côté données, les flux sont emballés dans des <strong>Frame Protocols</strong> (FP) : tramage, contrôle d'erreur et de flux, multiplexage de flux parallèles.</p>
+
+    <h3 id="interfaces" data-toc="Synthèse par interface">Synthèse des piles par interface</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Interface</th><th>Entre</th><th>Signalisation (RNL)</th><th>Plan usager</th><th>Transport R99</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Uu</strong></td><td>UE – UTRAN</td><td>RRC</td><td>PDCP / RLC / MAC</td><td>Radio WCDMA</td></tr>
+        <tr><td><strong>Iub</strong></td><td>Node B – RNC</td><td>NBAP</td><td>Trames MAC dans des FP</td><td>ATM : AAL5 (signalisation), AAL2 (données) + ALCAP</td></tr>
+        <tr><td><strong>Iur</strong></td><td>RNC – RNC</td><td>RNSAP</td><td>Trames MAC dans des FP</td><td>ATM : AAL5 / AAL2 + ALCAP</td></tr>
+        <tr><td><strong>Iu-CS</strong></td><td>RNC – MSC</td><td>RANAP</td><td>Iu UP (canal circuit)</td><td>ATM : AAL5 / AAL2 + ALCAP</td></tr>
+        <tr><td><strong>Iu-PS</strong></td><td>RNC – SGSN</td><td>RANAP</td><td>Iu UP sur GTP-U / UDP / IP</td><td>ATM : AAL5 partout, pas d'ALCAP</td></tr>
+      </tbody>
+    </table></div>
+    <p>Pourquoi deux AAL ? <strong>AAL2</strong> multiplexe efficacement jusqu'à 248 petits flux (voix, canaux radio) sur un même circuit virtuel ATM. <strong>AAL5</strong> est l'adaptation classique pour transporter de l'IP : sur Iu-PS, chaque session de données est un tunnel GTP sur UDP/IP. En Rel-5, ATM peut être remplacé par IP sur toutes ces interfaces.</p>
+
+    <div class="callout warn"><span class="callout-title">Piège classique : où s'arrêtent les protocoles radio ?</span>
+      <p>Pas au Node B. Vu du plan usager, Iub n'est qu'un <strong>prolongement de l'interface radio</strong> : RRC, RLC et MAC se terminent dans le <strong>RNC</strong>. Le Node B se contente de transporter les trames MAC (une connexion AAL2 par canal radio). C'est une différence majeure avec la 4G, où tout sera dans la station de base.</p>
+    </div>
+
+    <h2 id="uu">L'interface radio Uu</h2>
+    <p>Sur Uu, la pile se lit de bas en haut : la couche physique (PHY) offre des <strong>canaux de transport</strong> à MAC, qui offre des <strong>canaux logiques</strong> à RLC, qui offre des <strong>radio bearers</strong> aux couches du dessus.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Protocole</th><th>Couche</th><th>Rôle</th></tr></thead>
+      <tbody>
+        <tr><td><strong>RRC</strong> (<em>Radio Resource Control</em>)</td><td>3, plan de contrôle</td><td>Pilote la connexion radio (détaillé ci-dessous)</td></tr>
+        <tr><td><strong>PDCP</strong> (<em>Packet Data Convergence Protocol</em>)</td><td>3, plan usager seulement</td><td>Compression des en-têtes IP</td></tr>
+        <tr><td><strong>RLC</strong> (<em>Radio Link Control</em>)</td><td>2</td><td>Segmentation/réassemblage, contrôle de flux et d'erreur ; souvent transparent</td></tr>
+        <tr><td><strong>MAC</strong> (<em>Medium Access Control</em>)</td><td>2</td><td>Correspondance canaux logiques ↔ canaux de transport, découpage en blocs de transport</td></tr>
+      </tbody>
+    </table></div>
+    <p><strong>RRC est le chef d'orchestre de la radio.</strong> Ses messages établissent la <strong>connexion RRC</strong> et son bearer radio de signalisation, puis établissent, modifient et libèrent les <strong>radio bearers</strong> de données entre UE et UTRAN. Il coordonne aussi mesures et handovers, et sert de « valise diplomatique » : il transporte la signalisation des couches hautes (MM mobilité, CC appels, SM sessions) que l'UTRAN ne lit pas.</p>
+
+    <div class="callout warn"><span class="callout-title">Piège classique : RRC contre RANAP</span>
+      <p>RRC parle entre le <strong>mobile et le RNC</strong> (sur Uu, prolongé par Iub). RANAP parle entre le <strong>RNC et le cœur</strong> (sur Iu). Un message MM ou CC du mobile voyage d'abord dans RRC, puis dans RANAP, sans que l'UTRAN ne l'interprète.</p>
+    </div>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. Quel équipement de l'UTRAN gère les ressources radio et les soft handovers ?</summary>
+      <p>Le <strong>RNC</strong>. Le Node B ne fait que la couche physique WCDMA et la transmission vers le RNC.</p>
+    </details>
+    <details><summary>2. À quoi sert l'interface Iur, et pourquoi n'existe-t-elle pas en 2G ?</summary>
+      <p>Elle relie deux RNC et permet un <strong>soft handover</strong> entre Node B de RNC différents : le DRNC prête ses ressources radio au SRNC, qui garde seul l'interface Iu.</p>
+    </details>
+    <details><summary>3. Qu'apporte la Release 4 au domaine CS ?</summary>
+      <p>La séparation contrôle / média : le <strong>MSC Server</strong> traite la signalisation d'appel, la <strong>MGW</strong> commute les flux usager, la SGW convertit la signalisation SS7 vers IP.</p>
+    </details>
+    <details><summary>4. Dans quelle classe de QoS placer une visioconférence ? Un téléchargement d'e-mail ? Un film en streaming ?</summary>
+      <p>Visioconférence : <strong>conversational</strong> (délai et gigue faibles). E-mail : <strong>background</strong>. Film : <strong>streaming</strong> (le buffer du mobile tolère un délai initial).</p>
+    </details>
+    <details><summary>5. Quelle portion couvre le RAB, et pourquoi est-il essentiel ?</summary>
+      <p>Du mobile jusqu'au nœud d'entrée du cœur (MSC ou SGSN) : radio + UTRAN + Iu. C'est là que la bande passante est la plus rare, donc là que la QoS se joue.</p>
+    </details>
+    <details><summary>6. Pourquoi Iu-PS utilise-t-il AAL5 et Iu-CS AAL2 ?</summary>
+      <p>Iu-PS transporte des tunnels GTP sur UDP/IP, et AAL5 est l'adaptation ATM classique pour l'IP. Iu-CS transporte des flux circuit (voix), qu'AAL2 multiplexe efficacement.</p>
+    </details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="03-gsm-gprs.html"><span>← Précédent</span>2G : GSM et GPRS</a>
+      <a class="next" href="05-lte.html"><span>Suivant →</span>4G : LTE (eUTRAN)</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

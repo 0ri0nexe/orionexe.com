@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exo 1 : un appel dans une cellule GSM · Réseaux cellulaires</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Réseaux cellulaires</a>
+    <div class="course-code">NET 8465 · Exercice</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Exercice 1</div>
+    <h1>Un appel dans une cellule GSM</h1>
+    <p class="lead">Capacité d'une cellule, déroulé d'un appel entrant canal par canal, puis décisions de handover quand l'abonné se déplace.</p>
+
+    <div class="callout key">
+      <span class="callout-title">À revoir avant de commencer</span>
+      <ul>
+        <li><a href="03-gsm-gprs.html">Chapitre 03 : GSM et GPRS</a> (trame TDMA, canaux logiques).</li>
+        <li><a href="tp-traces-gsm.html">TP : analyse de traces GSM</a> (Paging, Channel Request, Immediate Assignment).</li>
+        <li>Les seuils de handover : qualité, niveau, distance, Power Budget avec marge HO_MARGIN.</li>
+      </ul>
+    </div>
+
+    <h2 id="contexte">La cellule</h2>
+    <p>La cellule a <strong>3 porteuses</strong> (C0, C1, C2).</p>
+    <ul>
+      <li>Sur C0 : <strong>TS0</strong> porte FCCH, SCH, BCCH et CCCH. <strong>TS1</strong> porte un SDCCH/8 (8 sous-canaux SDCCH).</li>
+      <li>Tous les autres timeslots, sur les trois porteuses, sont des <strong>TCH/F</strong>.</li>
+    </ul>
+
+    <h2 id="capacite" data-toc="A. La capacité">Partie A : la capacité</h2>
+    <ol class="steps">
+      <li>Combien d'appels voix la cellule peut-elle écouler <strong>en même temps</strong>, au maximum ? Combien de mobiles peuvent être <strong>en signalisation dédiée</strong> (SMS, mise à jour de localisation...) en même temps ?</li>
+      <li>Une trame TDMA dure 4,615 ms et un mobile reçoit 114 bits utiles par trame. Calcule le débit brut d'un TCH. Le codec voix GSM ne produit que 13 kbit/s : où passe la différence ?</li>
+      <li>Un opérateur veut ajouter de la capacité voix sans ajouter de porteuse. Propose une solution vue en cours, et dis ce qu'elle coûte.</li>
+    </ol>
+
+    <h2 id="appel" data-toc="B. L'appel entrant">Partie B : l'appel entrant</h2>
+    <p>Alice est en veille dans la cellule. Bob l'appelle. Voici, <strong>dans le désordre</strong>, des messages échangés sur l'interface radio :</p>
+    <div class="callout explain"><span class="callout-title">Messages</span>
+      <p>Immediate Assignment · Authentication Request · Paging Request · Ciphering Mode Command · Channel Request · Connect · Assignment Command (attribution du TCH) · Paging Response</p>
+    </div>
+    <ol class="steps" start="4">
+      <li>Remets-les dans l'ordre. Pour chacun, donne <strong>le canal logique</strong> et <strong>le sens</strong> (↑ ou ↓).</li>
+      <li>Juste avant l'Immediate Assignment, deux autres mobiles envoient eux aussi un Channel Request, dans le même slot qu'Alice. Que se passe-t-il ? Comment le réseau sait-il à qui s'adresse l'Immediate Assignment ?</li>
+    </ol>
+
+    <h2 id="handover" data-toc="C. Alice bouge">Partie C : Alice bouge</h2>
+    <p>Alice est en communication sur un TCH de la cellule A. Elle émet déjà à sa puissance maximale. Le BSC utilise ces seuils :</p>
+    <ul>
+      <li>handover sur niveau si RXLEV &lt; −100 dBm ;</li>
+      <li>handover sur qualité si RXQUAL ≥ 5 ;</li>
+      <li>Power Budget : handover si une voisine est meilleure de plus de <strong>HO_MARGIN = 6 dB</strong>.</li>
+    </ul>
+    <p>Trois situations (moyennes lissées) :</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Situation</th><th>Cellule A (actuelle)</th><th>Voisine B</th><th>Voisine C</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1</strong></td><td>−85 dBm, RXQUAL 1</td><td>−82 dBm</td><td>−90 dBm</td></tr>
+        <tr><td><strong>2</strong></td><td>−88 dBm, RXQUAL 1</td><td>−78 dBm</td><td>−75 dBm, <strong>aucun TCH libre</strong></td></tr>
+        <tr><td><strong>3</strong></td><td>−62 dBm, <strong>RXQUAL 6</strong></td><td>−95 dBm</td><td>−99 dBm</td></tr>
+      </tbody>
+    </table></div>
+    <ol class="steps" start="6">
+      <li>Pour chaque situation : y a-t-il un handover ? Si oui, vers quelle cellule (ou quel canal), et pour quelle <strong>cause</strong> ?</li>
+      <li>Par quel canal Alice reçoit-elle l'ordre de handover ? Pourquoi celui-là et pas le SACCH ?</li>
+      <li><strong>Réflexion :</strong> dans la situation 1, si HO_MARGIN valait 0 dB, que risquerait-il de se passer quand Alice marche le long de la frontière entre A et B ?</li>
+    </ol>
+
+    <h2 id="correction">Correction</h2>
+    <div class="callout warn"><span class="callout-title">Pas encore publiée</span>
+      <p>Cherche d'abord, même partiellement. La correction sera ajoutée ici, repliée question par question, après qu'on l'aura faite ensemble.</p>
+    </div>
+
+    <div class="chapter-nav">
+      <a class="prev" href="tp-traces-gsm.html"><span>← Précédent</span>TP : analyse de traces GSM</a>
+      <a class="next" href="index.html"><span>Suivant →</span>Retour au sommaire</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

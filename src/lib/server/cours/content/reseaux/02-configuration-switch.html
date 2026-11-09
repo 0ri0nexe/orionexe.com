@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuration d'un commutateur · Introduction aux réseaux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Introduction aux réseaux</a>
+    <div class="course-code">DIV 8404 · Chapitre 02</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 02</div>
+    <h1>Configuration de base d'un commutateur</h1>
+    <p class="lead">Se connecter à un commutateur Cisco, circuler dans l'IOS, le configurer (nom, mots de passe, adresse IP) et sauvegarder.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>On configure un commutateur en <strong>ligne de commande</strong> (CLI) : d'abord par le <strong>port console</strong>, plus tard à distance par <strong>SSH</strong>.</li>
+        <li>Modes IOS : <code>&gt;</code> utilisateur, <code>#</code> privilégié (<code>enable</code>), <code>(config)#</code> configuration (<code>configure terminal</code>). <code>exit</code> remonte d'un niveau, <code>end</code> revient en <code>#</code>.</li>
+        <li>Configuration de base : <code>hostname</code>, <code>enable secret</code>, mot de passe + <code>login</code> sur <code>line console 0</code> et <code>line vty 0 15</code>, <code>banner motd</code>.</li>
+        <li><strong>running-config</strong> (RAM) = config active, perdue au redémarrage ; <strong>startup-config</strong> (NVRAM) = config enregistrée. On sauvegarde avec <code>copy running-config startup-config</code>.</li>
+        <li>Un commutateur reçoit son adresse IP de gestion sur une <strong>SVI</strong> (<code>interface vlan 1</code>), à activer par <code>no shutdown</code>.</li>
+      </ul>
+    </div>
+
+    <h2 id="acces-ios">Accéder à l'IOS et naviguer</h2>
+
+    <p>Le système Cisco, l'<strong>IOS</strong>, s'utilise en ligne de commande depuis un émulateur de terminal (<strong>PuTTY</strong>). Deux accès :</p>
+    <ul>
+      <li><strong>Console</strong> : câble bleu sur le port <em>CONSOLE</em>, en série à <strong>9600 bauds</strong>. Fonctionne sans adresse IP : obligatoire pour la première configuration.</li>
+      <li><strong>SSH</strong> (TCP 22, chiffré) : accès à distance, possible seulement une fois le commutateur doté d'une adresse IP. <strong>Telnet</strong> (TCP 23) fait pareil en clair : à éviter.</li>
+    </ul>
+
+    <h3 id="modes">Les modes de commande</h3>
+    <p>L'IOS range les commandes dans des <strong>modes hiérarchiques</strong>. L'invite indique toujours où l'on se trouve :</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Mode</th><th>Invite</th><th>À quoi il sert</th></tr></thead>
+      <tbody>
+        <tr><td>Utilisateur</td><td><code>Switch&gt;</code></td><td>Consultation limitée, aucune modification.</td></tr>
+        <tr><td>Privilégié</td><td><code>Switch#</code></td><td>Tout consulter, sauvegarder, redémarrer.</td></tr>
+        <tr><td>Configuration globale</td><td><code>Switch(config)#</code></td><td>Modifier les réglages de tout l'appareil.</td></tr>
+        <tr><td>Sous-modes</td><td><code>(config-line)#</code>, <code>(config-if)#</code></td><td>Configurer une ligne d'accès ou une interface.</td></tr>
+      </tbody>
+    </table></div>
+
+    <figure>
+      <svg viewBox="0 0 640 300" role="img" aria-label="Navigation entre les modes IOS">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" class="muted"/></marker></defs>
+        <rect class="box" x="20" y="20" width="160" height="50" rx="8"/><text x="100" y="42" text-anchor="middle" font-weight="600">User EXEC</text><text x="100" y="60" text-anchor="middle" class="muted" font-size="12">Switch&gt;</text>
+        <rect class="box" x="240" y="20" width="160" height="50" rx="8"/><text x="320" y="42" text-anchor="middle" font-weight="600">Privileged EXEC</text><text x="320" y="60" text-anchor="middle" class="muted" font-size="12">Switch#</text>
+        <rect class="accent" x="460" y="20" width="160" height="50" rx="8"/><text x="540" y="42" text-anchor="middle" font-weight="600">Config globale</text><text x="540" y="60" text-anchor="middle" class="muted" font-size="12">Switch(config)#</text>
+        <rect class="box" x="360" y="200" width="160" height="50" rx="8"/><text x="440" y="222" text-anchor="middle" font-weight="600">Ligne</text><text x="440" y="240" text-anchor="middle" class="muted" font-size="12">(config-line)#</text>
+        <rect class="box" x="540" y="200" width="90" height="50" rx="8"/><text x="585" y="222" text-anchor="middle" font-weight="600">Interface</text><text x="585" y="240" text-anchor="middle" class="muted" font-size="11">(config-if)#</text>
+        <line class="line" x1="180" y1="38" x2="238" y2="38" marker-end="url(#ar)"/><text x="209" y="32" text-anchor="middle" font-size="11">enable</text>
+        <line class="line" x1="240" y1="56" x2="182" y2="56" marker-end="url(#ar)"/><text x="209" y="84" text-anchor="middle" font-size="11" class="muted">disable</text>
+        <line class="line" x1="400" y1="38" x2="458" y2="38" marker-end="url(#ar)"/><text x="430" y="14" text-anchor="middle" font-size="11">configure terminal</text>
+        <line class="line" x1="460" y1="56" x2="402" y2="56" marker-end="url(#ar)"/><text x="430" y="84" text-anchor="middle" font-size="11" class="muted">exit / end</text>
+        <line class="line" x1="520" y1="70" x2="455" y2="198" marker-end="url(#ar)"/><text x="425" y="140" text-anchor="middle" font-size="11">line console 0 / line vty 0 15</text>
+        <line class="line" x1="560" y1="70" x2="585" y2="198" marker-end="url(#ar)"/><text x="600" y="120" font-size="11">interface</text><text x="600" y="134" font-size="11">vlan 1</text>
+        <path class="line" d="M360 235 C 250 235, 230 120, 300 72" marker-end="url(#ar)" stroke-dasharray="5 4"/>
+        <text x="215" y="210" text-anchor="middle" font-size="11" class="muted">end ou Ctrl+Z</text>
+        <text x="215" y="224" text-anchor="middle" font-size="11" class="muted">(retour direct en #)</text>
+        <text x="500" y="285" text-anchor="middle" font-size="11" class="muted">exit : remonte d'un niveau (vers config globale)</text>
+      </svg>
+      <figcaption>On descend avec <code>enable</code>, <code>configure terminal</code>, puis <code>line</code> ou <code>interface</code>. On remonte avec <code>exit</code> (un niveau) ou <code>end</code> (directement en <code>#</code>).</figcaption>
+    </figure>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre</span><p>Voyez les modes comme les étages d'un bâtiment sécurisé. Au rez-de-chaussée (<code>&gt;</code>), on regarde par les vitres. Avec un badge (<code>enable</code>), on entre dans les bureaux (<code>#</code>) où l'on voit tout. Seule la salle des machines (<code>(config)#</code>) permet de toucher aux réglages, et chaque armoire (ligne, interface) a sa porte. Une commande refusée ? Vérifiez d'abord l'étage, c'est-à-dire l'invite.</p></div>
+
+    <pre data-label="Cisco IOS"><code><span class="prompt">Switch&gt;</span> enable
+<span class="prompt">Switch#</span> configure terminal
+<span class="prompt">Switch(config)#</span> interface vlan 1
+<span class="prompt">Switch(config-if)#</span> exit        <span class="cmt">! retour en config globale</span>
+<span class="prompt">Switch(config)#</span> line console 0
+<span class="prompt">Switch(config-line)#</span> end      <span class="cmt">! retour direct en mode privilégié</span>
+<span class="prompt">Switch#</span></code></pre>
+
+    <div class="callout warn"><span class="callout-title">Piège classique</span><p><code>exit</code> depuis <code>(config-if)#</code> ramène en <code>(config)#</code>, pas en <code>#</code>. Pour un <code>show</code>, utilisez <code>end</code>, ou restez en config avec le préfixe <code>do</code> (<code>do show ip interface brief</code>).</p></div>
+
+    <h3 id="aide">Structure d'une commande et aide</h3>
+    <p>Une commande = une <strong>commande</strong> + des <strong>mots-clés</strong> imposés + des <strong>arguments</strong> choisis par vous (dans <code>ping 192.168.1.2</code>, l'adresse est un argument). Pour s'aider :</p>
+    <ul>
+      <li><code>?</code> liste ce qu'on peut taper à cet endroit (<code>clock set ?</code> donne le paramètre attendu).</li>
+      <li><kbd>Tab</kbd> complète un mot, et les <strong>abréviations</strong> sont acceptées tant qu'elles sont uniques : <code>conf t</code>, <code>sh ip int br</code>.</li>
+      <li><kbd>↑</kbd> rappelle les commandes précédentes.</li>
+    </ul>
+    <pre data-label="Cisco IOS"><code><span class="prompt">Switch#</span> clock set ?
+<span class="out">  hh:mm:ss  Current Time</span>
+<span class="prompt">Switch#</span> clok
+<span class="out">       ^
+% Invalid input detected at '^' marker.</span>   <span class="cmt">! le ^ montre l'erreur</span>
+<span class="prompt">Switch#</span> clock set 15:08:00
+<span class="out">% Incomplete command.</span>                       <span class="cmt">! il manque la date</span></code></pre>
+    <p>En labo, <code>no ip domain-lookup</code> évite qu'une faute de frappe bloque le terminal plusieurs secondes (l'IOS la prend pour un nom de machine).</p>
+
+    <h2 id="config-base">Configuration de base</h2>
+
+    <p>Sur tout équipement neuf : un <strong>nom unique</strong>, un <strong>mot de passe sur chaque porte d'entrée</strong> (console, accès distants, mode privilégié) et une <strong>bannière</strong> d'avertissement légal.</p>
+    <pre data-label="Cisco IOS"><code><span class="prompt">Switch(config)#</span> hostname S1
+<span class="prompt">S1(config)#</span> enable secret class          <span class="cmt">! protège le passage en mode #</span>
+<span class="prompt">S1(config)#</span> line console 0               <span class="cmt">! accès par le câble console</span>
+<span class="prompt">S1(config-line)#</span> password cisco
+<span class="prompt">S1(config-line)#</span> login                   <span class="cmt">! demande le mot de passe</span>
+<span class="prompt">S1(config-line)#</span> line vty 0 15           <span class="cmt">! accès distants (SSH/Telnet)</span>
+<span class="prompt">S1(config-line)#</span> password cisco
+<span class="prompt">S1(config-line)#</span> login
+<span class="prompt">S1(config-line)#</span> exit
+<span class="prompt">S1(config)#</span> service password-encryption  <span class="cmt">! masque les mots de passe affichés</span>
+<span class="prompt">S1(config)#</span> banner motd # Acces autorise uniquement ! #</code></pre>
+
+    <p>Les <strong>lignes VTY</strong> reçoivent les connexions distantes (16 sur un commutateur, de 0 à 15). Dans la bannière, <code>#</code> est un <strong>délimiteur</strong> qui encadre le message.</p>
+    <p><code>enable secret</code> stocke le mot de passe sous forme <strong>hachée</strong> (irrécupérable) ; <code>service password-encryption</code> masque seulement les autres, avec un chiffrement faible.</p>
+
+    <div class="callout warn"><span class="callout-title">Piège classique</span><p>Sans <code>login</code>, le mot de passe de la ligne est enregistré mais <strong>jamais demandé</strong>. <code>password</code> définit le mot de passe, <code>login</code> active la vérification : il faut les deux.</p></div>
+
+    <h2 id="sauvegarde">Enregistrer la configuration</h2>
+
+    <p>Le commutateur garde deux versions de sa configuration :</p>
+    <ul>
+      <li><strong>running-config</strong>, en <strong>RAM</strong> : la configuration active. Chaque commande tapée s'y applique immédiatement, mais tout est perdu à l'extinction.</li>
+      <li><strong>startup-config</strong>, en <strong>NVRAM</strong> : la configuration enregistrée, chargée au démarrage. Elle survit aux coupures de courant.</li>
+    </ul>
+
+    <figure>
+      <svg viewBox="0 0 620 200" role="img" aria-label="Copie entre NVRAM et RAM">
+        <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" class="muted"/></marker></defs>
+        <rect class="box" x="30" y="60" width="150" height="80" rx="10"/>
+        <text x="105" y="95" text-anchor="middle" font-weight="600">NVRAM</text>
+        <text x="105" y="115" text-anchor="middle" class="muted" font-size="12">startup-config</text>
+        <rect class="accent" x="420" y="60" width="150" height="80" rx="10"/>
+        <text x="495" y="95" text-anchor="middle" font-weight="600">RAM</text>
+        <text x="495" y="115" text-anchor="middle" class="muted" font-size="12">running-config</text>
+        <line class="line" x1="182" y1="78" x2="418" y2="78" marker-end="url(#ar2)"/>
+        <text x="300" y="70" text-anchor="middle" font-size="12">chargement au démarrage</text>
+        <line class="line" x1="418" y1="124" x2="182" y2="124" marker-end="url(#ar2)" stroke-width="2"/>
+        <text x="300" y="146" text-anchor="middle" font-family="monospace" font-size="12" font-weight="600">copy running-config startup-config</text>
+        <text x="300" y="185" text-anchor="middle" class="muted" font-size="12">Les commandes tapées modifient la RAM uniquement</text>
+      </svg>
+      <figcaption>Sauvegarder, c'est copier la RAM vers la NVRAM.</figcaption>
+    </figure>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre</span><p>C'est un traitement de texte : la running-config est le document ouvert à l'écran, la startup-config le fichier enregistré sur le disque. Si le courant saute avant « Enregistrer », vous retrouvez la dernière version enregistrée. Et pour annuler des essais ratés non sauvegardés, il suffit de redémarrer (<code>reload</code>).</p></div>
+
+    <pre data-label="Cisco IOS"><code><span class="prompt">S1#</span> copy running-config startup-config
+<span class="out">Destination filename [startup-config]?</span>   <span class="cmt">! Entrée pour confirmer</span>
+<span class="out">[OK]</span></code></pre>
+    <p>Affichage : <code>show running-config</code> / <code>show startup-config</code>. Repartir de zéro : <code>erase startup-config</code> puis <code>reload</code>.</p>
+
+    <h2 id="adresses">Adressage IP et SVI</h2>
+
+    <p>Pour communiquer en IP, chaque hôte (PC, serveur) a besoin de trois paramètres :</p>
+    <ul>
+      <li>une <strong>adresse IPv4</strong> : 4 nombres de 0 à 255, par exemple <code>192.168.1.10</code> ;</li>
+      <li>un <strong>masque de sous-réseau</strong>, par exemple <code>255.255.255.0</code> (noté <code>/24</code>), qui sépare la partie réseau de la partie hôte ;</li>
+      <li>une <strong>passerelle par défaut</strong> : l'adresse du routeur, utilisée pour joindre les autres réseaux.</li>
+    </ul>
+    <p>On les saisit à la main (adressage <strong>statique</strong>, comme en TP) ou on les reçoit automatiquement d'un serveur <strong>DHCP</strong> (le cas par défaut à la maison).</p>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre</span><p>Une adresse IP fonctionne comme une adresse postale : le masque dit où s'arrête le nom de la rue (le <strong>réseau</strong>) et où commence le numéro (l'<strong>hôte</strong>). Avec <code>192.168.1.10</code> et <code>255.255.255.0</code>, la rue est <code>192.168.1</code> et le numéro <code>.10</code>. Deux machines de la même rue se parlent directement : <code>192.168.1.10</code> et <code>192.168.1.11</code>, oui. Pour <code>192.168.2.11</code>, autre rue, il faut passer par la passerelle, le « bureau de poste » du quartier.</p></div>
+
+    <h3 id="svi">Pourquoi un commutateur a besoin d'une IP</h3>
+    <p>Pour transmettre des trames, un commutateur n'a besoin d'aucune adresse IP. Mais pour l'<strong>administrer à distance</strong> (SSH) ou le <code>ping</code>er, il en faut une. Elle se met non pas sur un port physique mais sur une <strong>SVI</strong> (Switch Virtual Interface), interface virtuelle interne : <code>interface vlan 1</code> par défaut.</p>
+
+    <figure>
+      <svg viewBox="0 0 620 200" role="img" aria-label="PC relié à un port du commutateur S1 ; la SVI VLAN 1 virtuelle porte l'adresse IP de gestion">
+        <rect class="box" x="20" y="70" width="110" height="60" rx="8"/>
+        <text x="75" y="98" text-anchor="middle" font-weight="600">PC-A</text>
+        <text x="75" y="116" text-anchor="middle" class="muted" font-size="11">192.168.1.10</text>
+        <rect class="box" x="300" y="50" width="280" height="100" rx="10"/>
+        <text x="440" y="72" text-anchor="middle" font-weight="600">Commutateur S1</text>
+        <rect class="accent" x="390" y="84" width="170" height="48" rx="8" stroke-dasharray="5 4"/>
+        <text x="475" y="104" text-anchor="middle" font-size="12">SVI : interface vlan 1</text>
+        <text x="475" y="121" text-anchor="middle" class="muted" font-size="11">192.168.1.1/24 (virtuelle)</text>
+        <rect class="box" x="315" y="96" width="60" height="26" rx="4"/>
+        <text x="345" y="113" text-anchor="middle" font-size="11">F0/6</text>
+        <path class="line" d="M130 100 C 200 100, 240 109, 315 109" stroke-width="2.5"/>
+        <text x="220" y="92" text-anchor="middle" class="muted" font-size="11">câble Ethernet</text>
+      </svg>
+      <figcaption>Le PC arrive par un port physique ; l'adresse IP du commutateur est portée par la SVI, sans prise.</figcaption>
+    </figure>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre</span><p>Un commutateur est comme le standard téléphonique d'un immeuble : il relie les appartements sans avoir de numéro. Pour joindre le gardien, il faut lui donner sa propre ligne. La SVI est cette ligne : elle n'occupe aucun port, mais elle est joignable depuis tous les ports du VLAN 1.</p></div>
+
+    <pre data-label="Cisco IOS"><code><span class="prompt">S1(config)#</span> interface vlan 1
+<span class="prompt">S1(config-if)#</span> ip address 192.168.1.1 255.255.255.0
+<span class="prompt">S1(config-if)#</span> no shutdown                    <span class="cmt">! désactivée par défaut</span>
+<span class="prompt">S1(config-if)#</span> exit
+<span class="prompt">S1(config)#</span> ip default-gateway 192.168.1.254  <span class="cmt">! pour être joint depuis un autre réseau</span></code></pre>
+    <p>La SVI ne passe <code>up</code> qu'après <code>no shutdown</code> <strong>et</strong> si au moins un port actif appartient au VLAN 1 (un PC branché par exemple). On vérifie avec <code>show ip interface brief</code> :</p>
+    <pre data-label="Cisco IOS"><code><span class="prompt">S1#</span> show ip interface brief
+<span class="out">Interface        IP-Address      OK? Method Status   Protocol
+Vlan1            192.168.1.1     YES manual <span class="hl">up       up</span>
+FastEthernet0/2  unassigned      YES unset  down     down</span></code></pre>
+
+    <h2 id="tp">Travaux pratiques</h2>
+
+    <section class="tp">
+      <h3 id="tp-1">TP1 · Naviguer dans l'IOS via la console <span class="badge">Catalyst 2960 · PuTTY</span></h3>
+      <p><strong>Objectif :</strong> se connecter en console, passer d'un mode à l'autre, lire la version de l'IOS et régler l'horloge.</p>
+      <ol class="steps">
+        <li>Brancher le câble console, ouvrir PuTTY en <em>Serial</em> (port COM ou <code>/dev/ttyUSB0</code>), 9600 bauds.</li>
+        <li>Répondre <code>no</code> à « initial configuration dialog ».</li>
+        <li><code>show version</code> : version de l'IOS et nom de l'image.</li>
+        <li><code>enable</code>, puis <code>clock set 15:08:00 Oct 26 2012</code> (aidez-vous de <code>?</code>) et <code>show clock</code>.</li>
+      </ol>
+      <details><summary>Pourquoi faut-il passer en mode privilégié pour <code>clock set</code> ?</summary><p>Le mode <code>&gt;</code> ne permet aucune modification : il faut <code>enable</code>.</p></details>
+      <details><summary>Comment empêcher un accès non autorisé par le port console ?</summary><p>Mot de passe + <code>login</code> sur <code>line console 0</code>, <code>enable secret</code>, et baie fermée à clé.</p></details>
+    </section>
+
+    <section class="tp">
+      <h3 id="tp-2">TP2 · Paramètres de base du commutateur et des PC <span class="badge">2 × Catalyst 2960 · 2 PC</span></h3>
+      <p><strong>Objectif :</strong> relier 2 commutateurs et 2 PC sur le réseau 192.168.1.0/24, appliquer la configuration de base et vérifier par <code>ping</code>. Ne pas sauvegarder.</p>
+      <ol class="steps">
+        <li>Câbler : S1 F0/1 ↔ S2 F0/1, PC-A sur S1 F0/6, PC-B sur S2 F0/18.</li>
+        <li>Adresser les PC en statique : PC-A <code>192.168.1.10/24</code>, PC-B <code>192.168.1.11/24</code>.</li>
+        <li>Sur S1 : <code>hostname</code>, <code>no ip domain-lookup</code>, <code>enable secret</code>, mot de passe console + <code>login</code>, <code>banner motd</code>.</li>
+        <li>SVI : <code>interface vlan 1</code>, <code>ip address 192.168.1.1 255.255.255.0</code>, <code>no shutdown</code>. Idem sur S2 avec <code>.2</code>.</li>
+        <li>Vérifier : <code>show running-config</code>, <code>show ip interface brief</code>, puis ping entre tous les équipements.</li>
+      </ol>
+      <details><summary>Pourquoi certains ports sont « up » et d'autres « down » ?</summary><p>Un port n'est <code>up/up</code> que s'il est relié à un équipement allumé ; sans câble, il reste <code>down/down</code>.</p></details>
+      <details><summary>Qu'est-ce qui pourrait empêcher un ping entre les PC ?</summary><p>Câble mal branché, adresse ou masque erroné, ou pare-feu du PC (fréquent sous Windows). Vers le commutateur : SVI restée en <code>shutdown</code>.</p></details>
+    </section>
+
+    <h2 id="revision">Testez-vous</h2>
+
+    <details><summary>1. Vous êtes en <code>S1(config-if)#</code>. Quelle commande vous ramène directement en <code>S1#</code> ?</summary><p><code>end</code> (ou <kbd>Ctrl</kbd>+<kbd>Z</kbd>). <code>exit</code> ne ramènerait qu'en <code>S1(config)#</code>.</p></details>
+
+    <details><summary>2. Un mot de passe est configuré sur <code>line console 0</code> mais n'est jamais demandé. Pourquoi ?</summary><p>Il manque la commande <code>login</code>, qui active la vérification du mot de passe.</p></details>
+
+    <details><summary>3. Le commutateur redémarre et toute la configuration de la journée a disparu. Que s'est-il passé ?</summary><p>Les changements étaient dans la <strong>running-config</strong> (RAM) et n'ont pas été copiés dans la startup-config (NVRAM) avec <code>copy running-config startup-config</code>.</p></details>
+
+    <details><summary>4. Sur quelle interface met-on l'adresse IP de gestion d'un commutateur, et pourquoi ne répond-elle pas au ping juste après ?</summary><p>Sur la <strong>SVI</strong> (<code>interface vlan 1</code>). Elle est désactivée par défaut : il faut <code>no shutdown</code>, et au moins un port actif dans le VLAN 1.</p></details>
+
+    <details><summary>5. PC-A (<code>192.168.1.10/24</code>) peut-il joindre <code>192.168.2.5</code> sans passerelle ?</summary><p>Non. Avec le masque /24, la partie réseau de PC-A est <code>192.168.1</code> ; <code>192.168.2.5</code> est sur un autre réseau, il faut passer par la passerelle par défaut.</p></details>
+
+    <details><summary>6. Pourquoi préférer SSH à Telnet ?</summary><p>Telnet (TCP 23) transmet identifiants et commandes en clair. SSH (TCP 22) chiffre toute la session.</p></details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="01-reseaux-aujourdhui.html"><span>← Précédent</span>Les réseaux aujourd'hui</a>
+      <a class="next" href="03-protocoles-modeles.html"><span>Suivant →</span>Protocoles et modèles</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

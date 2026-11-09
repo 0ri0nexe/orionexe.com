@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Réseaux cellulaires</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="../../index.html">← Tous les cours</a>
+    <div class="course-code">NET 8465 · Télécom SudParis</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">NET 8465</div>
+    <h1>Réseaux cellulaires et évolutions</h1>
+    <p class="lead">De la propagation radio à la 5G : l'essentiel de chaque séance, avec les points difficiles expliqués et quelques questions pour réviser.</p>
+
+    <h2 id="fil">Le fil rouge</h2>
+    <p>Le cours suit une seule question : <strong>comment partager une ressource radio rare entre beaucoup d'utilisateurs mobiles ?</strong> On voit d'abord les contraintes physiques (chapitre 1) et les techniques de partage (chapitre 2). On suit ensuite leur mise en œuvre génération après génération : 2G en temps, 3G en codes, 4G en sous-porteuses, 5G en services et en tranches de réseau.</p>
+
+    <h2 id="chapitres">Chapitres</h2>
+    <div class="grid">
+      <a class="card" href="01-environnement-radio.html"><span class="num">01</span><h4>L'environnement radio</h4><p>Propagation, affaiblissement, trajets multiples, modulation.</p></a>
+      <a class="card" href="02-acces-multiple.html"><span class="num">02</span><h4>Partage des ressources radio</h4><p>TDMA, FDMA, CDMA, OFDMA, BDMA.</p></a>
+      <a class="card" href="03-gsm-gprs.html"><span class="num">03</span><h4>2G : GSM et GPRS</h4><p>Trames GSM, architecture, paquets avec GPRS, TBF.</p></a>
+      <a class="card" href="04-umts.html"><span class="num">04</span><h4>3G : UMTS</h4><p>UTRAN, cœur CS/PS, releases, bearers et QoS, protocoles.</p></a>
+      <a class="card" href="05-lte.html"><span class="num">05</span><h4>4G : LTE</h4><p>eNodeB, EPC (MME, SGW, PGW), grille de ressources, canaux.</p></a>
+      <a class="card" href="06-5g.html"><span class="num">06</span><h4>5G</h4><p>NSA/SA, gNB, MEC, slicing, cœur orienté services.</p></a>
+    </div>
+
+    <h2 id="pratique">TD et TP</h2>
+    <div class="grid">
+      <a class="card" href="td-cran.html"><span class="num">TD</span><h4>C-RAN, eICIC et CoMP</h4><p>Modéliser une cellule LTE et calculer débit et blocage avec Erlang B.</p></a>
+      <a class="card" href="tp-traces-gsm.html"><span class="num">TP</span><h4>Analyse de traces GSM</h4><p>Lire une trace de l'interface radio et reconstituer l'échange d'un SMS.</p></a>
+    </div>
+
+    <h2 id="exercices">Exercices</h2>
+    <p>Des exercices pour s'entraîner, à chercher avant de lire la correction.</p>
+    <div class="grid">
+      <a class="card" href="exo-01-appel-gsm.html"><span class="num">E1</span><h4>Un appel dans une cellule GSM</h4><p>Capacité d'une cellule, appel entrant canal par canal, décisions de handover.</p></a>
+    </div>
+
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

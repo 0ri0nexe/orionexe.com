@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Couche réseau et IPv4 · Introduction aux réseaux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Introduction aux réseaux</a>
+    <div class="course-code">DIV 8404 · Chapitre 07</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 07</div>
+    <h1>Couche réseau et adressage IPv4</h1>
+    <p class="lead">Jusqu'ici, on restait dans un seul réseau local, où les switchs livrent les trames grâce aux adresses MAC. Pour aller plus loin, il faut une adresse qui dise <em>dans quel réseau</em> se trouve la machine : c'est l'adresse IP. Ce chapitre explique ce que fait la couche réseau, comment lire une adresse IPv4 avec son masque, et comment découper un réseau en sous-réseaux.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>IP est <strong>sans connexion</strong>, <strong>best effort</strong> (aucune garantie de livraison) et <strong>indépendant du support</strong>. La fiabilité, c'est le travail de TCP.</li>
+        <li>Une adresse IPv4 fait <strong>32 bits</strong> : une partie <strong>réseau</strong> et une partie <strong>hôte</strong>. Le <strong>masque</strong> (ou préfixe <code>/n</code>) dit où est la frontière.</li>
+        <li><strong>Adresse réseau</strong> = IP <strong>ET</strong> masque (bits d'hôte à 0). <strong>Broadcast</strong> = bits d'hôte à 1. Nombre d'hôtes = <strong>2<sup>h</sup> − 2</strong>.</li>
+        <li>Un hôte compare le réseau de la destination au sien : même réseau, il envoie directement ; sinon, il envoie à sa <strong>passerelle par défaut</strong> (le routeur).</li>
+        <li>Privées (RFC 1918) : <strong>10.0.0.0/8</strong>, <strong>172.16.0.0/12</strong>, <strong>192.168.0.0/16</strong>. <strong>VLSM</strong> : on taille chaque sous-réseau à son besoin, en commençant par le plus gros.</li>
+      </ul>
+    </div>
+
+    <h2 id="couche-reseau">Le rôle de la couche réseau</h2>
+    <p>La couche réseau (couche 3 OSI, « Internet » dans TCP/IP) permet à deux machines d'échanger des données <strong>même si elles ne sont pas sur le même réseau local</strong>. Les deux protocoles principaux sont <strong>IPv4</strong> et <strong>IPv6</strong>. Elle réalise quatre opérations :</p>
+    <ol>
+      <li><strong>Adressage</strong> des hôtes : chaque interface reçoit une adresse IP.</li>
+      <li><strong>Encapsulation</strong> : le segment de la couche transport (TCP ou UDP) reçoit un en-tête IP, ce qui donne un <strong>paquet</strong>.</li>
+      <li><strong>Routage</strong> : les routeurs choisissent, saut par saut, par où faire passer le paquet.</li>
+      <li><strong>Désencapsulation</strong> : à l'arrivée, l'hôte retire l'en-tête IP et remonte le segment à la couche transport.</li>
+    </ol>
+    <p>Les adresses IP source et destination <strong>ne changent pas</strong> de bout en bout (sauf NAT, vu plus bas). C'est la grosse différence avec les adresses MAC, qui sont <strong>réécrites à chaque routeur</strong> parce qu'une trame ne vit que sur un lien.</p>
+
+    <h3 id="caracteristiques">Les trois caractéristiques d'IP</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Caractéristique</th><th>Ce que ça veut dire</th><th>Conséquence</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Sans connexion</strong></td><td>IP n'établit rien avant d'envoyer : pas de poignée de main, pas de prévenance du destinataire.</td><td>Peu de surcharge. Si on veut une connexion, c'est TCP qui la fait.</td></tr>
+        <tr><td><strong>Best effort</strong> (non fiable)</td><td>IP ne garantit pas la livraison, n'attend aucun accusé de réception, ne retransmet pas, ne remet pas les paquets dans l'ordre.</td><td>Les pertes et le désordre sont gérés par la couche au-dessus (TCP) ou acceptés (UDP).</td></tr>
+        <tr><td><strong>Indépendant du support</strong></td><td>IP se moque du type de trame ou de média : cuivre, fibre, Wi-Fi.</td><td>Une seule contrainte remonte : la <strong>MTU</strong>, taille maximale d'un paquet sur le lien.</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : la MTU et la fragmentation</span>
+      <p>La couche liaison annonce sa <strong>MTU</strong> (Maximum Transmission Unit), 1500 octets en Ethernet. Si un routeur doit faire passer un paquet IPv4 vers un lien à MTU plus petite (un vieux lien WAN, par exemple), il le <strong>fragmente</strong> en morceaux plus petits, que le destinataire réassemblera. Ça marche, mais ça ajoute de la latence. <strong>IPv6 ne fragmente jamais</strong> en route : c'est à la source d'envoyer des paquets à la bonne taille.</p>
+    </div>
+
+    <h2 id="paquet" data-toc="Le paquet IPv4">L'en-tête du paquet IPv4</h2>
+    <p>L'en-tête IPv4 est lu par <strong>chaque routeur</strong> sur le chemin. Il se représente par lignes de 4 octets (32 bits), lues de gauche à droite. Taille minimale : <strong>20 octets</strong>.</p>
+    <figure>
+      <svg viewBox="0 0 640 250" role="img" aria-label="En-tête IPv4 sur 5 lignes de 32 bits : version, IHL, DS, longueur totale ; identification, flags, offset ; TTL, protocole, checksum ; adresse source ; adresse destination">
+        <text x="20" y="18" class="muted" font-size="12">bit 0</text>
+        <text x="620" y="18" text-anchor="end" class="muted" font-size="12">bit 31</text>
+        <rect class="box" x="20" y="28" width="80" height="38" rx="4"/><text x="60" y="52" text-anchor="middle" font-size="13">Version</text>
+        <rect class="box" x="100" y="28" width="80" height="38" rx="4"/><text x="140" y="52" text-anchor="middle" font-size="13">IHL</text>
+        <rect class="box" x="180" y="28" width="160" height="38" rx="4"/><text x="260" y="52" text-anchor="middle" font-size="13">DS (QoS)</text>
+        <rect class="box" x="340" y="28" width="280" height="38" rx="4"/><text x="480" y="52" text-anchor="middle" font-size="13">Longueur totale</text>
+        <rect class="box" x="20" y="66" width="320" height="38" rx="4"/><text x="180" y="90" text-anchor="middle" font-size="13">Identification</text>
+        <rect class="box" x="340" y="66" width="60" height="38" rx="4"/><text x="370" y="90" text-anchor="middle" font-size="13">Flags</text>
+        <rect class="box" x="400" y="66" width="220" height="38" rx="4"/><text x="510" y="90" text-anchor="middle" font-size="13">Fragment offset</text>
+        <rect class="accent" x="20" y="104" width="160" height="38" rx="4"/><text x="100" y="128" text-anchor="middle" font-size="13" font-weight="600">TTL</text>
+        <rect class="accent" x="180" y="104" width="160" height="38" rx="4"/><text x="260" y="128" text-anchor="middle" font-size="13" font-weight="600">Protocole</text>
+        <rect class="box" x="340" y="104" width="280" height="38" rx="4"/><text x="480" y="128" text-anchor="middle" font-size="13">Checksum de l'en-tête</text>
+        <rect class="accent" x="20" y="142" width="600" height="38" rx="4"/><text x="320" y="166" text-anchor="middle" font-size="13" font-weight="600">Adresse IPv4 source (32 bits)</text>
+        <rect class="accent" x="20" y="180" width="600" height="38" rx="4"/><text x="320" y="204" text-anchor="middle" font-size="13" font-weight="600">Adresse IPv4 destination (32 bits)</text>
+        <text x="320" y="242" text-anchor="middle" class="muted" font-size="12">5 lignes de 4 octets = 20 octets minimum (+ options éventuelles), puis les données (le segment TCP/UDP)</text>
+      </svg>
+      <figcaption>Les champs en couleur sont ceux à connaître par cœur.</figcaption>
+    </figure>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Champ</th><th>Rôle</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Version</strong></td><td>4 bits, vaut <code>0100</code> (4) pour IPv4.</td></tr>
+        <tr><td><strong>Differentiated Services</strong> (DS)</td><td>Priorité du paquet pour la <strong>QoS</strong> (ancien nom : ToS, Type of Service). Sert par exemple à faire passer la voix avant un téléchargement.</td></tr>
+        <tr><td><strong>Time to Live</strong> (TTL)</td><td>Compteur de sauts : chaque routeur le <strong>décrémente de 1</strong> ; à 0, le paquet est détruit (et un message ICMP renvoyé). Empêche un paquet de tourner indéfiniment dans une boucle de routage.</td></tr>
+        <tr><td><strong>Protocole</strong></td><td>Dit à qui remettre les données à l'arrivée : <strong>1 = ICMP</strong>, <strong>6 = TCP</strong>, <strong>17 = UDP</strong>.</td></tr>
+        <tr><td><strong>Header checksum</strong></td><td>Détecte une corruption de l'<strong>en-tête</strong> (pas des données). Recalculé à chaque routeur puisque le TTL change.</td></tr>
+        <tr><td><strong>Adresses source et destination</strong></td><td>32 bits chacune. Les deux champs les plus importants.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="adresse">Structure d'une adresse IPv4</h2>
+    <p>Une adresse IPv4 est un nombre de <strong>32 bits</strong>, écrit en <strong>4 octets décimaux</strong> séparés par des points (notation décimale pointée) : <code>192.168.10.10</code> = <code>11000000.10101000.00001010.00001010</code>. Elle est <strong>hiérarchique</strong> : les bits de gauche identifient le <strong>réseau</strong>, ceux de droite l'<strong>hôte</strong> dans ce réseau, comme un code postal suivi d'un numéro de rue.</p>
+
+    <h3 id="masque">Le masque et le préfixe</h3>
+    <p>Rien dans l'adresse elle-même ne dit où passe la frontière : c'est le rôle du <strong>masque de sous-réseau</strong>. C'est une suite de <strong>1 (partie réseau) puis de 0 (partie hôte)</strong>, toujours contiguës. Le <strong>préfixe</strong> <code>/n</code> est simplement le nombre de bits à 1.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Préfixe</th><th>Masque</th><th>Dernier octet en binaire</th><th>Bits d'hôte</th><th>Hôtes utilisables</th></tr></thead>
+      <tbody>
+        <tr><td>/8</td><td>255.0.0.0</td><td>(octets 2 à 4 à 0)</td><td>24</td><td>16 777 214</td></tr>
+        <tr><td>/16</td><td>255.255.0.0</td><td>(octets 3 et 4 à 0)</td><td>16</td><td>65 534</td></tr>
+        <tr><td>/24</td><td>255.255.255.0</td><td>00000000</td><td>8</td><td>254</td></tr>
+        <tr><td>/25</td><td>255.255.255.128</td><td>10000000</td><td>7</td><td>126</td></tr>
+        <tr><td>/26</td><td>255.255.255.192</td><td>11000000</td><td>6</td><td>62</td></tr>
+        <tr><td>/27</td><td>255.255.255.224</td><td>11100000</td><td>5</td><td>30</td></tr>
+        <tr><td>/28</td><td>255.255.255.240</td><td>11110000</td><td>4</td><td>14</td></tr>
+        <tr><td>/29</td><td>255.255.255.248</td><td>11111000</td><td>3</td><td>6</td></tr>
+        <tr><td>/30</td><td>255.255.255.252</td><td>11111100</td><td>2</td><td>2</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : retrouver les valeurs de masque sans tableau</span>
+      <p>Les seules valeurs possibles pour un octet de masque sont obtenues en allumant les bits de gauche un par un : 128, puis 128 + 64 = <strong>192</strong>, + 32 = <strong>224</strong>, + 16 = <strong>240</strong>, + 8 = <strong>248</strong>, + 4 = <strong>252</strong>, + 2 = <strong>254</strong>, + 1 = <strong>255</strong>. Un masque comme <code>255.255.255.200</code> est donc <strong>impossible</strong> (200 = 11001000, les 1 ne sont pas contigus).</p>
+    </div>
+
+    <h3 id="and" data-toc="Le ET logique">Trouver le réseau : le ET logique</h3>
+    <p>Pour obtenir l'<strong>adresse réseau</strong>, on fait un <strong>ET logique</strong> (AND) bit à bit entre l'adresse et le masque : <code>1 ET 1 = 1</code>, tout le reste donne 0. Là où le masque vaut 1, on garde le bit de l'adresse ; là où il vaut 0, on met 0.</p>
+    <pre data-label="Exemple : 192.168.10.10 /24"><code>Adresse   192.168.10.10    11000000.10101000.00001010.<span class="hl">00001010</span>
+Masque    255.255.255.0    11111111.11111111.11111111.00000000
+          ─────────────── ET ─────────────────────────────────
+Réseau    192.168.10.0     11000000.10101000.00001010.<span class="hl">00000000</span></code></pre>
+
+    <h3 id="trois-adresses" data-toc="Réseau, hôtes, broadcast">Adresse réseau, hôtes et broadcast</h3>
+    <p>Dans chaque réseau, deux adresses sont réservées et ne peuvent pas être données à une machine :</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Adresse</th><th>Bits d'hôte</th><th>Exemple pour 192.168.10.0/24</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Adresse réseau</strong> (identifie le réseau)</td><td>tous à 0</td><td>192.168.10.<strong>0</strong></td></tr>
+        <tr><td>Premier hôte</td><td>tous à 0 sauf le dernier</td><td>192.168.10.<strong>1</strong></td></tr>
+        <tr><td>Dernier hôte</td><td>tous à 1 sauf le dernier</td><td>192.168.10.<strong>254</strong></td></tr>
+        <tr><td><strong>Broadcast</strong> (tous les hôtes du réseau)</td><td>tous à 1</td><td>192.168.10.<strong>255</strong></td></tr>
+      </tbody>
+    </table></div>
+    <div class="formula">Nombre d'hôtes = 2<sup>h</sup> − 2 &nbsp;&nbsp;(h = nombre de bits d'hôte = 32 − préfixe)</div>
+
+    <div class="callout warn"><span class="callout-title">Piège classique : le « − 2 » et le broadcast</span>
+      <p>On retire toujours 2 : l'adresse réseau et le broadcast. Un /24 a 256 adresses mais <strong>254 hôtes</strong>, un /30 a 4 adresses mais <strong>2 hôtes</strong>. Attention aussi : les slides du cours écrivent par endroits « all 1s reserved for multicast ». C'est une coquille : bits d'hôte tous à 1, c'est l'adresse de <strong>broadcast</strong>, pas de multicast.</p>
+    </div>
+
+    <h2 id="decision-hote" data-toc="Local ou distant ?">Comment un hôte décide où envoyer</h2>
+    <p>Un hôte peut envoyer un paquet à trois types de destination :</p>
+    <ul>
+      <li><strong>lui-même</strong>, via l'adresse de bouclage <code>127.0.0.1</code> (<code>::1</code> en IPv6), pour tester sa pile TCP/IP ;</li>
+      <li>un <strong>hôte local</strong>, dans le même réseau IP ;</li>
+      <li>un <strong>hôte distant</strong>, dans un autre réseau.</li>
+    </ul>
+    <p>Pour savoir si la destination est locale, l'hôte applique <strong>son propre masque</strong> à son adresse et à celle de la destination, puis compare les deux adresses réseau.</p>
+    <ol class="steps">
+      <li><strong>PC1 = 192.168.1.100/24</strong> veut joindre <strong>192.168.1.200</strong>. Son réseau : 192.168.1.0. Celui de la destination avec son masque : 192.168.1.0. <strong>Identiques</strong> : la destination est locale, PC1 l'envoie directement (les switchs ne regardent même pas l'IP, ils livrent par MAC).</li>
+      <li>PC1 veut maintenant joindre <strong>192.168.2.100</strong>. Réseau de la destination : 192.168.2.0, différent du sien. PC1 ne sait pas y aller : il envoie le paquet à sa <strong>passerelle par défaut</strong>, le routeur <code>192.168.1.1</code>, qui sait où se trouve 192.168.2.0 et relaie le paquet.</li>
+    </ol>
+    <figure>
+      <svg viewBox="0 0 640 170" role="img" aria-label="PC1 192.168.1.100 dans le réseau 192.168.1.0, routeur avec deux interfaces 192.168.1.1 et 192.168.2.1, PC2 192.168.2.100 dans le réseau 192.168.2.0">
+        <rect class="box" x="20" y="60" width="140" height="56" rx="8"/>
+        <text x="90" y="84" text-anchor="middle" font-weight="700">PC1</text>
+        <text x="90" y="103" text-anchor="middle" font-size="12" class="muted">192.168.1.100/24</text>
+        <rect class="accent" x="250" y="60" width="140" height="56" rx="8"/>
+        <text x="320" y="84" text-anchor="middle" font-weight="700">Routeur</text>
+        <text x="320" y="103" text-anchor="middle" font-size="12" class="muted">passerelle</text>
+        <rect class="box" x="480" y="60" width="140" height="56" rx="8"/>
+        <text x="550" y="84" text-anchor="middle" font-weight="700">PC2</text>
+        <text x="550" y="103" text-anchor="middle" font-size="12" class="muted">192.168.2.100/24</text>
+        <line class="line" x1="160" y1="88" x2="250" y2="88" stroke-width="2"/>
+        <line class="line" x1="390" y1="88" x2="480" y2="88" stroke-width="2"/>
+        <text x="245" y="52" text-anchor="end" font-size="12" font-weight="600">.1.1</text>
+        <text x="395" y="52" font-size="12" font-weight="600">.2.1</text>
+        <text x="135" y="150" text-anchor="middle" font-size="13">Réseau 192.168.1.0/24</text>
+        <text x="505" y="150" text-anchor="middle" font-size="13">Réseau 192.168.2.0/24</text>
+        <text x="320" y="24" text-anchor="middle" font-size="12" class="muted">Le routeur a une adresse dans chaque réseau qu'il relie</text>
+      </svg>
+      <figcaption>Chaque interface du routeur appartient à un réseau différent. Celle côté PC1 (192.168.1.1) est la passerelle par défaut de PC1.</figcaption>
+    </figure>
+
+    <h3 id="passerelle">La passerelle par défaut</h3>
+    <p>La <strong>passerelle par défaut</strong> (default gateway) est un routeur ou un switch de niveau 3 qui :</p>
+    <ul>
+      <li>a une adresse IP <strong>dans le même réseau</strong> que les hôtes du LAN ;</li>
+      <li>accepte leur trafic et sait le faire <strong>sortir du LAN</strong> vers d'autres réseaux.</li>
+    </ul>
+    <p>L'hôte la connaît par configuration manuelle ou par <strong>DHCP</strong> (en IPv6 : par les annonces du routeur). Dans la table de routage de l'hôte, c'est une <strong>route par défaut</strong> : la route de dernier recours, utilisée pour toute destination non locale.</p>
+    <div class="callout warn"><span class="callout-title">Piège classique : pas de passerelle, pas d'Internet, mais le LAN marche</span>
+      <p>Un PC <strong>sans passerelle</strong> ou avec une <strong>mauvaise passerelle</strong> peut toujours pinger les machines de son propre réseau, mais rien au-delà. Symptôme typique en TP : le ping vers le voisin marche, le ping vers l'autre réseau échoue. Premier réflexe : vérifier la passerelle, et qu'elle est bien dans le même réseau que le PC.</p>
+    </div>
+
+    <h2 id="routage">Introduction au routage</h2>
+    <p>Quand le routeur reçoit le paquet, il regarde l'adresse IP de destination et cherche dans sa <strong>table de routage</strong> la route correspondante, puis réencapsule le paquet dans une nouvelle trame vers l'interface de sortie. Une table de routage contient trois types de routes :</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Type</th><th>Comment elle apparaît</th><th>Code <code>show ip route</code></th></tr></thead>
+      <tbody>
+        <tr><td><strong>Directement connectée</strong></td><td>Automatiquement, dès qu'une interface est active (<code>no shutdown</code>) et a une adresse IP.</td><td><strong>C</strong> (le réseau) et <strong>L</strong> (l'adresse de l'interface elle-même)</td></tr>
+        <tr><td><strong>Distante, statique</strong></td><td>Configurée à la main par l'administrateur.</td><td><strong>S</strong></td></tr>
+        <tr><td><strong>Distante, dynamique</strong></td><td>Apprise d'autres routeurs par un protocole de routage.</td><td><strong>O</strong> (OSPF), <strong>D</strong> (EIGRP)...</td></tr>
+        <tr><td><strong>Route par défaut</strong></td><td>Utilisée quand aucune autre route ne correspond (souvent vers Internet).</td><td><strong>S*</strong> (statique par défaut)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th></th><th>Routage statique</th><th>Routage dynamique</th></tr></thead>
+      <tbody>
+        <tr><td>Configuration</td><td>À la main, route par route</td><td>Les routeurs découvrent les réseaux distants entre eux</td></tr>
+        <tr><td>Changement de topologie</td><td>L'administrateur doit tout corriger</td><td>Recalcul automatique d'un nouveau meilleur chemin</td></tr>
+        <tr><td>Adapté à</td><td>Petits réseaux sans redondance, route par défaut</td><td>Réseaux plus grands ou redondants</td></tr>
+      </tbody>
+    </table></div>
+    <p>Les deux se combinent souvent : une route par défaut statique vers le fournisseur d'accès, que le protocole dynamique diffuse aux autres routeurs.</p>
+    <pre data-label="Sortie show ip route (extrait commenté)"><code><span class="out">Gateway of last resort is 209.165.200.226 to network 0.0.0.0
+<span class="hl">S*</span>    0.0.0.0/0 [1/0] via 209.165.200.226          <span class="cmt">! route par défaut</span>
+<span class="hl">C</span>     192.168.10.0/24 is directly connected, G0/0/0
+<span class="hl">L</span>     192.168.10.1/32 is directly connected, G0/0/0 <span class="cmt">! l'adresse du routeur</span>
+<span class="hl">O</span>     10.1.1.0/24 [110/2] via 209.165.200.226, S0/1/0  <span class="cmt">! apprise par OSPF</span></span></code></pre>
+
+    <h2 id="types-adresses" data-toc="Types d'adresses">Unicast, broadcast, multicast et types d'adresses</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Transmission</th><th>Vers qui</th><th>Exemple</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Unicast</strong></td><td>Une seule destination</td><td>172.16.4.1 envoie à l'imprimante 172.16.4.253</td></tr>
+        <tr><td><strong>Broadcast</strong></td><td>Tous les hôtes du réseau</td><td>172.16.4.1 envoie à 255.255.255.255 ou à 172.16.4.255 (pour un /24)</td></tr>
+        <tr><td><strong>Multicast</strong></td><td>Un groupe d'hôtes abonnés</td><td>172.16.4.1 envoie au groupe 224.10.10.5 (plage 224.0.0.0 à 239.255.255.255)</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3 id="privees">Adresses publiques, privées et NAT</h3>
+    <p>Les adresses <strong>publiques</strong> sont uniques au monde et routées sur Internet. Les adresses <strong>privées</strong> (RFC 1918) sont réutilisables librement dans n'importe quel réseau interne, mais <strong>ne sont pas routées sur Internet</strong> :</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Bloc</th><th>Plage</th></tr></thead>
+      <tbody>
+        <tr><td><strong>10.0.0.0/8</strong></td><td>10.0.0.0 à 10.255.255.255</td></tr>
+        <tr><td><strong>172.16.0.0/12</strong></td><td>172.16.0.0 à <strong>172.31</strong>.255.255</td></tr>
+        <tr><td><strong>192.168.0.0/16</strong></td><td>192.168.0.0 à 192.168.255.255</td></tr>
+      </tbody>
+    </table></div>
+    <p>Pour sortir sur Internet, le routeur de bordure applique le <strong>NAT</strong> (Network Address Translation) : il remplace l'adresse privée source par une adresse publique. C'est ce que fait ta box à la maison.</p>
+    <div class="callout warn"><span class="callout-title">Piège classique : 172.16.0.0/12 ne s'arrête pas à 172.16</span>
+      <p>Le bloc /12 va de <strong>172.16</strong> à <strong>172.31</strong>. Donc 172.20.5.1 est privée, mais <strong>172.32.0.1 est publique</strong>. Question de QCM fréquente.</p>
+    </div>
+
+    <h3 id="speciales">Adresses spéciales</h3>
+    <ul>
+      <li><strong>Bouclage (loopback)</strong> : <code>127.0.0.0/8</code>, en pratique <code>127.0.0.1</code>. La machine se parle à elle-même : <code>ping 127.0.0.1</code> teste que TCP/IP fonctionne.</li>
+      <li><strong>Lien local (APIPA)</strong> : <code>169.254.0.0/16</code>. Adresse que Windows <strong>s'attribue tout seul</strong> quand il ne trouve <strong>aucun serveur DHCP</strong>. Voir une 169.254.x.x sur un PC est donc le signe d'un problème DHCP.</li>
+    </ul>
+
+    <h3 id="classes">Les classes (historique)</h3>
+    <p>En 1981 (RFC 790), les adresses étaient découpées en <strong>classes</strong> à masque fixe :</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Classe</th><th>Premier octet</th><th>Masque implicite</th><th>Usage</th></tr></thead>
+      <tbody>
+        <tr><td>A</td><td>0 à 127</td><td>/8</td><td>Très grands réseaux</td></tr>
+        <tr><td>B</td><td>128 à 191</td><td>/16</td><td>Réseaux moyens</td></tr>
+        <tr><td>C</td><td>192 à 223</td><td>/24</td><td>Petits réseaux</td></tr>
+        <tr><td>D</td><td>224 à 239</td><td>-</td><td>Multicast</td></tr>
+        <tr><td>E</td><td>240 à 255</td><td>-</td><td>Expérimental</td></tr>
+      </tbody>
+    </table></div>
+    <p>Ce système gaspillait énormément d'adresses (une entreprise de 300 machines devait prendre un classe B de 65 534 adresses). Il a été remplacé par l'<strong>adressage sans classe</strong> (CIDR), où le préfixe peut valoir n'importe quoi : c'est ce qu'on utilise aujourd'hui.</p>
+    <p>Les adresses sont distribuées par l'<strong>IANA</strong> à <strong>cinq registres régionaux (RIR)</strong> (le RIPE NCC pour l'Europe), qui les attribuent aux fournisseurs d'accès, qui les redistribuent à leurs clients.</p>
+
+    <h2 id="segmentation">Pourquoi découper un réseau</h2>
+    <p>Beaucoup de protocoles utilisent le <strong>broadcast</strong> : ARP pour trouver une adresse MAC, DHCP pour trouver un serveur. Un switch propage les broadcasts sur tous ses ports ; <strong>seul un routeur les arrête</strong>. Chaque interface de routeur délimite donc un <strong>domaine de broadcast</strong>.</p>
+    <p>Dans un grand domaine de broadcast, tous ces messages finissent par encombrer le réseau. La solution est le <strong>subnetting</strong> : découper le réseau en sous-réseaux plus petits, chacun étant son propre domaine de broadcast. Exemple du cours : 400 utilisateurs dans 172.16.0.0/16, découpés en deux sous-réseaux de 200 : <code>172.16.0.0/24</code> et <code>172.16.1.0/24</code>.</p>
+    <p>Avantages : moins de trafic de broadcast, meilleures performances, possibilité de <strong>politiques de sécurité entre sous-réseaux</strong>, et une panne de broadcast touche moins de machines. On découpe typiquement <strong>par lieu</strong> (un étage, un bâtiment), <strong>par groupe ou fonction</strong> (RH, comptabilité) ou <strong>par type d'équipement</strong> (imprimantes, serveurs, téléphones).</p>
+
+    <h2 id="subnetting" data-toc="Calculer des sous-réseaux">Calculer des sous-réseaux</h2>
+    <p>Découper un réseau, c'est <strong>emprunter des bits à la partie hôte</strong> pour les ajouter à la partie réseau. Avec <strong>s</strong> bits empruntés et <strong>h</strong> bits d'hôte restants :</p>
+    <div class="formula">Nombre de sous-réseaux = 2<sup>s</sup> &nbsp;&nbsp;·&nbsp;&nbsp; Hôtes par sous-réseau = 2<sup>h</sup> − 2</div>
+    <p>Plus on emprunte de bits, plus on a de sous-réseaux, mais plus ils sont petits.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Découpe d'un /24</th><th>Bits empruntés</th><th>Sous-réseaux</th><th>Hôtes chacun</th><th>Pas (taille du bloc)</th></tr></thead>
+      <tbody>
+        <tr><td>/25</td><td>1</td><td>2</td><td>126</td><td>128</td></tr>
+        <tr><td>/26</td><td>2</td><td>4</td><td>62</td><td>64</td></tr>
+        <tr><td>/27</td><td>3</td><td>8</td><td>30</td><td>32</td></tr>
+        <tr><td>/28</td><td>4</td><td>16</td><td>14</td><td>16</td></tr>
+        <tr><td>/29</td><td>5</td><td>32</td><td>6</td><td>8</td></tr>
+        <tr><td>/30</td><td>6</td><td>64</td><td>2</td><td>4</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : la méthode du « pas » (sans binaire)</span>
+      <p>Repère l'<strong>octet intéressant</strong> : celui où le masque n'est ni 255 ni 0. Le <strong>pas</strong> = 256 − valeur du masque dans cet octet. Les sous-réseaux commencent à tous les multiples du pas : 0, pas, 2×pas... Pour une adresse donnée, l'adresse réseau est le <strong>plus grand multiple du pas inférieur ou égal</strong> à l'octet de l'adresse ; le broadcast est le multiple suivant moins 1.</p>
+      <p>Exemple : <code>192.168.1.100/26</code>. Masque 255.255.255.<strong>192</strong>, pas = 256 − 192 = <strong>64</strong>. Multiples : 0, 64, 128, 192. 100 tombe entre 64 et 128 : réseau <strong>192.168.1.64</strong>, broadcast <strong>192.168.1.127</strong>, hôtes de .65 à .126.</p>
+    </div>
+
+    <h3 id="exemple-fixe" data-toc="Exemple : /24 en quatre /26">Exemple déroulé : 192.168.1.0/24 en quatre /26</h3>
+    <p>On emprunte <strong>2 bits</strong> au dernier octet : <code>11000000.10101000.00000001.<span class="hl">xx</span>hhhhhh</code>. 2 bits de sous-réseau donnent 2<sup>2</sup> = <strong>4 sous-réseaux</strong> ; il reste 6 bits d'hôte, soit 2<sup>6</sup> − 2 = <strong>62 hôtes</strong> chacun. Le pas est 64.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Bits xx</th><th>Sous-réseau</th><th>Premier hôte</th><th>Dernier hôte</th><th>Broadcast</th></tr></thead>
+      <tbody>
+        <tr><td>00</td><td>192.168.1.0/26</td><td>.1</td><td>.62</td><td>.63</td></tr>
+        <tr><td>01</td><td>192.168.1.64/26</td><td>.65</td><td>.126</td><td>.127</td></tr>
+        <tr><td>10</td><td>192.168.1.128/26</td><td>.129</td><td>.190</td><td>.191</td></tr>
+        <tr><td>11</td><td>192.168.1.192/26</td><td>.193</td><td>.254</td><td>.255</td></tr>
+      </tbody>
+    </table></div>
+    <p>Le cours enchaîne sur un découpage <strong>variable</strong> : on garde les trois premiers /26 et on redécoupe le dernier (192.168.1.192/26) en empruntant <strong>1 bit de plus</strong>. On obtient deux /27 de 30 hôtes : <code>192.168.1.192/27</code> (hôtes .193 à .222) et <code>192.168.1.224/27</code> (hôtes .225 à .254). C'est le principe du VLSM.</p>
+
+    <h3 id="vlsm">VLSM : un masque par besoin</h3>
+    <p>Avec un masque unique pour tous les sous-réseaux, chaque sous-réseau doit être taillé pour le plus gros besoin. Le cours prend une topologie avec <strong>4 LAN</strong> (le plus gros, le bâtiment D, a 28 hôtes) et <strong>3 liaisons WAN</strong> point à point entre routeurs : 7 sous-réseaux. Un /27 (30 hôtes, 8 sous-réseaux) convient, mais chaque liaison WAN n'a besoin que de <strong>2 adresses</strong> : 28 adresses perdues par liaison, <strong>84 au total</strong>.</p>
+    <p>Le <strong>VLSM</strong> (Variable Length Subnet Mask) permet de <strong>découper un sous-réseau</strong> à son tour, avec un masque différent. La règle : <strong>commencer par le plus gros besoin</strong>, puis descendre.</p>
+    <ol class="steps">
+      <li>On part de <code>192.168.20.0/24</code> (adresses reconstituées pour l'exemple). Les 4 LAN ont besoin de 28 hôtes au plus : 4 sous-réseaux /27, soit <code>.0/27</code>, <code>.32/27</code>, <code>.64/27</code>, <code>.96/27</code>.</li>
+      <li>On garde un /27 libre, par exemple <code>192.168.20.224/27</code>, et on le redécoupe en /30 (2 hôtes, pas de 4) : <strong>8 sous-réseaux /30</strong>.</li>
+      <li>Les 3 liaisons WAN prennent <code>.224/30</code> (hôtes .225 et .226), <code>.228/30</code> (.229, .230) et <code>.232/30</code> (.233, .234). Il reste cinq /30 et deux /27 (.128 et .160) pour plus tard.</li>
+    </ol>
+    <div class="callout warn"><span class="callout-title">Piège classique : commencer par les petits</span>
+      <p>Si on place les /30 d'abord au début de la plage, les blocs /27 suivants ne tombent plus sur des multiples de 32 et se chevauchent. Toujours allouer <strong>du plus grand au plus petit</strong>, chaque bloc démarrant sur un multiple de sa taille.</p>
+    </div>
+
+    <h2 id="tp">Travaux pratiques</h2>
+    <section class="tp">
+      <h3 id="tp-subnet">TP · Calcul des sous-réseaux IPv4 <span class="badge">Papier et crayon</span></h3>
+      <p><strong>Objectif :</strong> pour une adresse d'hôte, un masque initial et un nouveau masque, trouver le nombre de bits de sous-réseau, le nombre de sous-réseaux, les bits et le nombre d'hôtes, puis l'adresse du sous-réseau qui contient l'hôte, son premier et dernier hôte et son broadcast.</p>
+      <p><strong>La démarche, toujours la même :</strong></p>
+      <ol class="steps">
+        <li><strong>Bits de sous-réseau</strong> = nouveau préfixe − préfixe initial. <strong>Sous-réseaux</strong> = 2<sup>s</sup>.</li>
+        <li><strong>Bits d'hôte</strong> = 32 − nouveau préfixe. <strong>Hôtes</strong> = 2<sup>h</sup> − 2.</li>
+        <li>Trouver l'<strong>octet intéressant</strong> du nouveau masque et le <strong>pas</strong> = 256 − valeur.</li>
+        <li><strong>Adresse du sous-réseau</strong> : dans l'octet intéressant, plus grand multiple du pas ≤ valeur de l'adresse ; octets suivants à 0.</li>
+        <li><strong>Broadcast</strong> : multiple suivant − 1 dans l'octet intéressant ; octets suivants à 255. Premier hôte = réseau + 1, dernier hôte = broadcast − 1.</li>
+      </ol>
+      <p>Essaie chaque cas avant d'ouvrir la correction.</p>
+
+      <details><summary>Cas 1 : 192.168.200.139, masque 255.255.255.0 → 255.255.255.224</summary>
+        <p>/24 → /27 : <strong>3 bits</strong> de sous-réseau, <strong>8 sous-réseaux</strong>. 5 bits d'hôte, <strong>30 hôtes</strong>. Pas = 256 − 224 = 32 ; multiples : 0, 32, 64, 96, 128, 160... 139 est entre 128 et 160.</p>
+        <p>Sous-réseau <strong>192.168.200.128</strong>, premier hôte <strong>.129</strong>, dernier <strong>.158</strong>, broadcast <strong>192.168.200.159</strong>.</p></details>
+      <details><summary>Cas 2 : 10.101.99.228, masque 255.0.0.0 → 255.255.128.0</summary>
+        <p>/8 → /17 : <strong>9 bits</strong>, <strong>512 sous-réseaux</strong>. 15 bits d'hôte, 2<sup>15</sup> − 2 = <strong>32 766 hôtes</strong>. Octet intéressant : le 3<sup>e</sup>, pas = 256 − 128 = 128 ; 99 &lt; 128, donc multiple 0.</p>
+        <p>Sous-réseau <strong>10.101.0.0</strong>, premier hôte <strong>10.101.0.1</strong>, dernier <strong>10.101.127.254</strong>, broadcast <strong>10.101.127.255</strong>. (Le 2<sup>e</sup> octet, 101, est entièrement dans la partie réseau : on le garde tel quel.)</p></details>
+      <details><summary>Cas 3 : 172.22.32.12, masque 255.255.0.0 → 255.255.224.0</summary>
+        <p>/16 → /19 : <strong>3 bits</strong>, <strong>8 sous-réseaux</strong>. 13 bits d'hôte, 2<sup>13</sup> − 2 = <strong>8 190 hôtes</strong>. Octet intéressant : le 3<sup>e</sup>, pas = 32 ; 32 est pile un multiple.</p>
+        <p>Sous-réseau <strong>172.22.32.0</strong>, premier hôte <strong>172.22.32.1</strong>, dernier <strong>172.22.63.254</strong>, broadcast <strong>172.22.63.255</strong> (multiple suivant 64, moins 1 = 63, puis 255 dans le dernier octet).</p></details>
+      <details><summary>Cas 4 : 192.168.1.245, masque 255.255.255.0 → 255.255.255.252</summary>
+        <p>/24 → /30 : <strong>6 bits</strong>, <strong>64 sous-réseaux</strong>. 2 bits d'hôte, <strong>2 hôtes</strong>. Pas = 4 ; 245 = 4 × 61 + 1, donc multiple 244.</p>
+        <p>Sous-réseau <strong>192.168.1.244</strong>, premier hôte <strong>.245</strong>, dernier <strong>.246</strong>, broadcast <strong>192.168.1.247</strong>. C'est le masque typique d'une liaison point à point entre deux routeurs.</p></details>
+      <details><summary>Cas 5 : 128.107.0.55, masque 255.255.0.0 → 255.255.255.0</summary>
+        <p>/16 → /24 : <strong>8 bits</strong>, <strong>256 sous-réseaux</strong>. 8 bits d'hôte, <strong>254 hôtes</strong>. Découpe sur une frontière d'octet : pas besoin de pas, on met le dernier octet à 0.</p>
+        <p>Sous-réseau <strong>128.107.0.0</strong>, premier hôte <strong>128.107.0.1</strong>, dernier <strong>128.107.0.254</strong>, broadcast <strong>128.107.0.255</strong>.</p></details>
+      <details><summary>Cas 6 : 192.135.250.180, masque 255.255.255.0 → 255.255.255.248</summary>
+        <p>/24 → /29 : <strong>5 bits</strong>, <strong>32 sous-réseaux</strong>. 3 bits d'hôte, <strong>6 hôtes</strong>. Pas = 8 ; 180 = 8 × 22 + 4, donc multiple 176.</p>
+        <p>Sous-réseau <strong>192.135.250.176</strong>, premier hôte <strong>.177</strong>, dernier <strong>.182</strong>, broadcast <strong>192.135.250.183</strong>.</p></details>
+      <details><summary>Question de réflexion : pourquoi le masque est-il si important pour analyser une adresse IPv4 ?</summary>
+        <p>Parce que l'adresse seule ne dit pas où s'arrête la partie réseau. Sans masque, impossible de calculer l'adresse du réseau, le broadcast ou la plage d'hôtes, et donc impossible pour un hôte de savoir si une destination est locale (envoi direct) ou distante (envoi à la passerelle). La même adresse 192.168.1.245 appartient au réseau .0 en /24, mais au réseau .244 en /30.</p></details>
+    </section>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. Citez les trois caractéristiques d'IP. Laquelle explique qu'il faille TCP pour un transfert de fichier fiable ?</summary>
+      <p>Sans connexion, <strong>best effort</strong>, indépendant du support. C'est le best effort : IP ne garantit ni la livraison ni l'ordre et ne retransmet pas, c'est TCP qui s'en charge.</p></details>
+    <details><summary>2. À quoi sert le champ TTL, et qui le modifie ?</summary>
+      <p>C'est un compteur de sauts : <strong>chaque routeur</strong> le décrémente de 1 et détruit le paquet à 0. Il évite qu'un paquet tourne indéfiniment dans une boucle de routage.</p></details>
+    <details><summary>3. Quelle valeur du champ Protocole indique un segment TCP ? Et UDP ?</summary>
+      <p><strong>6</strong> pour TCP, <strong>17</strong> pour UDP (1 pour ICMP).</p></details>
+    <details><summary>4. Quelle est l'adresse réseau et le broadcast de 172.16.45.200/20 ?</summary>
+      <p>Masque 255.255.<strong>240</strong>.0, octet intéressant le 3<sup>e</sup>, pas 16. 45 est entre 32 et 48. Réseau <strong>172.16.32.0</strong>, broadcast <strong>172.16.47.255</strong>.</p></details>
+    <details><summary>5. Combien d'hôtes dans un /28 ? Dans un /30 ?</summary>
+      <p>/28 : 4 bits d'hôte, 2<sup>4</sup> − 2 = <strong>14</strong>. /30 : 2 bits, <strong>2</strong> hôtes.</p></details>
+    <details><summary>6. PC1 = 192.168.1.10/24 veut joindre 192.168.2.20. À qui envoie-t-il la trame ?</summary>
+      <p>Les réseaux diffèrent (192.168.1.0 et 192.168.2.0) : il l'envoie à sa <strong>passerelle par défaut</strong>. L'adresse IP de destination reste 192.168.2.20, mais l'adresse MAC de destination est celle du routeur.</p></details>
+    <details><summary>7. Parmi 10.200.1.1, 172.32.1.1, 192.168.300.1 et 169.254.10.3, lesquelles sont des adresses privées RFC 1918 ?</summary>
+      <p>Seulement <strong>10.200.1.1</strong>. 172.32.1.1 est hors du bloc 172.16 à 172.31 (publique), 192.168.300.1 est invalide (300 &gt; 255), 169.254.10.3 est une adresse de lien local (APIPA), pas RFC 1918.</p></details>
+    <details><summary>8. Un PC affiche l'adresse 169.254.32.7. Que s'est-il passé ?</summary>
+      <p>Il n'a trouvé <strong>aucun serveur DHCP</strong> et s'est attribué une adresse APIPA. Il ne peut communiquer qu'avec d'autres machines dans le même cas.</p></details>
+    <details><summary>9. Dans <code>show ip route</code>, que signifient C, L, S et S* ?</summary>
+      <p><strong>C</strong> : réseau directement connecté. <strong>L</strong> : adresse IP de l'interface du routeur (/32). <strong>S</strong> : route statique. <strong>S*</strong> : route statique par défaut.</p></details>
+    <details><summary>10. Pourquoi faut-il commencer par le plus grand sous-réseau en VLSM ?</summary>
+      <p>Pour que chaque bloc démarre sur un multiple de sa taille sans chevaucher les autres. Les petits blocs (/30) se casent ensuite dans un gros bloc restant redécoupé.</p></details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="06-stp.html"><span>← Précédent</span>Spanning Tree (STP)</a>
+      <a class="next" href="08-transport-application.html"><span>Suivant →</span>Transport, application et DHCPv4</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

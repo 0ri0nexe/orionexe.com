@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Partage des ressources radio · Réseaux cellulaires</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Réseaux cellulaires</a>
+    <div class="course-code">NET 8465 · Chapitre 02</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 02</div>
+    <h1>Partage des ressources radio (TDMA, FDMA, CDMA, OFDMA)</h1>
+    <p class="lead">Une bande de fréquences, des centaines de mobiles : comment découper le canal pour que chacun ait sa part sans brouiller les autres ?</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>On partage le canal selon une dimension : le <strong>temps</strong> (TDMA), la <strong>fréquence</strong> (FDMA), le <strong>code</strong> (CDMA) ou l'<strong>espace</strong> (BDMA, faisceaux).</li>
+        <li><strong>GSM (2G)</strong> combine FDMA et TDMA : porteuses de 200 kHz, chacune découpée en 8 intervalles de temps.</li>
+        <li><strong>CDMA (3G)</strong> : tous émettent en même temps sur la même bande, avec des codes <strong>orthogonaux</strong> ; exige un <strong>contrôle de puissance</strong> (near-far).</li>
+        <li><strong>OFDM (4G, Wi-Fi)</strong> : nombreuses sous-porteuses lentes et orthogonales, robustes aux trajets multiples. <strong>OFDMA</strong> attribue des blocs temps × sous-porteuses aux utilisateurs.</li>
+        <li><strong>5G</strong> : OFDMA + accès par faisceau (<strong>BDMA</strong>).</li>
+      </ul>
+    </div>
+
+    <h2 id="tdma-fdma">Le problème et les deux découpages classiques</h2>
+    <p>Le spectre est rare et commun à toute la cellule. Deux mobiles qui émettent en même temps, sur la même fréquence, sans autre moyen de les distinguer, entrent en <strong>collision</strong>. L'<strong>accès multiple</strong> (<em>channel partitioning</em>) donne à chacun une portion du canal disjointe de celle des autres.</p>
+
+    <figure>
+      <svg viewBox="0 0 720 230" role="img" aria-label="Découpage du plan temps-fréquence en TDMA, FDMA et OFDMA">
+        <!-- TDMA -->
+        <text x="120" y="20" text-anchor="middle" font-weight="700">TDMA</text>
+        <rect class="accent" x="30" y="35" width="45" height="150"/><text x="52" y="115" text-anchor="middle" font-size="13">A</text>
+        <rect class="box" x="75" y="35" width="45" height="150"/><text x="97" y="115" text-anchor="middle" font-size="13">B</text>
+        <rect class="accent" x="120" y="35" width="45" height="150"/><text x="142" y="115" text-anchor="middle" font-size="13">C</text>
+        <rect class="box" x="165" y="35" width="45" height="150"/><text x="187" y="115" text-anchor="middle" font-size="13">D</text>
+        <!-- FDMA -->
+        <text x="360" y="20" text-anchor="middle" font-weight="700">FDMA</text>
+        <rect class="accent" x="270" y="35" width="180" height="34"/><text x="360" y="57" text-anchor="middle" font-size="13">A</text>
+        <rect class="box" x="270" y="73" width="180" height="34"/><text x="360" y="95" text-anchor="middle" font-size="13">B</text>
+        <rect class="accent" x="270" y="111" width="180" height="34"/><text x="360" y="133" text-anchor="middle" font-size="13">C</text>
+        <rect class="box" x="270" y="149" width="180" height="34"/><text x="360" y="171" text-anchor="middle" font-size="13">D</text>
+        <!-- OFDMA -->
+        <text x="600" y="20" text-anchor="middle" font-weight="700">OFDMA</text>
+        <rect class="accent" x="510" y="35" width="90" height="50"/><text x="555" y="65" text-anchor="middle" font-size="13">A</text>
+        <rect class="box" x="600" y="35" width="90" height="50"/><text x="645" y="65" text-anchor="middle" font-size="13">C</text>
+        <rect class="box" x="510" y="85" width="45" height="100"/><text x="532" y="140" text-anchor="middle" font-size="13">B</text>
+        <rect class="accent" x="555" y="85" width="45" height="50"/><text x="577" y="115" text-anchor="middle" font-size="13">D</text>
+        <rect class="box" x="555" y="135" width="45" height="50"/><text x="577" y="165" text-anchor="middle" font-size="13">B</text>
+        <rect class="accent" x="600" y="85" width="90" height="100"/><text x="645" y="140" text-anchor="middle" font-size="13">A</text>
+        <!-- axes -->
+        <line class="line" x1="30" y1="190" x2="215" y2="190"/><text x="120" y="210" text-anchor="middle" class="muted" font-size="12">temps →</text>
+        <line class="line" x1="270" y1="190" x2="455" y2="190"/><text x="360" y="210" text-anchor="middle" class="muted" font-size="12">temps →</text>
+        <line class="line" x1="510" y1="190" x2="695" y2="190"/><text x="600" y="210" text-anchor="middle" class="muted" font-size="12">temps →</text>
+        <text x="16" y="110" text-anchor="middle" class="muted" font-size="12" transform="rotate(-90 16 110)">fréquence</text>
+      </svg>
+      <figcaption>TDMA : chacun son tour. FDMA : chacun sa bande. OFDMA : des blocs temps × fréquence à la demande.</figcaption>
+    </figure>
+
+    <p><strong>TDMA</strong> (<em>Time Division Multiple Access</em>) : le temps est découpé en <strong>trames</strong> divisées en <strong>slots</strong>. Pendant son slot, un utilisateur occupe toute la bande. Un <strong>temps de garde</strong> sépare les slots.</p>
+    <p><strong>FDMA</strong> (<em>Frequency Division Multiple Access</em>) : chaque mobile reçoit un canal de fréquence pour toute la communication, séparé des voisins par des <strong>bandes de garde</strong>. C'était l'accès de la 1G (AMPS).</p>
+
+    <div class="table-wrap"><table>
+      <thead><tr><th></th><th>Avantages</th><th>Limites</th></tr></thead>
+      <tbody>
+        <tr><td><strong>TDMA</strong></td><td>Moins cher (pas de filtres étroits), économie de batterie hors slot, multi-slots pour plus de débit.</td><td>Synchronisation coûteuse, temps de garde, émission par rafales (<em>bursts</em>), slots vides perdus.</td></tr>
+        <tr><td><strong>FDMA</strong></td><td>Simple, transmission continue.</td><td>Bandes de garde, une bande inutilisée reste vide.</td></tr>
+      </tbody>
+    </table></div>
+
+    <p><strong>GSM</strong> combine les deux : porteuses (FDMA) découpées en 8 slots (TDMA). Nombre de canaux :</p>
+    <div class="formula">N = m × (B<sub>tot</sub> − 2 B<sub>garde</sub>) / B<sub>c</sub>
+      <span class="where">où m = utilisateurs TDMA par porteuse (1 en FDMA pur), B<sub>tot</sub> = bande totale, B<sub>garde</sub> = garde aux extrémités, B<sub>c</sub> = largeur d'un canal.</span></div>
+    <p><strong>GSM</strong> (25 MHz, 200 kHz, m = 8, sans garde) : N = 8 × 25 MHz / 200 kHz = <strong>1000 utilisateurs</strong>. <strong>AMPS</strong> : (12,5 MHz − 2 × 10 kHz) / 30 kHz = <strong>416 canaux</strong>.</p>
+    <p>Voies montante et descendante (<strong>duplexage</strong>) se séparent en fréquence (<strong>FDD</strong>) ou en temps (<strong>TDD</strong>, asymétrie ajustable), quelle que soit la technique d'accès.</p>
+
+    <h2 id="cdma">CDMA : tous ensemble, chacun son code</h2>
+    <p>En <strong>CDMA</strong> (<em>Code Division Multiple Access</em>), tous émettent <strong>en même temps sur la même bande</strong>. Chaque bit (+1 ou −1) est multiplié par le code de l'utilisateur, une séquence de <strong>chips</strong> (<em>chipping sequence</em>). Avec bien plus de chips que de bits (par exemple 64 chips par bit, le <strong>facteur d'étalement</strong> SF), le signal occupe une bande bien plus large : c'est l'<strong>étalement de spectre</strong> (<em>spread spectrum</em>).</p>
+    <p>Pour décoder, on fait le <strong>produit scalaire</strong> du signal reçu avec le code voulu. Deux codes sont <strong>orthogonaux</strong> si leur produit vaut 0 : les autres utilisateurs disparaissent du calcul.</p>
+    <div class="formula">d = (1/M) × Σ<sub>m=1..M</sub> Z<sub>m</sub> × c<sub>m</sub>
+      <span class="where">où Z = signal reçu chip par chip, c = code de l'utilisateur, M = sa longueur. Corrélation de deux codes : 1 identiques, −1 opposés, 0 orthogonaux.</span></div>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : décoder deux utilisateurs mélangés</span>
+      <p>Analogie du cours : une pièce où chacun parle une <strong>langue différente</strong>. Tous parlent en même temps, vous ne comprenez que la vôtre.</p>
+      <p>Prenons deux codes de Walsh de longueur 4 : <strong>A = (−1, +1, −1, +1)</strong> et <strong>B = (−1, −1, +1, +1)</strong>. Orthogonaux : (+1) + (−1) + (−1) + (+1) = 0.</p>
+      <ul>
+        <li>A envoie le bit <strong>+1</strong> : il émet (−1, +1, −1, +1).</li>
+        <li>B envoie le bit <strong>−1</strong> : il émet (+1, +1, −1, −1).</li>
+        <li>Le canal les additionne : <strong>Z = (0, +2, −2, 0)</strong>.</li>
+      </ul>
+      <p>Décodage de A : (0 + 2 + 2 + 0) / 4 = <strong>+1</strong>. Décodage de B : (0 − 2 − 2 + 0) / 4 = <strong>−1</strong>. Les deux bits sont retrouvés exactement.</p>
+    </div>
+
+    <p>Les <strong>codes de Walsh</strong> sont les lignes d'une <strong>matrice de Hadamard</strong> (0 remplacé par −1). En 3G, les codes <strong>OVSF</strong> (<em>Orthogonal Variable Spreading Factor</em>) forment un arbre : SF faible = haut débit. L'étalement protège du brouillage et des trajets multiples, mais impose une <strong>synchronisation au chip près</strong>.</p>
+
+    <div class="callout warn"><span class="callout-title">Piège classique : le problème near-far</span>
+      <p>Les codes ne sont jamais parfaitement orthogonaux en pratique. Un mobile proche de la station arrive bien plus fort qu'un mobile lointain et le <strong>noie</strong> (effet de capture). D'où un <strong>contrôle de puissance</strong> permanent : chacun règle son émission pour arriver au même niveau.</p>
+    </div>
+
+    <h2 id="ofdm">OFDM et OFDMA : la 4G</h2>
+    <h3 id="pourquoi-ofdm">Pourquoi découper en sous-porteuses</h3>
+    <p>Le signal arrive par plusieurs chemins (<strong>trajets multiples</strong>, <em>multipath</em>) avec des retards différents. Avec des symboles très courts (haut débit), l'écho d'un symbole déborde sur le suivant : c'est l'<strong>interférence entre symboles</strong> (ISI).</p>
+    <p>L'<strong>OFDM</strong> (<em>Orthogonal Frequency Division Multiplexing</em>) découpe le flux rapide en N flux <strong>parallèles lents</strong>, chacun sur sa <strong>sous-porteuse</strong>. Chaque symbole dure N fois plus longtemps : le retard du canal n'en est plus qu'une petite fraction (moins de 10 %).</p>
+
+    <figure>
+      <svg viewBox="0 0 720 230" role="img" aria-label="Spectres de quatre sous-porteuses OFDM qui se chevauchent, chaque pic tombant sur les zéros des autres">
+        <line class="line" x1="40" y1="180" x2="690" y2="180"/>
+        <path class="line" fill="none" stroke-width="1.5" d="M40,205.8 L44,203.9 L48,201.6 L52,198.8 L56,195.5 L60,191.6 L64,187.3 L68,182.5 L72,177.3 L76,171.8 L80,165.8 L84,159.5 L88,153.0 L92,146.2 L96,139.2 L100,132.2 L104,125.1 L108,117.9 L112,110.9 L116,104.0 L120,97.2 L124,90.8 L128,84.6 L132,78.8 L136,73.3 L140,68.4 L144,64.0 L148,60.1 L152,56.8 L156,54.2 L160,52.1 L164,50.8 L168,50.1 L172,50.1 L176,50.8 L180,52.1 L184,54.2 L188,56.8 L192,60.1 L196,64.0 L200,68.4 L204,73.3 L208,78.8 L212,84.6 L216,90.8 L220,97.2 L224,104.0 L228,110.9 L232,117.9 L236,125.1 L240,132.2 L244,139.2 L248,146.2 L252,153.0 L256,159.5 L260,165.8 L264,171.8 L268,177.3 L272,182.5 L276,187.3 L280,191.6 L284,195.5 L288,198.8 L292,201.6 L296,203.9 L300,205.8 L304,207.1 L308,207.9 L312,208.2 L316,208.1 L320,207.6 L324,206.7 L328,205.4 L332,203.7 L336,201.8 L340,199.7 L344,197.3 L348,194.8 L352,192.2 L356,189.5 L360,186.7 L364,184.0 L368,181.3"/>
+        <path class="stroke" fill="none" stroke-width="2.5" d="M70,180.0 L74,182.6 L78,185.4 L82,188.1 L86,190.8 L90,193.5 L94,196.1 L98,198.5 L102,200.8 L106,202.8 L110,204.6 L114,206.1 L118,207.2 L122,207.9 L126,208.2 L130,208.1 L134,207.5 L138,206.5 L142,204.9 L146,202.8 L150,200.3 L154,197.2 L158,193.6 L162,189.5 L166,185.0 L170,180.0 L174,174.6 L178,168.8 L182,162.7 L186,156.3 L190,149.6 L194,142.7 L198,135.7 L202,128.6 L206,121.5 L210,114.4 L214,107.4 L218,100.6 L222,94.0 L226,87.6 L230,81.6 L234,76.0 L238,70.8 L242,66.1 L246,62.0 L250,58.4 L254,55.4 L258,53.1 L262,51.4 L266,50.3 L270,50.0 L274,50.3 L278,51.4 L282,53.1 L286,55.4 L290,58.4 L294,62.0 L298,66.1 L302,70.8 L306,76.0 L310,81.6 L314,87.6 L318,94.0 L322,100.6 L326,107.4 L330,114.4 L334,121.5 L338,128.6 L342,135.7 L346,142.7 L350,149.6 L354,156.3 L358,162.7 L362,168.8 L366,174.6 L370,180.0 L374,185.0 L378,189.5 L382,193.6 L386,197.2 L390,200.3 L394,202.8 L398,204.9 L402,206.5 L406,207.5 L410,208.1 L414,208.2 L418,207.9 L422,207.2 L426,206.1 L430,204.6 L434,202.8 L438,200.8 L442,198.5 L446,196.1 L450,193.5 L454,190.8 L458,188.1 L462,185.4 L466,182.6 L470,180.0"/>
+        <path class="line" fill="none" stroke-width="1.5" d="M170,180.0 L174,182.6 L178,185.4 L182,188.1 L186,190.8 L190,193.5 L194,196.1 L198,198.5 L202,200.8 L206,202.8 L210,204.6 L214,206.1 L218,207.2 L222,207.9 L226,208.2 L230,208.1 L234,207.5 L238,206.5 L242,204.9 L246,202.8 L250,200.3 L254,197.2 L258,193.6 L262,189.5 L266,185.0 L270,180.0 L274,174.6 L278,168.8 L282,162.7 L286,156.3 L290,149.6 L294,142.7 L298,135.7 L302,128.6 L306,121.5 L310,114.4 L314,107.4 L318,100.6 L322,94.0 L326,87.6 L330,81.6 L334,76.0 L338,70.8 L342,66.1 L346,62.0 L350,58.4 L354,55.4 L358,53.1 L362,51.4 L366,50.3 L370,50.0 L374,50.3 L378,51.4 L382,53.1 L386,55.4 L390,58.4 L394,62.0 L398,66.1 L402,70.8 L406,76.0 L410,81.6 L414,87.6 L418,94.0 L422,100.6 L426,107.4 L430,114.4 L434,121.5 L438,128.6 L442,135.7 L446,142.7 L450,149.6 L454,156.3 L458,162.7 L462,168.8 L466,174.6 L470,180.0 L474,185.0 L478,189.5 L482,193.6 L486,197.2 L490,200.3 L494,202.8 L498,204.9 L502,206.5 L506,207.5 L510,208.1 L514,208.2 L518,207.9 L522,207.2 L526,206.1 L530,204.6 L534,202.8 L538,200.8 L542,198.5 L546,196.1 L550,193.5 L554,190.8 L558,188.1 L562,185.4 L566,182.6 L570,180.0"/>
+        <path class="line" fill="none" stroke-width="1.5" d="M270,180.0 L274,182.6 L278,185.4 L282,188.1 L286,190.8 L290,193.5 L294,196.1 L298,198.5 L302,200.8 L306,202.8 L310,204.6 L314,206.1 L318,207.2 L322,207.9 L326,208.2 L330,208.1 L334,207.5 L338,206.5 L342,204.9 L346,202.8 L350,200.3 L354,197.2 L358,193.6 L362,189.5 L366,185.0 L370,180.0 L374,174.6 L378,168.8 L382,162.7 L386,156.3 L390,149.6 L394,142.7 L398,135.7 L402,128.6 L406,121.5 L410,114.4 L414,107.4 L418,100.6 L422,94.0 L426,87.6 L430,81.6 L434,76.0 L438,70.8 L442,66.1 L446,62.0 L450,58.4 L454,55.4 L458,53.1 L462,51.4 L466,50.3 L470,50.0 L474,50.3 L478,51.4 L482,53.1 L486,55.4 L490,58.4 L494,62.0 L498,66.1 L502,70.8 L506,76.0 L510,81.6 L514,87.6 L518,94.0 L522,100.6 L526,107.4 L530,114.4 L534,121.5 L538,128.6 L542,135.7 L546,142.7 L550,149.6 L554,156.3 L558,162.7 L562,168.8 L566,174.6 L570,180.0 L574,185.0 L578,189.5 L582,193.6 L586,197.2 L590,200.3 L594,202.8 L598,204.9 L602,206.5 L606,207.5 L610,208.1 L614,208.2 L618,207.9 L622,207.2 L626,206.1 L630,204.6 L634,202.8 L638,200.8 L642,198.5 L646,196.1 L650,193.5 L654,190.8 L658,188.1 L662,185.4 L666,182.6 L670,180.0"/>
+        <line class="line" x1="270" y1="40" x2="270" y2="190" stroke-dasharray="4 4"/>
+        <circle class="accent" cx="270" cy="180" r="6"/>
+        <text x="270" y="35" text-anchor="middle" font-size="13" font-weight="700">pic de la sous-porteuse 2</text>
+        <text x="420" y="205" text-anchor="middle" class="muted" font-size="12">les 3 autres valent 0 à cette fréquence</text>
+        <text x="320" y="225" text-anchor="middle" class="muted" font-size="12">espacement Δf = 1/T<tspan font-size="9" dy="3">s</tspan></text>
+      </svg>
+      <figcaption>Les sous-porteuses se chevauchent (gain de spectre), mais le pic de chacune tombe sur un zéro des autres.</figcaption>
+    </figure>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : l'orthogonalité des sous-porteuses</span>
+      <p>En FDM classique, les bandes de garde gaspillent du spectre. En OFDM, les sous-porteuses sont espacées d'exactement <strong>Δf = 1/T<sub>s</sub></strong> (T<sub>s</sub> : durée d'un symbole). Pendant T<sub>s</sub>, la sous-porteuse n°1 fait 1 oscillation, la n°2 en fait 2, etc. : toujours un nombre <strong>entier</strong>.</p>
+      <p>Pour lire la sous-porteuse k, le récepteur multiplie le signal par la sinusoïde k et fait la moyenne sur T<sub>s</sub>. Avec elle-même, le produit est toujours positif : on obtient l'amplitude cherchée. Avec une autre, le produit oscille un nombre entier de fois autour de 0 : positif et négatif <strong>s'annulent exactement</strong>. C'est le produit scalaire nul du CDMA, appliqué à des sinusoïdes.</p>
+      <p>En LTE : T<sub>s</sub> ≈ 66,7 µs, donc Δf = 1/66,7 µs = <strong>15 kHz</strong>. En pratique, une <strong>IFFT</strong> à l'émission et une <strong>FFT</strong> à la réception font tout le travail.</p>
+    </div>
+
+    <p>On place avant chaque symbole un <strong>intervalle de garde</strong> plus long que l'étalement des retards : l'ISI disparaît. On le remplit avec une copie de la fin du symbole, le <strong>préfixe cyclique</strong> (<em>cyclic prefix</em>, environ 4,7 µs en LTE), pour que chaque écho garde un nombre entier d'oscillations dans la fenêtre de lecture : l'orthogonalité est préservée. </p>
+
+    <h3 id="ofdma">De l'OFDM à l'OFDMA</h3>
+    <p>L'<strong>OFDMA</strong> découpe la grille temps × fréquence en rectangles orthogonaux (groupes de sous-porteuses sur un intervalle de temps), attribués <strong>dynamiquement</strong> aux utilisateurs : un <strong>hybride FDMA + TDMA</strong> très flexible. S'y ajoute la <strong>modulation adaptative</strong> : plus de bits (64-QAM) sur les bonnes sous-porteuses, moins (QPSK) ou aucun sur les mauvaises.</p>
+
+    <div class="callout warn"><span class="callout-title">Piège classique : OFDM ou OFDMA ?</span>
+      <p><strong>OFDM</strong> est une <em>modulation</em> : un flux sur plusieurs sous-porteuses (Wi-Fi 802.11a/g, ADSL, TNT). <strong>OFDMA</strong> est un <em>accès multiple</em> : plusieurs utilisateurs se partagent sous-porteuses et temps (LTE, WiMAX).</p>
+    </div>
+
+    <section class="tp">
+      <h3 id="home-work">Home Work : la grille LTE</h3>
+      <p>Repères : trame de <strong>10 ms</strong> = 10 sous-trames de <strong>1 ms</strong> = 20 slots de 0,5 ms à <strong>7 symboles OFDM</strong> (préfixe normal). Un <strong>bloc de ressources</strong> (RB) = <strong>12 sous-porteuses × 1 slot</strong> ; la station attribue des paires de RB chaque milliseconde.</p>
+      <details><summary>Exercice : largeur d'un RB ? Combien de RB dans une bande de 20 MHz (18 MHz utiles) ? Combien de bits bruts dans une paire de RB en 64-QAM ?</summary>
+        <p>Un RB : 12 × 15 kHz = <strong>180 kHz</strong>. En 20 MHz : 18 MHz / 180 kHz = <strong>100 RB</strong>. Une paire de RB : 12 × 14 symboles = 168 éléments de ressource ; en 64-QAM (6 bits) : <strong>1008 bits bruts</strong>, avant retrait du contrôle et des signaux de référence.</p>
+      </details>
+    </section>
+
+    <h2 id="bdma">BDMA et bilan</h2>
+    <p>Le <strong>BDMA</strong> (<em>Beam Division Multiple Access</em>, 5G) partage l'<strong>espace</strong> : la station dirige un <strong>faisceau</strong> distinct vers chaque mobile, calculé d'après la position et la vitesse que celui-ci remonte. Des mobiles à des angles différents sont servis simultanément ; ceux sous le même angle partagent un faisceau en TDMA.</p>
+
+    <div class="table-wrap"><table>
+      <thead><tr><th>Technique</th><th>On partage...</th><th>Point fort</th><th>Point faible</th><th>Génération</th></tr></thead>
+      <tbody>
+        <tr><td><strong>FDMA</strong></td><td>la fréquence</td><td>simple, continu</td><td>bandes de garde, rigide</td><td>1G (AMPS)</td></tr>
+        <tr><td><strong>TDMA</strong></td><td>le temps</td><td>économie de batterie, multi-slots</td><td>synchronisation, temps de garde</td><td>2G (GSM, avec FDMA)</td></tr>
+        <tr><td><strong>CDMA</strong></td><td>le code</td><td>même bande pour tous, robuste</td><td>contrôle de puissance (near-far)</td><td>3G (UMTS, 5 MHz)</td></tr>
+        <tr><td><strong>OFDMA</strong></td><td>blocs temps × sous-porteuses</td><td>résiste au multipath, flexible</td><td>synchronisation fréquentielle fine</td><td>4G (LTE), 5G</td></tr>
+        <tr><td><strong>BDMA</strong></td><td>l'espace (faisceaux)</td><td>réutilisation spatiale</td><td>suivre position et vitesse</td><td>5G</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. Une bande de 5 MHz, canaux de 200 kHz, 8 slots par porteuse, sans garde. Combien d'utilisateurs simultanés ?</summary>
+      <p>N = 8 × 5·10<sup>6</sup> / 200·10<sup>3</sup> = 8 × 25 = <strong>200</strong>.</p>
+    </details>
+    <details><summary>2. Pourquoi un slot TDMA contient-il un temps de garde ?</summary>
+      <p>Les mobiles, à des distances différentes, n'arrivent pas au même instant à la station : le temps de garde évite que leurs rafales se chevauchent.</p>
+    </details>
+    <details><summary>3. Les codes (1, 1, 1, −1, 1, −1, −1, −1) et (1, −1, 1, 1, 1, −1, 1, 1) sont-ils orthogonaux ?</summary>
+      <p>1 − 1 + 1 − 1 + 1 + 1 − 1 − 1 = <strong>0</strong> : oui.</p>
+    </details>
+    <details><summary>4. Avec A = (−1, +1, −1, +1) et B = (−1, −1, +1, +1), on reçoit Z = (−2, 0, 0, +2). Quels bits ont été envoyés ?</summary>
+      <p>A : (2 + 0 + 0 + 2) / 4 = <strong>+1</strong>. B : (2 + 0 + 0 + 2) / 4 = <strong>+1</strong>. Vérification : A + B = (−2, 0, 0, +2).</p>
+    </details>
+    <details><summary>5. Quel mécanisme CDMA empêche un mobile proche d'écraser un mobile lointain ?</summary>
+      <p>Le <strong>contrôle de puissance</strong> : tous arrivent à la station avec une puissance comparable.</p>
+    </details>
+    <details><summary>6. En OFDM, à quoi sert le préfixe cyclique, et que doit vérifier sa durée ?</summary>
+      <p>Il absorbe les échos : sa durée doit dépasser l'<strong>étalement des retards</strong> du canal. Copie de la fin du symbole, il supprime l'ISI en préservant l'orthogonalité.</p>
+    </details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="01-environnement-radio.html"><span>← Précédent</span>L'environnement radio</a>
+      <a class="next" href="03-gsm-gprs.html"><span>Suivant →</span>2G : GSM et GPRS</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Introduction aux réseaux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="../../index.html">← Tous les cours</a>
+    <div class="course-code">DIV 8404 · Télécom SudParis</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">DIV 8404 · C. Cuerq, L. Roque</div>
+    <h1>Introduction aux réseaux informatiques</h1>
+    <p class="lead">Le cours repensé : chaque chapitre reprend les slides et les TP du Moodle, en allant à l'essentiel, avec des explications pas à pas sur les notions difficiles et une série de questions pour réviser le QCM final.</p>
+
+    <h2 id="chapitres">Chapitres</h2>
+    <div class="grid">
+      <a class="card" href="00-environnement.html"><span class="num">00</span><h4>Environnement de travail</h4><p>Salle B107, Linux en ligne de commande, câblage, console, VirtualBox, Wireshark.</p></a>
+      <a class="card" href="01-reseaux-aujourdhui.html"><span class="num">01</span><h4>Les réseaux aujourd'hui</h4><p>Composants, topologies, LAN/WAN, Internet, réseaux convergents, sécurité.</p></a>
+      <a class="card" href="02-configuration-switch.html"><span class="num">02</span><h4>Configuration d'un commutateur</h4><p>Cisco IOS, modes, mots de passe, SVI, adressage des hôtes. TP PuTTY et config de base.</p></a>
+      <a class="card" href="03-protocoles-modeles.html"><span class="num">03</span><h4>Protocoles et modèles</h4><p>OSI, TCP/IP, encapsulation, PDU, adresses MAC et IP. TP Wireshark.</p></a>
+      <a class="card" href="04-ethernet.html"><span class="num">04</span><h4>Couche accès réseau et Ethernet</h4><p>Trame Ethernet, adresses MAC, table MAC du commutateur, modes de commutation.</p></a>
+      <a class="card" href="05-vlans.html"><span class="num">05</span><h4>Les VLANs</h4><p>Segmentation, 802.1Q, ports access et trunk, VLAN natif. TP VLAN et trunking.</p></a>
+      <a class="card" href="06-stp.html"><span class="num">06</span><h4>Spanning Tree (STP)</h4><p>Boucles de niveau 2, élection du pont racine, rôles et états des ports, PVST+.</p></a>
+      <a class="card" href="07-ipv4.html"><span class="num">07</span><h4>Couche réseau et IPv4</h4><p>Paquet IPv4, masque, passerelle, routage, types d'adresses, sous-réseaux et VLSM. TP calcul de sous-réseaux.</p></a>
+      <a class="card" href="08-transport-application.html"><span class="num">08</span><h4>Transport, application et DHCPv4</h4><p>TCP et UDP, ports, handshake, fenêtre, HTTP, DNS, mail, DHCPv4 (DORA, relais).</p></a>
+    </div>
+
+    <h2 id="annexes">Annexes</h2>
+    <div class="grid">
+      <a class="card" href="annexe-cisco.html"><span class="num">A</span><h4>Antisèche Cisco IOS</h4><p>Les commandes de switch tapées en TP, dans l'ordre d'une séance : accès, base, VLANs, trunks, STP, vérification.</p></a>
+    </div>
+
+    <h2 id="programme">Programme complet du cours</h2>
+    <p>Les chapitres ci-dessus couvrent ce qui est publié sur Moodle à ce jour. Le plan annoncé continue avec :</p>
+    <ul>
+      <li>Concepts de routage</li>
+      <li>Routage inter-VLAN</li>
+    </ul>
+    <div class="callout warn"><span class="callout-title">Évaluation</span><p>Un examen final sous forme de <strong>QCM</strong> à l'issue de la dernière séance. Chaque chapitre se termine par une section « Testez-vous » pour s'y préparer.</p></div>
+
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

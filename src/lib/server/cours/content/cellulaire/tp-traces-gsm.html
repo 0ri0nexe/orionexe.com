@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TP : analyse de traces GSM · Réseaux cellulaires</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Réseaux cellulaires</a>
+    <div class="course-code">NET 8465 · TP</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">TP</div>
+    <h1>TP : analyse de traces GSM</h1>
+    <p class="lead">Lire une capture de l'interface radio GSM octet par octet : qui est appelé, sur quel canal, avec quel chiffrement, et ce que contient le SMS.</p>
+    <p><em>L'énoncé n'était pas sur Moodle : cette fiche est reconstruite à partir du seul fichier fourni, <code>sms.xml</code>, décodé avec <a href="assets/decode_gsm.py" download>decode_gsm.py</a>.</em></p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>La trace contient <strong>175 blocs, tous descendants</strong> (BTS vers mobile), d'une cellule <strong>MCC 246 / MNC 03</strong> (Lituanie), LAC 4, CI 0x405C.</li>
+        <li>On y voit <strong>deux transactions SMS</strong> sur SDCCH : un <strong>envoi</strong> (CM Service Request, type 4 = SMS) puis une <strong>réception</strong> (paging par IMSI).</li>
+        <li>Le SMS reçu est lisible : <strong>« abc »</strong>, envoyé par <strong>+37067659766</strong> via le SMSC +37068499199, horodaté <strong>12/04/2007 20:36:34 (UTC+3)</strong>.</li>
+        <li>Le réseau active <strong>A5/1</strong> avant le SMS, pourtant le contenu est en clair : la trace a été <strong>déchiffrée</strong> avant l'export.</li>
+        <li>Le SMS fait 37 octets, il est <strong>segmenté sur 2 trames LAPDm</strong> (bit M) sur le <strong>SAPI 3</strong>.</li>
+      </ul>
+    </div>
+
+    <h2 id="trace">La trace et ses champs</h2>
+    <p>Le fichier est un dump XML de l'interface radio <strong>Um</strong> : chaque élément <code>&lt;l1&gt;</code> est un bloc de 23 octets reçu sur un canal logique, avec un <code>&lt;l2&gt;</code> qui isole la partie utile. L'outil de capture n'est pas nommé (format proche des outils airprobe / OsmocomBB, sans certitude).</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Attribut</th><th>Valeurs dans la trace</th><th>Interprétation</th></tr></thead>
+      <tbody>
+        <tr><td><code>direction</code></td><td><code>down</code> (175/175)</td><td>Seul le sens descendant a été capté : les messages du mobile sont à <strong>déduire</strong>.</td></tr>
+        <tr><td><code>logicalchannel</code></td><td>80, 96, 112, 128</td><td>Type de canal logique (voir ci-dessous).</td></tr>
+        <tr><td><code>physicalchannel</code></td><td>19 partout</td><td>Incertain : identifiant interne du canal physique écouté.</td></tr>
+        <tr><td><code>sequence</code></td><td>268116 à 271569</td><td>Numéro de trame TDMA (<strong>FN</strong>) du dernier burst du bloc.</td></tr>
+        <tr><td><code>error</code></td><td>0 partout</td><td>Aucune erreur de décodage canal.</td></tr>
+        <tr><td><code>timeshift</code></td><td>0 à 4374</td><td>Non documenté (probablement un décalage temporel côté récepteur).</td></tr>
+        <tr><td><code>bsic</code></td><td>22</td><td>BSIC de la cellule (si décimal : NCC 2, BCC 6).</td></tr>
+        <tr><td><code>data</code> / <code>l2 data</code> / <code>rest</code></td><td>hexadécimal</td><td>Bloc complet ; message L2/L3 utile ; bourrage (<code>2B</code>).</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="table-wrap"><table>
+      <thead><tr><th><code>logicalchannel</code></th><th>Contenu observé</th><th>Canal déduit</th><th>Blocs</th></tr></thead>
+      <tbody>
+        <tr><td>80</td><td>System Information 1 à 4, FN mod 51 = 5</td><td><strong>BCCH</strong></td><td>13</td></tr>
+        <tr><td>96</td><td>Paging Request, Immediate Assignment</td><td><strong>CCCH</strong> (PCH + AGCH)</td><td>110</td></tr>
+        <tr><td>112</td><td>System Information 5 et 6, période 102 trames</td><td><strong>SACCH</strong> du SDCCH</td><td>15</td></tr>
+        <tr><td>128</td><td>LAPDm, MM, RR, SMS, une trame toutes les 51</td><td><strong>SDCCH/8</strong></td><td>37</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="callout warn"><span class="callout-title">Mapping incertain</span>
+      <p>Ces numéros ne suivent ni la convention GSMTAP ni le <code>chan_nr</code> d'OsmocomBB (où le BCCH vaut 0x80). La correspondance ci-dessus est <strong>déduite du contenu</strong> et de la position dans la multitrame 51 : elle est cohérente sur les 175 blocs, mais ce n'est pas une documentation de l'outil.</p>
+    </div>
+
+    <h2 id="canaux">Rappel : les canaux logiques utiles</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Canal</th><th>Sens</th><th>Rôle</th><th>Dans la trace</th></tr></thead>
+      <tbody>
+        <tr><td><strong>BCCH</strong></td><td>↓ diffusé</td><td>System Information : identité de la cellule, voisines, paramètres d'accès</td><td>SI1 à SI4</td></tr>
+        <tr><td><strong>PCH</strong></td><td>↓</td><td>Paging : appeler un mobile par TMSI ou IMSI</td><td>83 Paging Request</td></tr>
+        <tr><td><strong>RACH</strong></td><td>↑</td><td>Channel Request (1 octet, RA) en accès aléatoire</td><td>absent (montant)</td></tr>
+        <tr><td><strong>AGCH</strong></td><td>↓</td><td>Immediate Assignment : attribue un canal dédié</td><td>18 IA</td></tr>
+        <tr><td><strong>SDCCH</strong></td><td>↕ dédié</td><td>Signalisation hors appel : LU, SMS, établissement d'appel</td><td>2 transactions SMS</td></tr>
+        <tr><td><strong>SACCH</strong></td><td>↕ associé</td><td>Mesures, puissance, TA, SI5/SI6 en mode dédié</td><td>SI5, SI6</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="scenario">Le scénario reconstitué</h2>
+    <p>Hors du bruit du CCCH (paging d'autres abonnés, assignations GPRS), deux transactions passent sur le SDCCH écouté.</p>
+    <ol class="steps">
+      <li><strong>FN 268258 à 269260, envoi d'un SMS.</strong> Immediate Assignment (RA 0x1D, SDCCH/8 sous-canal 7), puis l'UA renvoie le <strong>CM Service Request</strong> du mobile (service 4 = SMS, TMSI 2D566F0D). Chiffrement A5/1, nouveau TMSI 2D81E7CD, ouverture du SAPI 3, <strong>CP-ACK</strong> puis <strong>CP-DATA / RP-ACK</strong> (référence 1) : le SMS est accepté. Son texte, montant, n'est pas capté.</li>
+      <li><strong>FN 270192 à 271182, réception d'un SMS</strong>, détaillée dans le schéma ci-dessous.</li>
+    </ol>
+
+    <figure>
+      <svg viewBox="0 0 760 500" role="img" aria-label="Diagramme de séquence de la réception du SMS entre le mobile et la BTS">
+        <defs>
+          <marker id="ad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="accent" d="M0,0 L10,5 L0,10 z"/></marker>
+          <marker id="au" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="line" d="M0,0 L10,5 L0,10"/></marker>
+        </defs>
+        <rect class="box" x="100" y="8" width="100" height="32" rx="6"/><text x="150" y="29" text-anchor="middle" font-weight="700">MS</text>
+        <rect class="box" x="560" y="8" width="100" height="32" rx="6"/><text x="610" y="29" text-anchor="middle" font-weight="700">BTS</text>
+        <line class="line" x1="150" y1="40" x2="150" y2="490"/>
+        <line class="line" x1="610" y1="40" x2="610" y2="490"/>
+        <text x="4" y="22" class="muted" font-size="11">FN</text>
+        <g font-size="12">
+          <line class="accent" x1="610" y1="70" x2="150" y2="70" stroke-width="2" marker-end="url(#ad)"/>
+          <text x="380" y="64" text-anchor="middle">Paging Request 1 : IMSI 246037010204766 (PCH)</text>
+          <text x="4" y="74" class="muted" font-size="11">270192</text>
+          <line class="line" x1="150" y1="100" x2="610" y2="100" stroke-dasharray="5 4" marker-end="url(#au)"/>
+          <text x="380" y="94" text-anchor="middle" class="muted">Channel Request RA 0x9C (RACH, non capté)</text>
+          <line class="accent" x1="610" y1="130" x2="150" y2="130" stroke-width="2" marker-end="url(#ad)"/>
+          <text x="380" y="124" text-anchor="middle">Immediate Assignment : SDCCH/8 sc 3, TS1, TA 1 (AGCH)</text>
+          <text x="4" y="134" class="muted" font-size="11">270329</text>
+          <line class="line" x1="150" y1="160" x2="610" y2="160" stroke-dasharray="5 4" marker-end="url(#au)"/>
+          <text x="380" y="154" text-anchor="middle" class="muted">SABM + Paging Response (non capté)</text>
+          <line class="accent" x1="610" y1="190" x2="150" y2="190" stroke-width="2" marker-end="url(#ad)"/>
+          <text x="380" y="184" text-anchor="middle">UA + écho du Paging Response</text>
+          <text x="4" y="194" class="muted" font-size="11">270417</text>
+          <line class="accent" x1="610" y1="220" x2="150" y2="220" stroke-width="2" marker-end="url(#ad)"/>
+          <text x="380" y="214" text-anchor="middle">Ciphering Mode Command : A5/1</text>
+          <text x="4" y="224" class="muted" font-size="11">270468</text>
+          <line class="line" x1="150" y1="250" x2="610" y2="250" stroke-dasharray="5 4" marker-end="url(#au)"/>
+          <text x="380" y="244" text-anchor="middle" class="muted">Ciphering Mode Complete (non capté)</text>
+          <line class="accent" x1="610" y1="280" x2="150" y2="280" stroke-width="2" marker-end="url(#ad)"/>
+          <text x="380" y="274" text-anchor="middle">TMSI Reallocation Command : 2D81FB3E</text>
+          <text x="4" y="284" class="muted" font-size="11">270621</text>
+          <line class="accent" x1="610" y1="310" x2="150" y2="310" stroke-width="2" marker-end="url(#ad)"/>
+          <text x="380" y="304" text-anchor="middle">SABM sur SAPI 3 (lien SMS)</text>
+          <text x="4" y="314" class="muted" font-size="11">270672</text>
+          <line class="accent" x1="610" y1="340" x2="150" y2="340" stroke-width="2" marker-end="url(#ad)"/>
+          <text x="380" y="334" text-anchor="middle" font-weight="700">CP-DATA / RP-DATA / SMS-DELIVER « abc » (2 trames)</text>
+          <text x="4" y="344" class="muted" font-size="11">270774</text>
+          <line class="line" x1="150" y1="370" x2="610" y2="370" stroke-dasharray="5 4" marker-end="url(#au)"/>
+          <text x="380" y="364" text-anchor="middle" class="muted">CP-ACK puis CP-DATA / RP-ACK (déduits des RR)</text>
+          <line class="accent" x1="610" y1="400" x2="150" y2="400" stroke-width="2" marker-end="url(#ad)"/>
+          <text x="380" y="394" text-anchor="middle">CP-ACK</text>
+          <text x="4" y="404" class="muted" font-size="11">271029</text>
+          <line class="accent" x1="610" y1="430" x2="150" y2="430" stroke-width="2" marker-end="url(#ad)"/>
+          <text x="380" y="424" text-anchor="middle">Channel Release (cause normale)</text>
+          <text x="4" y="434" class="muted" font-size="11">271080</text>
+          <line class="line" x1="150" y1="460" x2="610" y2="460" stroke-dasharray="5 4" marker-end="url(#au)"/>
+          <text x="380" y="454" text-anchor="middle" class="muted">DISC (non capté), puis UA de la BTS</text>
+          <text x="4" y="464" class="muted" font-size="11">271182</text>
+        </g>
+        <line class="accent" x1="690" y1="232" x2="690" y2="470" stroke-width="3"/>
+        <text x="705" y="351" font-size="11" class="muted" transform="rotate(90 705 351)" text-anchor="middle">chiffré A5/1 sur l'air</text>
+      </svg>
+      <figcaption>Réception du SMS. Traits pleins : trames présentes dans la trace. Pointillés : messages montants déduits. Durée totale : 990 trames, soit environ 4,6 s.</figcaption>
+    </figure>
+
+    <div class="callout explain"><span class="callout-title">Comment on voit les messages montants</span>
+      <p>En LAPDm, la BTS répond au SABM du mobile par un <strong>UA qui recopie son contenu</strong> (résolution de contention) : c'est ainsi qu'on lit le Paging Response et le CM Service Request sans capter le sens montant. Les trames <strong>RR N(R)</strong> trahissent aussi chaque trame I reçue du mobile.</p>
+    </div>
+
+    <h2 id="decodage">Décoder un message à la main</h2>
+    <p>Exemple : le SMS reçu, segmenté sur deux blocs SDCCH (FN 270774 et 270825). On retire les 3 octets LAPDm de chaque bloc, on concatène, puis on lit les couches CP, RP et TPDU.</p>
+<pre data-label="SDCCH"><span class="cmt"># En-têtes LAPDm des deux blocs</span>
+<span class="hl">0F</span>  adresse : SAPI 3 (SMS), C/R=1, EA=1
+<span class="hl">00</span>  contrôle : trame I, N(S)=0, N(R)=0
+<span class="hl">53</span>  longueur : 0101 00|1|1 : L=20 octets, <span class="hl">M=1</span> (la suite arrive)
+<span class="hl">0F 02 45</span>  bloc 2 : N(S)=1, L=17, M=0 (dernier segment)
+
+<span class="cmt"># Message reconstitué (37 octets)</span>
+<span class="hl">19</span>                       PD=9 (SMS), TI=1, émis par le réseau
+<span class="hl">01</span>                       CP-DATA
+<span class="hl">22</span>                       longueur RP = 34
+<span class="hl">01 00</span>                    RP-DATA réseau vers MS, référence 0
+<span class="hl">07 91 73 60 48 99 91 F9</span>  SMSC : international, <span class="out">+37068499199</span>
+<span class="hl">00</span>                       RP-Destination vide
+<span class="hl">16</span>                       longueur TPDU = 22
+<span class="hl">04</span>                       SMS-DELIVER (MTI=00), pas d'autre message en attente
+<span class="hl">0B 91 73 60 67 95 67 F6</span>  expéditeur : 11 chiffres, <span class="out">+37067659766</span>
+<span class="hl">00 00</span>                    PID=0, DCS=0 (alphabet GSM 7 bits)
+<span class="hl">70 40 21 02 63 43 21</span>     horodatage : <span class="out">07-04-12 20:36:34</span>, fuseau +12 quarts d'heure
+<span class="hl">03</span>                       3 caractères
+<span class="hl">61 F1 18</span>                 texte 7 bits : <span class="out">"abc"</span></pre>
+    <p>Deux règles suffisent pour les champs :</p>
+    <ul>
+      <li><strong>BCD semi-octets</strong> : chaque octet porte deux chiffres, <strong>poids faible d'abord</strong>, <code>F</code> sert de bourrage. <code>73 60</code> se lit 3, 7, 0, 6.</li>
+      <li><strong>GSM 7 bits</strong> : les caractères de 7 bits sont tassés, bit de poids faible d'abord. <code>61</code> donne 0x61 = « a » ; le bit restant (0) + les 6 bits bas de <code>F1</code> donnent 0x62 = « b » ; les 2 bits hauts de <code>F1</code> + les 5 bits bas de <code>18</code> donnent 0x63 = « c ».</li>
+    </ul>
+
+    <h2 id="sms">Le SMS décodé et la question du chiffrement</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Champ</th><th>Valeur</th></tr></thead>
+      <tbody>
+        <tr><td>Destinataire</td><td>IMSI <code>246037010204766</code> (paging), nouveau TMSI <code>2D81FB3E</code></td></tr>
+        <tr><td>Expéditeur</td><td><code>+37067659766</code> (Lituanie)</td></tr>
+        <tr><td>Centre SMS</td><td><code>+37068499199</code></td></tr>
+        <tr><td>Horodatage SMSC</td><td>12 avril 2007, 20:36:34, UTC+3</td></tr>
+        <tr><td>Texte</td><td><strong>abc</strong> (3 caractères, GSM 7 bits)</td></tr>
+      </tbody>
+    </table></div>
+    <p>Les deux transactions ont la même Classmark 2 (<code>33 19 81</code>) et sont séparées de 11,5 s : il est <strong>plausible</strong> (non prouvé) qu'un même téléphone se soit envoyé « abc » à lui-même.</p>
+
+    <div class="callout warn"><span class="callout-title">Pourquoi le SMS est-il lisible ?</span>
+      <p>Le Ciphering Mode Command (<code>06 35 01</code> : SC=1, algorithme 000 = <strong>A5/1</strong>) est émis en clair. Dès que le mobile a répondu (son Ciphering Mode Complete est acquitté par le RR de FN 270570), tout le SDCCH est chiffré sur l'air. Si on lit le TMSI réalloué et le SMS, c'est que la capture a été <strong>déchiffrée avec la clé Kc</strong> (clé connue, réseau de test ou A5/1 cassé) avant l'export. Une capture brute ne montrerait que des octets aléatoires à partir du TMSI Reallocation Command (FN 270621).</p>
+    </div>
+
+    <h2 id="questions">Questions types et outils</h2>
+    <h3 id="questions-types">Questions qu'un énoncé poserait</h3>
+    <details><summary>1. Quel réseau, quelle cellule ?</summary>
+      <p>Le SI3 (<code>06 1B 40 5C 42 F6 30 00 04</code>) donne CI = 0x405C, MCC 246 (Lituanie), MNC 03, LAC 0x0004. BSIC 22. Les SI1 à SI4 tournent selon TC = (FN / 51) mod 8.</p>
+    </details>
+    <details><summary>2. Que contient le CCCH ?</summary>
+      <p>83 Paging Request (78 de type 1, dont 33 vides « aucune identité », 3 de type 2, 2 de type 3), 18 Immediate Assignment (dont 5 pour des TBF GPRS) et 9 blocs vides. Les pagings de type 1 visent 56 TMSI et 5 IMSI distincts.</p>
+    </details>
+    <details><summary>3. Comment le destinataire est-il appelé ? Est-ce un problème ?</summary>
+      <p>Par un Paging Request Type 1 portant son <strong>IMSI</strong> en clair, et non un TMSI. N'importe quel récepteur passif peut donc relier cet IMSI à l'arrivée d'un SMS. Le réseau corrige ensuite en réallouant un TMSI (chiffré).</p>
+    </details>
+    <details><summary>4. Quel canal dédié est attribué et pourquoi ?</summary>
+      <p>Immediate Assignment FN 270329 : SDCCH/8 sous-canal 3, TS1, avec saut de fréquence (MAIO 1, HSN 41), TA = 1. La Request Reference RA = 0x9C (100xxxxx) signifie « réponse à un paging ». Les blocs SDCCH ont FN mod 51 = 15, soit la fin des trames 12 à 15 : le sous-canal 3 de la multitrame SDCCH/8, ce qui confirme l'association.</p>
+    </details>
+    <details><summary>5. Pourquoi le SMS passe-t-il sur le SAPI 3 et en deux trames ?</summary>
+      <p>LAPDm réserve le <strong>SAPI 0</strong> à la signalisation RR/MM/CC et le <strong>SAPI 3</strong> aux SMS. Un bloc SDCCH de 23 octets laisse au plus 20 octets utiles après l'en-tête de 3 octets : le CP-DATA de 37 octets est coupé en 20 + 17, le bit M signalant la suite.</p>
+    </details>
+    <details><summary>6. Le SMS envoyé (première transaction) a-t-il abouti ?</summary>
+      <p>Oui : le réseau répond CP-ACK puis CP-DATA contenant un <strong>RP-ACK</strong> (référence 1), puis libère le canal. Le texte envoyé est montant, il n'est pas dans la trace.</p>
+    </details>
+    <details><summary>7. Combien de temps dure la réception du SMS ?</summary>
+      <p>Du paging (FN 270192) au dernier UA (FN 271182) : 990 trames × 4,615 ms ≈ <strong>4,6 s</strong>. Le SDCCH/8 n'offre qu'un bloc par multitrame de 51 trames (235 ms), d'où la lenteur.</p>
+    </details>
+
+    <h3 id="outils">Outils</h3>
+    <ul>
+      <li><strong>Script</strong> : <code>python3 -I decode_gsm.py sms.xml</code> (<a href="assets/decode_gsm.py" download>télécharger</a>) imprime une ligne par bloc, reconstitue les segments LAPDm et décode le SMS. Il ne couvre que les messages de cette trace.</li>
+      <li><strong>Wireshark</strong> ne lit pas ce XML. Il faut réémettre chaque bloc en <strong>GSMTAP</strong> (UDP 4729, avec le type de canal défini dans <code>gsmtap.h</code>) ou produire un pcap ; les dissecteurs <code>gsmtap</code>, <code>lapdm</code>, <code>gsm_a</code> et <code>gsm_sms</code> font alors le travail, filtrables avec <code>gsm_sms</code>.</li>
+      <li>Pour une capture réelle aujourd'hui : <strong>gr-gsm</strong> ou <strong>OsmocomBB</strong> produisent directement du GSMTAP vers Wireshark.</li>
+    </ul>
+
+    <div class="chapter-nav">
+      <a class="prev" href="td-cran.html"><span>← Précédent</span>TD : C-RAN, eICIC et CoMP</a>
+      <a class="next" href="exo-01-appel-gsm.html"><span>Suivant →</span>Exo 1 : un appel dans une cellule GSM</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

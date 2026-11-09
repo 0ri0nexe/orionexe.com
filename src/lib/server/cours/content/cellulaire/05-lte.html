@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>4G : LTE · Réseaux cellulaires</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Réseaux cellulaires</a>
+    <div class="course-code">NET 8465 · Chapitre 05</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 05</div>
+    <h1>4G : LTE (eUTRAN et EPC)</h1>
+    <p class="lead">La 4G fait table rase du circuit : tout devient IP, le RNC disparaît et l'architecture s'aplatit. Voici les nœuds du réseau, la façon dont la ressource radio est découpée, et l'empilement des canaux.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li><strong>LTE</strong> (<em>Long Term Evolution</em>) = l'accès radio <strong>eUTRAN</strong> ; <strong>SAE</strong> (<em>System Architecture Evolution</em>) = le cœur <strong>EPC</strong>. Les deux forment l'<strong>EPS</strong> (<em>Evolved Packet System</em>).</li>
+        <li><strong>Tout-IP</strong>, plus de domaine circuit. Objectifs : 100 Mbit/s en descendant, 50 Mbit/s en montant, latence réduite.</li>
+        <li><strong>Plus de RNC</strong> : l'<strong>eNodeB</strong> fait tout le contrôle radio ; les eNodeB se parlent directement par <strong>X2</strong> et rejoignent le cœur par <strong>S1</strong>.</li>
+        <li>Dans le cœur, le <strong>MME</strong> gère la signalisation, les <strong>S-GW</strong> et <strong>P-GW</strong> transportent les données de l'usager.</li>
+        <li>Radio : <strong>OFDMA</strong> en descendant, <strong>SC-FDMA</strong> en montant. L'unité d'allocation est le <strong>resource block</strong> : 12 sous-porteuses (180 kHz) pendant 0,5 ms.</li>
+      </ul>
+    </div>
+
+    <h2 id="objectifs">Objectifs et rupture avec la 3G</h2>
+    <p>LTE vise trois choses : la <strong>performance</strong> (100 Mbit/s DL, 50 Mbit/s UL, faible latence), la <strong>simplicité</strong> (bande flexible de 1,4 à 20 MHz, FDD ou TDD, équipements auto-configurés et auto-optimisés) et l'<strong>optimisation pour le trafic IP</strong>, y compris le passage vers des accès non 3GPP (Wi-Fi, WiMAX).</p>
+    <p>La rupture se lit en suivant chaque équipement de l'UMTS :</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>UMTS (3G)</th><th>LTE/SAE (4G)</th></tr></thead>
+      <tbody>
+        <tr><td>Node B + <strong>RNC</strong></td><td>Toutes les fonctions du RNC descendent dans l'<strong>eNodeB</strong></td></tr>
+        <tr><td>SGSN (partie contrôle)</td><td><strong>MME</strong></td></tr>
+        <tr><td>SGSN (partie usager) + GGSN</td><td><strong>Serving GW</strong> + <strong>PDN GW</strong> (ensemble : SAE GW)</td></tr>
+        <tr><td>Domaine circuit (MSC)</td><td>Supprimé : la voix passe en IP</td></tr>
+      </tbody>
+    </table></div>
+    <p>Résultat : deux niveaux de nœuds au lieu de quatre entre le mobile et Internet, donc moins de latence et moins de points de traitement.</p>
+
+    <h2 id="architecture">Architecture LTE/SAE</h2>
+    <figure>
+      <svg viewBox="0 0 760 330" role="img" aria-label="Architecture LTE : UE, deux eNodeB reliés par X2, MME, S-GW, P-GW, HSS, PCRF et Internet">
+        <g stroke-width="1.5">
+          <!-- plan usager (trait plein) -->
+          <line class="line" x1="90" y1="245" x2="150" y2="245"/>
+          <line class="line" x1="250" y1="245" x2="380" y2="245"/>
+          <line class="line" x1="480" y1="245" x2="540" y2="245"/>
+          <line class="line" x1="640" y1="245" x2="690" y2="245"/>
+          <line class="line" x1="200" y1="225" x2="200" y2="140"/>
+          <line class="line" x1="250" y1="120" x2="380" y2="235"/>
+          <!-- plan de contrôle (pointillés) -->
+          <g stroke-dasharray="5 4">
+            <line class="line" x1="250" y1="235" x2="380" y2="65"/>
+            <line class="line" x1="250" y1="110" x2="380" y2="55"/>
+            <line class="line" x1="430" y1="80" x2="430" y2="225"/>
+            <line class="line" x1="480" y1="55" x2="540" y2="55"/>
+            <line class="line" x1="590" y1="225" x2="590" y2="150"/>
+          </g>
+        </g>
+        <rect class="box" x="20" y="225" width="70" height="40" rx="8"/>
+        <text x="55" y="250" text-anchor="middle" font-size="14">UE</text>
+        <rect class="accent" x="150" y="225" width="100" height="40" rx="8"/>
+        <text x="200" y="250" text-anchor="middle" font-size="14">eNodeB</text>
+        <rect class="accent" x="150" y="100" width="100" height="40" rx="8"/>
+        <text x="200" y="125" text-anchor="middle" font-size="14">eNodeB</text>
+        <text x="210" y="187" font-size="12" class="muted">X2</text>
+        <rect class="box" x="380" y="35" width="100" height="40" rx="8"/>
+        <text x="430" y="60" text-anchor="middle" font-size="14">MME</text>
+        <rect class="box" x="380" y="225" width="100" height="40" rx="8"/>
+        <text x="430" y="250" text-anchor="middle" font-size="14">Serving GW</text>
+        <rect class="box" x="540" y="225" width="100" height="40" rx="8"/>
+        <text x="590" y="250" text-anchor="middle" font-size="14">PDN GW</text>
+        <rect class="box" x="540" y="35" width="100" height="40" rx="8"/>
+        <text x="590" y="60" text-anchor="middle" font-size="14">HSS</text>
+        <rect class="box" x="540" y="110" width="100" height="40" rx="8"/>
+        <text x="590" y="135" text-anchor="middle" font-size="14">PCRF</text>
+        <rect class="box" x="690" y="225" width="60" height="40" rx="8"/>
+        <text x="720" y="250" text-anchor="middle" font-size="13">Internet</text>
+        <text x="120" y="238" text-anchor="middle" font-size="11" class="muted">LTE-Uu</text>
+        <text x="315" y="262" text-anchor="middle" font-size="12" class="muted">S1-U</text>
+        <text x="290" y="160" text-anchor="middle" font-size="12" class="muted">S1-MME</text>
+        <text x="445" y="155" font-size="12" class="muted">S11</text>
+        <text x="510" y="48" text-anchor="middle" font-size="12" class="muted">S6a</text>
+        <text x="510" y="262" text-anchor="middle" font-size="12" class="muted">S5/S8</text>
+        <text x="665" y="262" text-anchor="middle" font-size="12" class="muted">SGi</text>
+        <text x="600" y="190" font-size="12" class="muted">Gx</text>
+        <rect class="box" x="20" y="300" width="720" height="1" />
+        <text x="20" y="320" font-size="12" class="muted">eUTRAN : UE et eNodeB · EPC : MME, S-GW, P-GW, HSS, PCRF · trait plein = données usager, pointillés = signalisation</text>
+      </svg>
+      <figcaption>Architecture LTE/SAE (Release 8, cas sans itinérance) : le plan usager passe par S-GW puis P-GW, la signalisation par le MME.</figcaption>
+    </figure>
+
+    <div class="table-wrap"><table>
+      <thead><tr><th>Nœud</th><th>Rôle</th></tr></thead>
+      <tbody>
+        <tr><td><strong>UE</strong></td><td>Terminal (<em>User Equipment</em>). Plusieurs catégories : la catégorie 1 ne fait pas de MIMO, la catégorie 5 fait du MIMO 4×4.</td></tr>
+        <tr><td><strong>eNodeB</strong></td><td>Station de base « intelligente » : radio, ordonnancement, contrôle des ressources, décision de handover. Reliée aux voisines par <strong>X2</strong>, au cœur par <strong>S1</strong>.</td></tr>
+        <tr><td><strong>MME</strong></td><td><em>Mobility Management Entity</em> : authentification, sécurité, choix des passerelles, mobilité en veille (<em>Tracking Area Update</em>, paging), handover inter-MME et inter-RAT, négociation de QoS. Interroge le HSS par S6a.</td></tr>
+        <tr><td><strong>Serving GW</strong></td><td>Route les paquets de l'usager ; <strong>ancre de mobilité</strong> lors des handovers entre eNodeB et vers la 2G/3G ; pour un UE en veille, bufferise le trafic descendant et déclenche le paging ; duplique le trafic pour l'interception légale.</td></tr>
+        <tr><td><strong>PDN GW</strong></td><td>Porte de sortie vers les réseaux de données externes (<em>Packet Data Network</em>) : attribue l'adresse IP, filtre, applique la politique, gère la taxation ; ancre vers les accès non 3GPP. Un UE peut utiliser plusieurs P-GW à la fois.</td></tr>
+        <tr><td><strong>HSS</strong></td><td>Base des abonnés (<em>Home Subscriber Server</em>), héritière du HLR.</td></tr>
+        <tr><td><strong>PCRF</strong></td><td><em>Policy and Charging Rules Function</em> : fixe les règles de QoS et de taxation appliquées par la P-GW.</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : plan de contrôle et plan usager</span>
+      <p>Pensez à un aéroport. La <strong>tour de contrôle</strong> (le MME) ne transporte aucun passager : elle vérifie les identités, attribue les pistes, suit les avions. Les <strong>pistes et les portes</strong> (S-GW puis P-GW) voient passer tous les passagers mais ne prennent aucune décision d'admission.</p>
+      <p>Séparer les deux permet de les dimensionner indépendamment : un pic de vidéo charge les passerelles, une foule de mobiles qui se déplacent charge le MME. C'est pourquoi, sur le schéma, <strong>S1 se dédouble</strong> : S1-MME pour la signalisation, S1-U pour les données. Le MME pilote ensuite la S-GW par S11 (créer, déplacer un tunnel). Cette séparation, amorcée ici, est poussée à fond en 5G.</p>
+    </div>
+
+    <div class="callout warn"><span class="callout-title">Piège classique</span>
+      <p>Les données de l'usager <strong>ne passent jamais par le MME</strong>. Elles vont de l'eNodeB directement à la Serving GW (S1-U), puis à la PDN GW (S5, ou S8 en itinérance). Et il n'y a pas de RNC caché : l'eNodeB est le seul nœud de l'eUTRAN.</p>
+    </div>
+
+    <h2 id="lte-advanced">LTE et LTE-Advanced</h2>
+    <p>Les versions actuelles s'appellent <strong>LTE-Advanced</strong>. Elles reposent sur trois leviers :</p>
+    <ul>
+      <li><strong>Accès radio</strong> : OFDMA en descendant ; SC-FDMA en montant, plus économe pour la batterie du mobile.</li>
+      <li><strong>Antennes multiples (MIMO)</strong> : <em>diversité</em> (plusieurs copies du signal contre l'évanouissement), <em>beamforming</em> (concentrer l'énergie dans une direction), <em>multiplexage spatial</em> (flux indépendants en parallèle, donc plus de débit).</li>
+      <li><strong>Flexibilité spectrale</strong> : largeur de 1,4 à 20 MHz, bandes nouvelles et existantes, FDD ou TDD.</li>
+    </ul>
+
+    <h2 id="grille">La grille de ressources</h2>
+    <p>En OFDMA, la ressource est un quadrillage <strong>temps × fréquence</strong>. L'eNodeB attribue à chaque UE des cases de ce quadrillage.</p>
+    <ul>
+      <li>Une <strong>trame</strong> (<em>radio frame</em>) dure <strong>10 ms</strong> et compte 10 <strong>sous-trames</strong> de <strong>1 ms</strong>.</li>
+      <li>Une sous-trame compte 2 <strong>slots</strong> de <strong>0,5 ms</strong> (7 symboles OFDM chacun).</li>
+      <li>Un <strong>resource block</strong> (RB) = <strong>12 sous-porteuses de 15 kHz</strong> (soit <strong>180 kHz</strong>) pendant <strong>un slot</strong>. Un slot contient entre 6 et 110 RB selon la largeur de bande.</li>
+    </ul>
+    <figure>
+      <svg viewBox="0 0 760 270" role="img" aria-label="Trame LTE de 10 ms en 10 sous-trames, une sous-trame de 2 slots, et grille de resource blocks">
+        <text x="20" y="22" font-size="13">Trame : 10 ms</text>
+        <rect class="box" x="20" y="32" width="50" height="28"/><rect class="accent" x="70" y="32" width="50" height="28"/>
+        <rect class="box" x="120" y="32" width="50" height="28"/><rect class="box" x="170" y="32" width="50" height="28"/>
+        <rect class="box" x="220" y="32" width="50" height="28"/><rect class="box" x="270" y="32" width="50" height="28"/>
+        <rect class="box" x="320" y="32" width="50" height="28"/><rect class="box" x="370" y="32" width="50" height="28"/>
+        <rect class="box" x="420" y="32" width="50" height="28"/><rect class="box" x="470" y="32" width="50" height="28"/>
+        <text x="95" y="51" text-anchor="middle" font-size="11">1 ms</text>
+        <text x="540" y="51" font-size="12" class="muted">10 sous-trames</text>
+        <line class="line" x1="70" y1="60" x2="140" y2="90"/><line class="line" x1="120" y1="60" x2="460" y2="90"/>
+        <!-- grille : 2 slots x 6 RB -->
+        <rect class="box" x="140" y="90" width="160" height="30"/><rect class="box" x="300" y="90" width="160" height="30"/>
+        <rect class="box" x="140" y="120" width="160" height="30"/><rect class="box" x="300" y="120" width="160" height="30"/>
+        <rect class="accent" x="140" y="150" width="160" height="30"/><rect class="box" x="300" y="150" width="160" height="30"/>
+        <rect class="box" x="140" y="180" width="160" height="30"/><rect class="box" x="300" y="180" width="160" height="30"/>
+        <rect class="box" x="140" y="210" width="160" height="30"/><rect class="box" x="300" y="210" width="160" height="30"/>
+        <text x="220" y="170" text-anchor="middle" font-size="12">1 RB</text>
+        <text x="220" y="258" text-anchor="middle" font-size="12" class="muted">slot 0,5 ms</text>
+        <text x="380" y="258" text-anchor="middle" font-size="12" class="muted">slot 0,5 ms</text>
+        <text x="130" y="170" text-anchor="end" font-size="12" class="muted">fréquence ↑</text>
+        <text x="480" y="160" font-size="12">1 RB = 12 sous-porteuses × 15 kHz</text>
+        <text x="480" y="178" font-size="12">= 180 kHz pendant 0,5 ms</text>
+        <text x="480" y="210" font-size="12" class="muted">N RB empilés en fréquence</text>
+        <text x="480" y="228" font-size="12" class="muted">(6 ≤ N ≤ 110 selon la bande)</text>
+      </svg>
+      <figcaption>Découpage temps-fréquence : trame, sous-trame, slot, resource block.</figcaption>
+    </figure>
+    <p>Combien de RB dans une bande de <strong>20 MHz</strong> ? On retire d'abord <strong>10 % de bande de garde</strong> :</p>
+    <div class="formula">N<sub>RB</sub> = (20 MHz × 0,9) / 180 kHz = 18 000 / 180 = <strong>100 RB par slot</strong><br>
+      100 RB × 20 slots = <strong>2 000 RB par trame</strong>
+      <span class="where">20 slots par trame (10 sous-trames × 2). Dans le TD, on regroupe 4 RB en un GRB : 2 000 / 4 = 500 GRB par trame.</span></div>
+
+    <h2 id="canaux">Canaux logiques, de transport et physiques</h2>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : trois étages de canaux</span>
+      <p>Imaginez l'envoi d'un colis. Le <strong>canal logique</strong> dit <em>quoi</em> : « c'est un avis de recherche » (paging), « c'est de la signalisation pour toi seul », « ce sont tes données ». Le <strong>canal de transport</strong> dit <em>comment c'est emballé</em> : quel format, quelle correction d'erreurs (HARQ), partagé ou diffusé. Le <strong>canal physique</strong> dit <em>dans quel camion</em> : quels resource blocks, quelle modulation (QPSK à 64-QAM).</p>
+      <p>Point clé : LTE n'a plus de canal dédié au niveau transport. Presque tout converge vers un canal <strong>partagé</strong> (DL-SCH, UL-SCH) porté par PDSCH ou PUSCH, et l'eNodeB distribue les RB à la milliseconde. Les canaux de contrôle physiques (PDCCH, PUCCH, PHICH) n'ont pas de canal logique au-dessus : ils servent au fonctionnement de la couche physique elle-même.</p>
+    </div>
+
+    <div class="table-wrap"><table>
+      <thead><tr><th>Sens</th><th>Logique (quoi)</th><th>Transport</th><th>Physique</th><th>Rôle</th></tr></thead>
+      <tbody>
+        <tr><td>DL</td><td>BCCH</td><td>BCH</td><td>PBCH</td><td>Informations système de la cellule</td></tr>
+        <tr><td>DL</td><td>PCCH</td><td>PCH</td><td>PDSCH</td><td>Paging d'un UE dont on ignore la cellule</td></tr>
+        <tr><td>DL</td><td>CCCH, DCCH, DTCH</td><td>DL-SCH</td><td>PDSCH</td><td>Signalisation et données usager (QPSK à 64-QAM)</td></tr>
+        <tr><td>DL</td><td>MCCH, MTCH</td><td>MCH</td><td>PMCH</td><td>Diffusion multicast (MBMS)</td></tr>
+        <tr><td>DL</td><td>aucun</td><td>aucun</td><td>PDCCH</td><td>Allocation des RB (DL et grant UL)</td></tr>
+        <tr><td>DL</td><td>aucun</td><td>aucun</td><td>PHICH</td><td>ACK/NACK HARQ des envois montants</td></tr>
+        <tr><td>UL</td><td>CCCH, DCCH, DTCH</td><td>UL-SCH</td><td>PUSCH</td><td>Signalisation et données usager</td></tr>
+        <tr><td>UL</td><td>aucun</td><td>RACH</td><td>PRACH</td><td>Accès aléatoire (premier contact)</td></tr>
+        <tr><td>UL</td><td>aucun</td><td>aucun</td><td>PUCCH</td><td>Contrôle montant, dont le rapport CQI</td></tr>
+      </tbody>
+    </table></div>
+    <p>CCCH sert aux UE sans connexion RRC, DCCH à ceux qui en ont une ; DTCH porte les données d'un UE précis, dans les deux sens.</p>
+
+    <div class="callout warn"><span class="callout-title">Piège classique</span>
+      <p>Le paging (PCCH puis PCH) n'a <strong>pas</strong> de canal physique propre : il passe par le <strong>PDSCH</strong>, comme les données. Et le <strong>PDCCH</strong> ne porte pas de données : il annonce seulement à chaque UE quels RB lire ou utiliser.</p>
+    </div>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. Que sont devenues les fonctions du RNC, du SGSN et du GGSN en LTE ?</summary>
+      <p>Le RNC est absorbé par l'<strong>eNodeB</strong>, la partie contrôle du SGSN par le <strong>MME</strong>, et le GGSN (avec la partie usager du SGSN) par les passerelles <strong>Serving GW</strong> et <strong>PDN GW</strong>.</p>
+    </details>
+    <details><summary>2. Par quels nœuds et interfaces passe un paquet IP descendant venant d'Internet ?</summary>
+      <p>Internet → (SGi) <strong>PDN GW</strong> → (S5/S8) <strong>Serving GW</strong> → (S1-U) <strong>eNodeB</strong> → UE. Jamais par le MME.</p>
+    </details>
+    <details><summary>3. Un UE en veille reçoit un paquet. Qui le bufferise, qui le cherche ?</summary>
+      <p>La <strong>Serving GW</strong> termine le chemin descendant et prévient le <strong>MME</strong>, qui déclenche le <strong>paging</strong> dans la zone de suivi (<em>tracking area</em>) de l'UE.</p>
+    </details>
+    <details><summary>4. À quoi sert l'interface X2 ?</summary>
+      <p>Elle relie directement deux eNodeB, notamment pour préparer et exécuter les <strong>handovers</strong> sans passer par le cœur, ce qui était le rôle du RNC en 3G.</p>
+    </details>
+    <details><summary>5. Combien de RB par slot et par trame pour une bande de 10 MHz (10 % de garde) ?</summary>
+      <p>9 000 / 180 = <strong>50 RB par slot</strong>, soit 50 × 20 = <strong>1 000 RB par trame</strong>.</p>
+    </details>
+    <details><summary>6. Sur quel canal physique passent les données usager montantes, et sur lequel le CQI ?</summary>
+      <p>Les données sur le <strong>PUSCH</strong> (via UL-SCH), le rapport de qualité de canal (CQI) sur le <strong>PUCCH</strong>.</p>
+    </details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="04-umts.html"><span>← Précédent</span>3G : UMTS (UTRAN)</a>
+      <a class="next" href="06-5g.html"><span>Suivant →</span>5G : architecture</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

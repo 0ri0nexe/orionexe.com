@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protocoles et modèles · Introduction aux réseaux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Introduction aux réseaux</a>
+    <div class="course-code">DIV 8404 · Chapitre 03</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 03</div>
+    <h1>Protocoles et modèles (OSI, TCP/IP)</h1>
+    <p class="lead">Deux machines reliées par un câble ne se comprennent pas pour autant : elles doivent suivre les mêmes règles. Ce chapitre explique comment ces règles sont organisées en couches, comment un message est emballé couche par couche, et pourquoi il faut deux adresses (IP et MAC) pour l'acheminer.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>Un <strong>protocole</strong> fixe les règles d'un échange ; plusieurs protocoles qui travaillent ensemble forment une <strong>suite</strong> organisée en <strong>couches</strong>.</li>
+        <li><strong>OSI</strong> (7 couches) sert à décrire ; <strong>TCP/IP</strong> (4 couches) est ce qui tourne réellement sur Internet.</li>
+        <li><strong>Encapsulation</strong> : chaque couche ajoute son en-tête. PDU : <strong>données → segment → paquet → trame → bits</strong>.</li>
+        <li>L'<strong>adresse IP</strong> désigne la source et la destination <em>finales</em> et ne change pas. L'<strong>adresse MAC</strong> ne vaut que sur un lien : elle <strong>change à chaque saut</strong>.</li>
+        <li>Pour joindre un autre réseau, la trame est envoyée à la <strong>passerelle par défaut</strong> (le routeur).</li>
+      </ul>
+    </div>
+
+    <h2 id="regles">Pourquoi des protocoles ?</h2>
+    <p>Toute communication a une <strong>source</strong>, une <strong>destination</strong> et un <strong>canal</strong> (câble, fibre, radio). Mais être connecté ne suffit pas : il faut se mettre d'accord sur la façon de parler. Un <strong>protocole</strong> est cet ensemble de règles : qui parle à qui (adresses), le <strong>format</strong> et le <strong>codage</strong> des messages (bits transformés en signaux électriques, lumineux ou radio), le <strong>rythme</strong> des échanges et les <strong>accusés de réception</strong>.</p>
+    <p>Un protocole seul ne règle qu'un problème. Pour afficher une page web, il en faut plusieurs, empilés : <strong>HTTP</strong> (la page), <strong>TCP</strong> (livraison fiable), <strong>IP</strong> (trouver le chemin), <strong>Ethernet</strong> ou Wi-Fi (passer sur le câble ou l'onde). Cet ensemble est une <strong>suite de protocoles</strong>. La plus utilisée est <strong>TCP/IP</strong>, standard ouvert maintenu par l'IETF ; Ethernet et Wi-Fi sont normalisés par l'IEEE (802.3 et 802.11).</p>
+
+    <h2 id="modeles">Les modèles en couches : OSI et TCP/IP</h2>
+    <p>On découpe le réseau en <strong>couches</strong> : chacune a un rôle précis et rend service à la couche du dessus. L'intérêt majeur est que l'on peut changer une couche sans toucher aux autres, et que des équipements de constructeurs différents fonctionnent ensemble.</p>
+    <div class="callout explain"><span class="callout-title">Pour comprendre</span><p>Pensez à La Poste. Vous écrivez une lettre sans savoir si elle voyagera en camion, en train ou en avion. Si La Poste change ses camions, votre façon d'écrire ne change pas. De même, passer du câble au Wi-Fi (couche basse) ne change rien pour votre navigateur (couche haute) : c'est l'<strong>indépendance des couches</strong>.</p></div>
+
+    <p>Deux modèles coexistent. <strong>OSI</strong> est le modèle théorique, en 7 couches, dont on garde surtout les <em>numéros</em> (« switch de niveau 2 », « routeur de niveau 3 »). <strong>TCP/IP</strong> est le modèle pratique, en 4 couches, celui des protocoles réellement déployés.</p>
+    <figure>
+      <svg viewBox="0 0 600 330" role="img" aria-label="Correspondance entre les 7 couches OSI et les 4 couches TCP/IP">
+        <text x="110" y="20" text-anchor="middle" class="muted" font-size="13">Modèle OSI</text>
+        <text x="300" y="20" text-anchor="middle" class="muted" font-size="13">Protocoles</text>
+        <text x="500" y="20" text-anchor="middle" class="muted" font-size="13">Modèle TCP/IP</text>
+        <rect class="box" x="10" y="30" width="200" height="36" rx="6"/><text x="110" y="53" text-anchor="middle">7 · Application</text>
+        <rect class="box" x="10" y="72" width="200" height="36" rx="6"/><text x="110" y="95" text-anchor="middle">6 · Présentation</text>
+        <rect class="box" x="10" y="114" width="200" height="36" rx="6"/><text x="110" y="137" text-anchor="middle">5 · Session</text>
+        <rect class="box" x="10" y="156" width="200" height="36" rx="6"/><text x="110" y="179" text-anchor="middle">4 · Transport</text>
+        <rect class="box" x="10" y="198" width="200" height="36" rx="6"/><text x="110" y="221" text-anchor="middle">3 · Réseau</text>
+        <rect class="box" x="10" y="240" width="200" height="36" rx="6"/><text x="110" y="263" text-anchor="middle">2 · Liaison de données</text>
+        <rect class="box" x="10" y="282" width="200" height="36" rx="6"/><text x="110" y="305" text-anchor="middle">1 · Physique</text>
+        <text x="300" y="95" text-anchor="middle" font-size="13">HTTP, DNS,</text>
+        <text x="300" y="113" text-anchor="middle" font-size="13">DHCP, FTP</text>
+        <text x="300" y="179" text-anchor="middle" font-size="13">TCP, UDP</text>
+        <text x="300" y="214" text-anchor="middle" font-size="13">IPv4, IPv6,</text>
+        <text x="300" y="231" text-anchor="middle" font-size="13">ICMPv4, ICMPv6</text>
+        <text x="300" y="275" text-anchor="middle" font-size="13">Ethernet, WLAN,</text>
+        <text x="300" y="292" text-anchor="middle" font-size="13">PPP, Frame Relay</text>
+        <rect class="accent" x="390" y="30" width="200" height="120" rx="6"/><text x="490" y="95" text-anchor="middle">Application</text>
+        <rect class="accent" x="390" y="156" width="200" height="36" rx="6"/><text x="490" y="179" text-anchor="middle">Transport</text>
+        <rect class="accent" x="390" y="198" width="200" height="36" rx="6"/><text x="490" y="221" text-anchor="middle">Internet</text>
+        <rect class="accent" x="390" y="240" width="200" height="78" rx="6"/><text x="490" y="284" text-anchor="middle">Accès réseau</text>
+      </svg>
+      <figcaption>Les couches OSI 5-6-7 forment la couche Application de TCP/IP ; les couches 1-2 forment la couche Accès réseau.</figcaption>
+    </figure>
+    <div class="table-wrap"><table>
+      <thead><tr><th>OSI</th><th>TCP/IP</th><th>Rôle</th><th>PDU</th><th>Adresse / équipement</th></tr></thead>
+      <tbody>
+        <tr><td>7, 6, 5</td><td>Application</td><td>Service à l'utilisateur (web, mail)</td><td>Données</td><td>Logiciel</td></tr>
+        <tr><td>4 Transport</td><td>Transport</td><td>Livraison de bout en bout, fiable (TCP) ou non (UDP)</td><td>Segment</td><td>Numéro de port</td></tr>
+        <tr><td>3 Réseau</td><td>Internet</td><td>Choix du chemin entre réseaux</td><td>Paquet</td><td>Adresse IP, <strong>routeur</strong></td></tr>
+        <tr><td>2 Liaison</td><td rowspan="2">Accès réseau</td><td>Transfert sur un lien local</td><td>Trame</td><td>Adresse MAC, <strong>commutateur</strong></td></tr>
+        <tr><td>1 Physique</td><td>Signaux sur le support</td><td>Bits</td><td>Câbles, signaux</td></tr>
+      </tbody>
+    </table></div>
+    <p>Mnémotechnique de la couche 1 à 7 : « <strong>P</strong>our <strong>L</strong>e <strong>R</strong>éseau, <strong>T</strong>out <strong>S</strong>e <strong>P</strong>asse <strong>A</strong>utomatiquement ».</p>
+    <div class="callout warn"><span class="callout-title">Piège classique</span><p>La couche 3 s'appelle <strong>Réseau</strong> dans OSI mais <strong>Internet</strong> dans TCP/IP. La couche Application de TCP/IP regroupe <strong>3</strong> couches OSI, la couche Accès réseau en regroupe <strong>2</strong>.</p></div>
+
+    <h2 id="encapsulation">L'encapsulation</h2>
+    <p>L'<strong>encapsulation</strong> est le processus par lequel, en descendant les couches, chaque protocole ajoute son <strong>en-tête</strong> devant les données reçues de la couche du dessus. Le bloc obtenu à chaque couche s'appelle une <strong>PDU</strong> (Protocol Data Unit) et porte un nom différent. Le récepteur fait l'inverse, la <strong>désencapsulation</strong>, en retirant un en-tête par couche.</p>
+    <figure>
+      <svg viewBox="0 0 620 250" role="img" aria-label="Encapsulation : données, segment, paquet, trame, bits">
+        <text x="10" y="40" font-size="13">Application</text>
+        <rect class="box" x="400" y="20" width="110" height="32" rx="4"/><text x="455" y="41" text-anchor="middle" font-size="13">Données</text>
+        <text x="560" y="41" class="muted" font-size="13">Données</text>
+
+        <text x="10" y="86" font-size="13">Transport</text>
+        <rect class="accent" x="320" y="66" width="80" height="32" rx="4"/><text x="360" y="87" text-anchor="middle" font-size="12">En-tête TCP</text>
+        <rect class="box" x="400" y="66" width="110" height="32" rx="4"/><text x="455" y="87" text-anchor="middle" font-size="13">Données</text>
+        <text x="560" y="87" class="muted" font-size="13">Segment</text>
+
+        <text x="10" y="132" font-size="13">Internet</text>
+        <rect class="accent" x="240" y="112" width="80" height="32" rx="4"/><text x="280" y="133" text-anchor="middle" font-size="12">En-tête IP</text>
+        <rect class="box" x="320" y="112" width="80" height="32" rx="4"/><text x="360" y="133" text-anchor="middle" font-size="12">En-tête TCP</text>
+        <rect class="box" x="400" y="112" width="110" height="32" rx="4"/><text x="455" y="133" text-anchor="middle" font-size="13">Données</text>
+        <text x="560" y="133" class="muted" font-size="13">Paquet</text>
+
+        <text x="10" y="178" font-size="13">Accès réseau</text>
+        <rect class="accent" x="110" y="158" width="130" height="32" rx="4"/><text x="175" y="179" text-anchor="middle" font-size="12">En-tête trame (MAC)</text>
+        <rect class="box" x="240" y="158" width="80" height="32" rx="4"/><text x="280" y="179" text-anchor="middle" font-size="12">En-tête IP</text>
+        <rect class="box" x="320" y="158" width="80" height="32" rx="4"/><text x="360" y="179" text-anchor="middle" font-size="12">En-tête TCP</text>
+        <rect class="box" x="400" y="158" width="110" height="32" rx="4"/><text x="455" y="179" text-anchor="middle" font-size="13">Données</text>
+        <rect class="accent" x="510" y="158" width="40" height="32" rx="4"/><text x="530" y="179" text-anchor="middle" font-size="11">FCS</text>
+        <text x="560" y="179" class="muted" font-size="13">Trame</text>
+
+        <text x="10" y="226" font-size="13">Physique</text>
+        <text x="330" y="226" text-anchor="middle" font-size="14" font-family="JetBrains Mono, monospace">0110100101110010101001011011...</text>
+        <text x="560" y="226" class="muted" font-size="13">Bits</text>
+      </svg>
+      <figcaption>Chaque couche ajoute son en-tête ; la couche liaison ajoute aussi une queue (FCS, contrôle d'erreur).</figcaption>
+    </figure>
+    <div class="callout explain"><span class="callout-title">Pour comprendre</span><p>Imaginez des enveloppes emboîtées. Votre lettre (données) va dans une enveloppe qui dit à quel service la remettre (TCP, numéro de port), elle-même dans une enveloppe portant l'adresse postale finale (IP), elle-même dans un sac étiqueté seulement pour le <em>prochain centre de tri</em> (trame Ethernet). À chaque centre de tri, on change le sac, jamais l'enveloppe à adresse finale.</p><p>Conséquence : un <strong>switch</strong> n'ouvre que le sac (couche 2), un <strong>routeur</strong> ouvre aussi l'enveloppe IP (couche 3). Seuls les deux hôtes d'extrémité lisent les couches transport et application.</p></div>
+
+    <h2 id="acces-donnees" data-toc="Adresses IP et MAC">Adresse IP et adresse MAC</h2>
+    <p>Un message porte deux types d'adresses, qui ne servent pas à la même chose :</p>
+    <div class="grid">
+      <div class="card"><h4>Adresse IP (couche 3)</h4><p>Logique, globale. Désigne la source <em>d'origine</em> et la destination <em>finale</em>. <strong>Ne change pas</strong> pendant le trajet.</p></div>
+      <div class="card"><h4>Adresse MAC (couche 2)</h4><p>Physique, gravée dans la carte réseau. Désigne l'émetteur et le récepteur <em>sur le lien actuel</em>. <strong>Change à chaque saut</strong>.</p></div>
+    </div>
+    <p>Une adresse IP se lit comme une adresse postale : la <strong>partie réseau</strong> est la rue, la <strong>partie hôte</strong> est le numéro. Avec un masque /24, <code>192.168.1.110</code> et <code>192.168.1.9</code> sont dans la même rue (même réseau) ; <code>172.16.1.99</code> est ailleurs.</p>
+    <ul>
+      <li><strong>Même réseau</strong> : la trame est envoyée directement à la MAC de la destination.</li>
+      <li><strong>Réseau différent</strong> : la trame est envoyée à la MAC de la <strong>passerelle par défaut</strong>, c'est-à-dire l'interface du routeur située sur le LAN. Sans passerelle configurée, l'hôte ne peut joindre que son propre LAN.</li>
+    </ul>
+
+    <figure>
+      <svg viewBox="0 0 680 300" role="img" aria-label="Trajet d'un paquet de PC1 au serveur web via R1 et R2, avec les adresses MAC qui changent à chaque saut">
+        <rect class="box" x="10" y="40" width="120" height="60" rx="8"/>
+        <text x="70" y="62" text-anchor="middle" font-weight="600">PC1</text>
+        <text x="70" y="78" text-anchor="middle" font-size="11">192.168.1.110</text>
+        <text x="70" y="93" text-anchor="middle" font-size="11" class="muted">AA-AA-AA-AA-AA-AA</text>
+
+        <rect class="accent" x="200" y="40" width="120" height="60" rx="8"/>
+        <text x="260" y="62" text-anchor="middle" font-weight="600">R1</text>
+        <text x="260" y="78" text-anchor="middle" font-size="11">192.168.1.1</text>
+        <text x="260" y="93" text-anchor="middle" font-size="11" class="muted">11-11-11-11-11-11</text>
+
+        <rect class="accent" x="370" y="40" width="120" height="60" rx="8"/>
+        <text x="430" y="62" text-anchor="middle" font-weight="600">R2</text>
+        <text x="430" y="78" text-anchor="middle" font-size="11">172.16.1.1</text>
+        <text x="430" y="93" text-anchor="middle" font-size="11" class="muted">22-22-22-22-22-22</text>
+
+        <rect class="box" x="550" y="40" width="120" height="60" rx="8"/>
+        <text x="610" y="62" text-anchor="middle" font-weight="600">Serveur web</text>
+        <text x="610" y="78" text-anchor="middle" font-size="11">172.16.1.99</text>
+        <text x="610" y="93" text-anchor="middle" font-size="11" class="muted">AB-CD-EF-12-34-56</text>
+
+        <line class="line" x1="130" y1="70" x2="200" y2="70" stroke-width="2"/>
+        <line class="line" x1="320" y1="70" x2="370" y2="70" stroke-width="2"/>
+        <line class="line" x1="490" y1="70" x2="550" y2="70" stroke-width="2"/>
+        <text x="165" y="30" text-anchor="middle" font-size="12" class="muted">Lien 1 (LAN)</text>
+        <text x="345" y="30" text-anchor="middle" font-size="12" class="muted">Lien 2</text>
+        <text x="520" y="30" text-anchor="middle" font-size="12" class="muted">Lien 3 (LAN)</text>
+
+        <text x="10" y="140" font-size="12" class="muted">Trame</text>
+        <text x="10" y="175" font-size="12" class="muted">MAC src</text>
+        <text x="10" y="200" font-size="12" class="muted">MAC dst</text>
+        <text x="10" y="240" font-size="12" class="muted">IP src</text>
+        <text x="10" y="265" font-size="12" class="muted">IP dst</text>
+
+        <rect class="box" x="90" y="125" width="170" height="155" rx="6"/>
+        <text x="175" y="145" text-anchor="middle" font-size="12" font-weight="600">Saut 1</text>
+        <text x="175" y="175" text-anchor="middle" font-size="11">AA-AA-AA-AA-AA-AA</text>
+        <text x="175" y="200" text-anchor="middle" font-size="11">11-11-11-11-11-11</text>
+        <text x="175" y="240" text-anchor="middle" font-size="11">192.168.1.110</text>
+        <text x="175" y="265" text-anchor="middle" font-size="11">172.16.1.99</text>
+
+        <rect class="box" x="275" y="125" width="170" height="155" rx="6"/>
+        <text x="360" y="145" text-anchor="middle" font-size="12" font-weight="600">Saut 2</text>
+        <text x="360" y="175" text-anchor="middle" font-size="11">MAC sortie R1</text>
+        <text x="360" y="200" text-anchor="middle" font-size="11">MAC entrée R2</text>
+        <text x="360" y="240" text-anchor="middle" font-size="11">192.168.1.110</text>
+        <text x="360" y="265" text-anchor="middle" font-size="11">172.16.1.99</text>
+
+        <rect class="box" x="460" y="125" width="170" height="155" rx="6"/>
+        <text x="545" y="145" text-anchor="middle" font-size="12" font-weight="600">Saut 3</text>
+        <text x="545" y="175" text-anchor="middle" font-size="11">22-22-22-22-22-22</text>
+        <text x="545" y="200" text-anchor="middle" font-size="11">AB-CD-EF-12-34-56</text>
+        <text x="545" y="240" text-anchor="middle" font-size="11">192.168.1.110</text>
+        <text x="545" y="265" text-anchor="middle" font-size="11">172.16.1.99</text>
+        <line class="line" x1="90" y1="215" x2="630" y2="215" stroke-dasharray="4 4"/>
+      </svg>
+      <figcaption>Les adresses MAC (au-dessus du pointillé) changent à chaque saut ; les adresses IP (en dessous) restent identiques de bout en bout.</figcaption>
+    </figure>
+    <p>À chaque routeur, le <strong>paquet</strong> est conservé (mêmes IP), mais la <strong>trame</strong> est jetée et reconstruite avec de nouvelles MAC pour le lien suivant. Une trame ne traverse jamais un routeur.</p>
+    <div class="callout explain"><span class="callout-title">Pour comprendre</span><p>Voyage en avion avec correspondance : votre <strong>billet</strong> indique Paris → Tokyo (adresses IP, valables tout le trajet). Votre <strong>carte d'embarquement</strong> ne vaut que pour un vol : Paris → Francfort, puis Francfort → Tokyo (adresses MAC, valables pour un seul lien). À chaque escale (routeur), on vous donne une nouvelle carte d'embarquement, jamais un nouveau billet.</p></div>
+    <div class="callout warn"><span class="callout-title">Piège classique</span><p>Quand PC1 contacte un serveur <strong>distant</strong>, la MAC de destination de sa trame est celle de la <strong>passerelle par défaut</strong>, pas celle du serveur. L'IP de destination, elle, est bien celle du serveur.</p></div>
+
+    <h2 id="tp">Travaux pratiques</h2>
+    <section class="tp">
+      <h3 id="tp-wireshark">TP · Observer le trafic avec Wireshark <span class="badge">PC Linux, salle TP</span></h3>
+      <p><strong>Objectif :</strong> capturer des pings vers un voisin puis vers Internet, et comparer les adresses IP et MAC de destination.</p>
+      <ol class="steps">
+        <li><strong>Relever ses adresses</strong> et donner son IP au binôme voisin.
+<pre data-label="Linux"><code><span class="prompt">$</span> ip -br a      <span class="cmt"># adresses IP</span>
+<span class="prompt">$</span> ip -br link   <span class="cmt"># adresses MAC</span></code></pre></li>
+        <li><strong>Capturer</strong> : dans Wireshark, double-cliquer sur l'interface active (<code>net0</code> ou <code>br0</code>) et appliquer le filtre <code>icmp</code>.</li>
+        <li><strong>Pinger le voisin</strong> (<code>ping 157.159.50.114</code>, arrêt avec <kbd>Ctrl</kbd>+<kbd>C</kbd>), puis déplier la ligne <strong>Ethernet II</strong> d'une requête pour lire les MAC.</li>
+        <li><strong>Pinger des hôtes distants</strong> (<code>ping www.google.com</code>, <code>ping www.cisco.com</code>) dans une nouvelle capture, et relever IP et MAC de destination.</li>
+      </ol>
+      <details><summary>Vers le voisin, à qui appartient la MAC de destination ? Comment le PC l'a-t-il obtenue ?</summary><p>C'est la MAC du PC voisin, car il est sur le même réseau. Le PC l'a obtenue par <strong>ARP</strong> : il a demandé « qui a l'IP 157.159.50.114 ? » et le voisin a répondu avec sa MAC (filtre <code>arp</code> pour le voir).</p></details>
+      <details><summary>Vers les sites distants, que remarque-t-on sur les MAC de destination ? Pourquoi ?</summary><p>Les IP de destination sont toutes différentes, mais la <strong>MAC de destination est la même</strong> : celle de la <strong>passerelle par défaut</strong>. L'adressage MAC est local à un lien ; la MAC d'un serveur distant n'apparaît que sur son propre LAN.</p></details>
+    </section>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. Quelle est la séquence des PDU lors de l'encapsulation ?</summary><p>Données → segment → paquet → trame → bits.</p></details>
+    <details><summary>2. À quelle couche TCP/IP correspondent les couches OSI 5, 6 et 7 ? Et les couches 1 et 2 ?</summary><p>5, 6 et 7 forment la couche <strong>Application</strong> ; 1 et 2 forment la couche <strong>Accès réseau</strong>.</p></details>
+    <details><summary>3. PC1 (192.168.1.110) envoie un paquet au serveur 172.16.1.99. Quelles sont la MAC et l'IP de destination de la trame émise par PC1 ?</summary><p>MAC de destination : celle de la <strong>passerelle par défaut</strong> (R1). IP de destination : 172.16.1.99.</p></details>
+    <details><summary>4. Quand un paquet traverse plusieurs routeurs, qu'est-ce qui change et qu'est-ce qui reste identique ?</summary><p>Les adresses <strong>MAC</strong> changent à chaque saut ; les adresses <strong>IP</strong> restent identiques de bout en bout.</p></details>
+    <details><summary>5. Quel équipement utilise la MAC pour relayer les données, et lequel utilise l'IP ?</summary><p>Le <strong>commutateur</strong> (couche 2) utilise la MAC dans le LAN ; le <strong>routeur</strong> (couche 3) utilise l'IP entre réseaux.</p></details>
+    <details><summary>6. Pourquoi découper le réseau en couches ?</summary><p>Chaque couche a un rôle précis et peut évoluer sans toucher aux autres (passer du câble au Wi-Fi ne change rien pour l'application), et des produits de constructeurs différents peuvent fonctionner ensemble.</p></details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="02-configuration-switch.html"><span>← Précédent</span>Configuration de base d'un commutateur</a>
+      <a class="next" href="04-ethernet.html"><span>Suivant →</span>Couche accès réseau et Ethernet</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

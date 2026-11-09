@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Environnement de travail · Introduction aux réseaux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Introduction aux réseaux</a>
+    <div class="course-code">DIV 8404 · Chapitre 00</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 00</div>
+    <h1>Environnement de travail et bootcamp</h1>
+    <p class="lead">Les outils à maîtriser avant de parler de protocoles : le poste de la salle B107, la commande <code>ip</code>, la console des équipements Cisco, VirtualBox et Wireshark.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>Évaluation par <strong>un QCM final</strong>. En TP, on <strong>ne sauvegarde jamais</strong> la configuration des équipements.</li>
+        <li>Toute modification réseau se fait <strong>dans une VM</strong>, jamais sur l'OS hôte.</li>
+        <li><code>ip a</code> montre les adresses ; <code>sudo ip address add 10.0.1.10/24 dev …</code> en ajoute une, <strong>masque compris</strong>.</li>
+        <li>Console : <code>sudo screen /dev/ttyUSB0 9600</code>, sortie par <kbd>Ctrl-A</kbd> <kbd>k</kbd> <kbd>y</kbd>.</li>
+        <li>Une VM en <strong>NAT</strong> ne voit pas la maquette : il faut l'<strong>accès par pont</strong> sur net1.</li>
+        <li>Wireshark : capturer sur la bonne interface, puis filtrer à l'affichage (<code>icmp</code>).</li>
+      </ul>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2 id="organisation">Le cours et la salle B107</h2>
+    <p>Le cours suit trois temps : <strong>les bases</strong> (réseaux, commutateur Cisco, modèles OSI et TCP/IP), <strong>la couche 2</strong> (Ethernet, VLAN, Spanning Tree), puis <strong>la couche 3 et au-delà</strong> (IPv4, transport, routage, routage inter-VLAN). Supports et sujets de TP sont sur Moodle.</p>
+    <p>Une règle de salle : <strong>ne pas sauvegarder</strong> la configuration (ni <code>copy running-config startup-config</code>, ni <code>write</code>). Un équipement Cisco travaille sur la <strong>running-config</strong> (en mémoire vive) et recharge la <strong>startup-config</strong> au démarrage : sans sauvegarde, un redémarrage le rend propre au binôme suivant.</p>
+
+    <h3 id="poste">Le poste : hôte, VM, net0 et net1</h3>
+    <p>Chaque PC tourne sous Linux (l'<strong>OS hôte</strong>) et lance des <strong>machines virtuelles</strong> avec VirtualBox. L'hôte sert seulement à ce qui ne change aucun réglage ; dès qu'on touche une adresse IP, on travaille dans la VM <strong>Ubuntu Generic</strong> (<code>user</code> / <code>user</code>), dont les changements disparaissent à l'arrêt.</p>
+    <p>Le PC a <strong>deux cartes réseau</strong>, ramenées sur la prise murale : <code>net0</code> se branche sur la prise <strong>DISI</strong> (Internet), <code>net1</code> sur la <strong>maquette</strong> (switch ou routeur). La prise marquée TP ne s'utilise pas. Un câble USB-série relie le PC au port <strong>console</strong>.</p>
+
+    <figure>
+      <svg viewBox="0 0 680 250" role="img" aria-label="Câblage type : net0 vers DISI pour Internet, net1 vers le switch de maquette, câble console vers le port console">
+        <rect class="box" x="20" y="70" width="170" height="120" rx="10"/>
+        <text x="105" y="96" text-anchor="middle" font-weight="700">PC de la salle</text>
+        <rect class="accent" x="40" y="110" width="60" height="30" rx="5"/><text x="70" y="130" text-anchor="middle" font-size="13">net0</text>
+        <rect class="accent" x="110" y="110" width="60" height="30" rx="5"/><text x="140" y="130" text-anchor="middle" font-size="13">net1</text>
+        <rect class="box" x="40" y="150" width="130" height="28" rx="5"/><text x="105" y="169" text-anchor="middle" font-size="12">USB (console)</text>
+        <rect class="box" x="300" y="10" width="140" height="44" rx="8"/><text x="370" y="37" text-anchor="middle">Prise DISI</text>
+        <rect class="box" x="520" y="10" width="140" height="44" rx="8"/><text x="590" y="37" text-anchor="middle">Réseau TSP / Internet</text>
+        <rect class="accent" x="470" y="110" width="190" height="60" rx="8"/><text x="565" y="136" text-anchor="middle" font-weight="700">Switch de maquette</text><text x="565" y="156" text-anchor="middle" class="muted" font-size="12">port d'accès Gi1/0/x · port CONSOLE</text>
+        <path class="line" d="M70 110 V32 H300" stroke-width="2"/>
+        <path class="line" d="M440 32 H520" stroke-width="2"/>
+        <path class="line" d="M170 125 H470" stroke-width="2"/>
+        <path class="line" d="M170 164 H400 V160 H470" stroke-width="2" stroke-dasharray="6 4"/>
+        <text x="185" y="26" class="muted" font-size="12">câble Ethernet</text>
+        <text x="320" y="118" text-anchor="middle" class="muted" font-size="12">câble Ethernet (plan de données)</text>
+        <text x="320" y="190" text-anchor="middle" class="muted" font-size="12">câble console (USB ↔ série), hors bande</text>
+      </svg>
+      <figcaption>Montage type : net0 sur DISI pour Internet, net1 vers la maquette, câble console pour administrer le switch.</figcaption>
+    </figure>
+    <p>Les <strong>LED</strong> des ports sont le premier test : éteinte, le problème est physique (câble, mauvais port, port désactivé), inutile de chercher dans la configuration.</p>
+
+    <!-- ===================================================== -->
+    <h2 id="linux">Linux et la commande ip</h2>
+    <p>Une commande suit toujours le moule <code>commande [options] [arguments]</code>. <kbd>Tab</kbd> complète les noms, <kbd>↑</kbd> rappelle la commande précédente, <kbd>Ctrl-C</kbd> interrompt.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Commande</th><th>Effet</th></tr></thead>
+      <tbody>
+        <tr><td><code>pwd</code></td><td>Où suis-je ?</td></tr>
+        <tr><td><code>ls -l</code></td><td>Contenu du répertoire, avec détails.</td></tr>
+        <tr><td><code>cd dossier</code>, <code>cd ..</code></td><td>Entrer dans un dossier, remonter d'un niveau.</td></tr>
+        <tr><td><code>cat f</code>, <code>less f</code></td><td>Afficher un fichier (en entier, ou page par page, <kbd>q</kbd> pour quitter).</td></tr>
+        <tr><td><code>mkdir d</code>, <code>cp a b</code>, <code>mv a b</code></td><td>Créer un dossier, copier, déplacer ou renommer.</td></tr>
+        <tr><td><code>rm f</code></td><td>Supprimer, <strong>sans corbeille</strong> : vérifier la cible avec <code>ls</code> avant.</td></tr>
+        <tr><td><code>sudo nano f</code></td><td>Éditer un fichier système (<kbd>Ctrl-O</kbd> enregistre, <kbd>Ctrl-X</kbd> quitte).</td></tr>
+        <tr><td><code>cmd | grep motif</code></td><td>Ne garder que les lignes de la sortie qui contiennent le motif.</td></tr>
+        <tr><td><code>cmd &gt; f</code></td><td>Écrire la sortie dans un fichier (<code>&gt;&gt;</code> pour ajouter à la fin).</td></tr>
+        <tr><td><code>ping -c 4 adresse</code></td><td>Tester la joignabilité ; lire le taux de perte.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3 id="commande-ip">Lire et poser une adresse avec ip</h3>
+    <p>La commande <code>ip</code> suit la forme <code>ip OBJET ACTION</code> : <code>ip a</code> (adresses), <code>ip r</code> (routes), <code>ip link</code> (état des interfaces). Le réflexe de diagnostic est <code>ip -br a</code>, une ligne par interface :</p>
+    <pre data-label="bash"><code><span class="prompt">$</span> ip -br a
+<span class="out">lo        UNKNOWN  127.0.0.1/8</span>
+<span class="out">enp0s3    UP       10.0.2.15/24</span>
+<span class="out">enp0s8    DOWN</span></code></pre>
+    <p>Poser une adresse se fait en deux temps : activer l'interface, puis ajouter l'adresse <strong>avec son masque</strong>. Le réglage est temporaire (perdu au redémarrage).</p>
+    <pre data-label="bash"><code><span class="cmt"># empêcher NetworkManager d'écraser l'adresse</span>
+<span class="prompt">$</span> sudo nmcli dev set enp0s8 managed no
+<span class="prompt">$</span> sudo ip link set enp0s8 up
+<span class="prompt">$</span> sudo ip address add 10.0.1.10/24 dev enp0s8
+<span class="cmt"># en cas d'erreur : retirer l'adresse</span>
+<span class="prompt">$</span> sudo ip address del 10.0.1.10/24 dev enp0s8</code></pre>
+    <p><code>ip address add</code> <strong>ajoute</strong> sans remplacer : vérifiez avec <code>ip a</code> qu'il ne reste pas une ancienne adresse.</p>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : pourquoi le masque est indispensable</span><p>Le masque dit à la machine quelles adresses sont « sur son câble ». Avec <code>10.0.1.10/24</code>, toutes les adresses de 10.0.1.0 à 10.0.1.255 sont des voisines, joignables directement. Si on oublie le <code>/24</code>, Linux pose un <code>/32</code> : un réseau qui ne contient qu'une adresse, la sienne. C'est comme un annuaire où l'on ne serait inscrit que soi-même : le routeur 10.0.1.254, pourtant branché sur le même switch, devient injoignable et le ping échoue.</p></div>
+
+    <!-- ===================================================== -->
+    <h2 id="console">Accès console aux équipements</h2>
+    <p>Le <strong>port console</strong> est une liaison série directe vers l'équipement, qui fonctionne <strong>sans aucune adresse IP</strong>. C'est le seul accès à un switch neuf. Les paramètres Cisco par défaut sont <strong>9600 bauds, 8N1, sans contrôle de flux</strong>.</p>
+    <p>Côté Linux, l'adaptateur USB-série apparaît comme un fichier, en général <code>/dev/ttyUSB0</code> (<code>/dev/serial_port</code> sur un 9200L). On l'ouvre avec <code>screen</code>, et <code>sudo</code> est nécessaire car ce fichier n'est accessible qu'à root et au groupe <code>dialout</code> :</p>
+    <pre data-label="bash + Cisco IOS"><code><span class="prompt">$</span> ls /dev/ttyUSB*
+<span class="prompt">$</span> sudo screen /dev/ttyUSB0 9600
+<span class="cmt"># écran noir : appuyer sur Entrée</span>
+<span class="prompt">Switch&gt;</span> enable
+<span class="prompt">Switch#</span></code></pre>
+    <p>Sous Windows, PuTTY fait la même chose (mode <em>Serial</em>, vitesse 9600).</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Touches dans screen</th><th>Effet</th></tr></thead>
+      <tbody>
+        <tr><td><kbd>Ctrl-A</kbd> <kbd>k</kbd> <kbd>y</kbd></td><td><strong>Quitter pour de bon</strong> : la session est tuée et le port libéré.</td></tr>
+        <tr><td><kbd>Ctrl-A</kbd> <kbd>d</kbd></td><td>Détacher : la session continue en arrière-plan et <strong>garde le port</strong>.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn"><span class="callout-title">Piège classique : la session fantôme</span><p>Fermer la fenêtre du terminal ou détacher la session ne libère pas le port série : le binôme suivant obtient <em>Resource temporarily unavailable</em>. Pour réparer : <code>sudo screen -ls</code> pour trouver la session, puis <code>sudo screen -X -S &lt;id&gt; quit</code>. Pour l'éviter : toujours sortir par <kbd>Ctrl-A</kbd> <kbd>k</kbd> <kbd>y</kbd>.</p></div>
+
+    <!-- ===================================================== -->
+    <h2 id="virtualbox">VirtualBox et Wireshark</h2>
+    <p>VirtualBox fait tourner la VM sur le PC hôte. L'<strong>instantané</strong> <code>Etat_initial</code> des VM de la salle permet de revenir en arrière : ne le supprimez pas.</p>
+
+    <h3 id="modes-reseau">Choisir le mode réseau</h3>
+    <p>Le réglage se trouve dans <em>Configuration → Réseau → Adapter → Attached to</em>. Deux modes comptent en TP :</p>
+    <ul>
+      <li><strong>NAT</strong> : la VM accède à Internet à travers l'hôte, avec une adresse privée (<code>10.0.2.15</code>) inventée par VirtualBox. Personne ne peut la joindre de l'extérieur.</li>
+      <li><strong>Accès par pont</strong> (<em>Bridged Adapter</em>) sur net1 : la VM est posée directement sur le câble de la maquette, comme une machine physique de plus. <strong>C'est le mode des TP.</strong></li>
+    </ul>
+    <p>Montage recommandé : <strong>deux cartes</strong>, une en NAT pour Internet, une en pont sur net1 pour la maquette.</p>
+    <figure>
+      <svg viewBox="0 0 720 215" role="img" aria-label="NAT : la VM sort vers Internet via net0 derrière un routeur NAT ; pont : la VM est directement sur net1 vers la maquette">
+        <g font-size="12">
+          <rect class="box" x="5" y="5" width="350" height="205" rx="10"/>
+          <text x="20" y="28" font-weight="700" font-size="14">NAT : la VM sort, personne n'entre</text>
+          <rect class="accent" x="140" y="42" width="80" height="30" rx="6"/><text x="180" y="62" text-anchor="middle">VM</text>
+          <rect class="box" x="120" y="90" width="120" height="30" rx="6"/><text x="180" y="110" text-anchor="middle">Routeur NAT</text>
+          <text x="20" y="110" class="muted">VirtualBox</text>
+          <rect class="box" x="90" y="140" width="250" height="56" rx="6"/><text x="100" y="156" class="muted">Hôte</text>
+          <rect class="accent" x="110" y="162" width="60" height="26" rx="5"/><text x="140" y="180" text-anchor="middle">net0</text>
+          <rect class="box" x="250" y="162" width="60" height="26" rx="5" stroke-dasharray="4 3"/><text x="280" y="180" text-anchor="middle" class="muted">net1</text>
+          <text x="15" y="180">Internet</text>
+          <path class="line" d="M180 72 V90 M180 120 V140 H140 V162 M110 175 H65" stroke-width="2"/>
+          <rect class="box" x="365" y="5" width="350" height="205" rx="10"/>
+          <text x="380" y="28" font-weight="700" font-size="14">Pont : la VM sur le réseau réel</text>
+          <rect class="accent" x="580" y="42" width="80" height="30" rx="6"/><text x="620" y="62" text-anchor="middle">VM</text>
+          <text x="380" y="110" class="muted">VirtualBox (pont)</text>
+          <rect class="box" x="380" y="140" width="250" height="56" rx="6"/><text x="390" y="156" class="muted">Hôte</text>
+          <rect class="box" x="400" y="162" width="60" height="26" rx="5" stroke-dasharray="4 3"/><text x="430" y="180" text-anchor="middle" class="muted">net0</text>
+          <rect class="accent" x="540" y="162" width="60" height="26" rx="5"/><text x="570" y="180" text-anchor="middle">net1</text>
+          <text x="640" y="180">Maquette</text>
+          <path class="line" d="M620 72 V130 H570 V162 M600 175 H637" stroke-width="2"/>
+        </g>
+      </svg>
+      <figcaption>En trait plein, le chemin réellement utilisé ; en pointillés, l'interface non concernée.</figcaption>
+    </figure>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : pourquoi une VM en NAT ne joint pas la maquette</span><p>En NAT, VirtualBox place la VM derrière une petite « box » privée, comme votre PC derrière la box Internet de la maison : elle peut sortir vers Internet, mais elle n'est pas sur le réseau de la maquette, et le switch ne voit jamais son adresse MAC. Un ping vers le switch part donc vers Internet par net0 et n'arrive nulle part. En pont, les trames de la VM sortent telles quelles sur net1 : le switch la voit comme n'importe quel PC branché sur son port.</p></div>
+    <div class="callout warn"><span class="callout-title">Piège classique</span><p>Le mauvais mode réseau est la <strong>première cause de blocage</strong> en VM, et aucun message d'erreur ne le signale : le ping échoue, c'est tout.</p></div>
+
+    <h3 id="wireshark">Capturer avec Wireshark</h3>
+    <p>Wireshark enregistre les trames qui passent par une interface et les décode couche par couche. Trois gestes suffisent :</p>
+    <ol>
+      <li><strong>Choisir l'interface</strong> : celle qui va vers la maquette (la carte en pont), sinon on ne verra jamais le trafic du TP.</li>
+      <li><strong>Capturer court</strong> : démarrer, faire l'action (un ping par exemple), arrêter.</li>
+      <li><strong>Filtrer à l'affichage</strong> dans la barre du haut : <code>icmp</code> pour ne voir que les pings, <code>ip.addr == 10.0.1.254</code> pour un hôte précis. Barre verte : filtre valide ; rouge : erreur de syntaxe.</li>
+    </ol>
+    <p>Cliquer un paquet affiche ses couches : Ethernet (MAC), IP, puis ICMP, TCP ou UDP.</p>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : filtre de capture ou filtre d'affichage</span><p>Le filtre de capture (syntaxe <code>host 10.0.1.10</code>, réglé avant de démarrer) est un tamis posé <em>avant</em> le seau : ce qui ne passe pas est perdu. Le filtre d'affichage (syntaxe <code>ip.addr == 10.0.1.10</code>, dans la barre du haut) est une paire de lunettes : tout est dans le seau, vous choisissez seulement ce que vous regardez. En TP, capturez tout et filtrez à l'affichage.</p></div>
+
+    <!-- ===================================================== -->
+    <h2 id="tp">Travaux pratiques</h2>
+
+    <section class="tp">
+      <h3 id="tp-terminal">TP · Dix minutes dans le terminal <span class="badge">VM Linux</span></h3>
+      <p><strong>Objectif :</strong> se déplacer, créer et supprimer des fichiers, enregistrer la configuration réseau dans un fichier.</p>
+      <pre data-label="bash"><code><span class="prompt">$</span> mkdir -p ~/tp0 &amp;&amp; cd ~/tp0 &amp;&amp; pwd
+<span class="prompt">$</span> ip a &gt; reseau.txt          <span class="cmt"># &gt; crée ou écrase</span>
+<span class="prompt">$</span> ip r &gt;&gt; reseau.txt         <span class="cmt"># &gt;&gt; ajoute à la fin</span>
+<span class="prompt">$</span> ls ~/tp0 &amp;&amp; rm -r ~/tp0    <span class="cmt"># on regarde, puis on supprime</span></code></pre>
+      <details><summary>Pourquoi <code>&gt;&gt;</code> et non <code>&gt;</code> pour la deuxième ligne ?</summary><p><code>&gt;</code> écraserait le fichier : on perdrait la sortie de <code>ip a</code>. <code>&gt;&gt;</code> ajoute à la suite.</p></details>
+    </section>
+
+    <section class="tp">
+      <h3 id="tp-console">TP · Entrer dans le switch par la console <span class="badge">salle B107</span></h3>
+      <p><strong>Objectif :</strong> ouvrir la console, passer en mode privilégié et relever la version d'IOS et le numéro de série.</p>
+      <ol class="steps">
+        <li>Trouver le port : <code>ls /dev/ttyUSB*</code>.</li>
+        <li>Ouvrir la session : <code>sudo screen /dev/ttyUSB0 9600</code>, puis Entrée.</li>
+        <li><code>enable</code> puis <code>show version</code> (<kbd>Espace</kbd> pour dérouler). Mots de passe courants en salle : <code>int</code>, <code>imt</code>, <code>tsp</code>, <code>cisco</code>, <code>class</code>.</li>
+        <li>Sortir par <kbd>Ctrl-A</kbd> <kbd>k</kbd> <kbd>y</kbd>.</li>
+      </ol>
+      <details><summary>Pourquoi relever le numéro de série plutôt que le nom ?</summary><p>Le nom (hostname) a pu être changé par le binôme précédent ; le numéro de série, en bas de <code>show version</code>, identifie l'équipement de façon fiable.</p></details>
+    </section>
+
+    <section class="tp">
+      <h3 id="tp-vm">TP · Une VM qui voit les deux mondes <span class="badge">VirtualBox + routeur</span></h3>
+      <p><strong>Objectif :</strong> une VM qui joint à la fois Internet (carte NAT, <code>enp0s3</code>) et le routeur de la maquette en 10.0.1.254 (carte en pont sur net1, <code>enp0s8</code>).</p>
+      <ol class="steps">
+        <li>Importer la VM (<em>Fichier → Importer</em>, en générant de nouvelles adresses MAC), puis régler Adapter 1 en NAT et Adapter 2 en <em>Bridged Adapter</em> sur net1.</li>
+        <li>Sur le routeur, par la console :
+<pre data-label="Cisco IOS"><code><span class="prompt">Router#</span> configure terminal
+<span class="prompt">Router(config)#</span> interface GigabitEthernet0/0/1
+<span class="prompt">Router(config-if)#</span> ip address 10.0.1.254 255.255.255.0
+<span class="prompt">Router(config-if)#</span> no shutdown</code></pre></li>
+        <li>Dans la VM : <code>sudo nmcli dev set enp0s8 managed no</code>, <code>sudo ip link set enp0s8 up</code>, <code>sudo ip address add 10.0.1.10/24 dev enp0s8</code>.</li>
+        <li>Vérifier : <code>ping -c 1 8.8.8.8</code> et <code>ping -c 1 10.0.1.254</code> répondent tous les deux.</li>
+      </ol>
+      <details><summary>Faut-il ajouter une route par défaut via 10.0.1.254 ?</summary><p>Non. 10.0.1.254 est dans le réseau 10.0.1.0/24 directement connecté, donc joignable sans route. La route par défaut doit rester celle de la carte NAT, sinon on perd Internet.</p></details>
+    </section>
+
+    <section class="tp">
+      <h3 id="tp-wireshark">TP · Capturer un ping <span class="badge">Wireshark</span></h3>
+      <p><strong>Objectif :</strong> depuis la VM précédente, capturer un ping vers le routeur, et seulement le ping.</p>
+      <ol class="steps">
+        <li>Lancer la capture sur <code>enp0s8</code> (la carte en pont).</li>
+        <li>Dans la VM : <code>ping -c 3 10.0.1.254</code>, puis arrêter la capture.</li>
+        <li>Filtrer à l'affichage : <code>icmp</code>. On voit les paires <em>Echo (ping) request</em> / <em>Echo (ping) reply</em>.</li>
+      </ol>
+      <details><summary>Pourquoi rien n'apparaît si l'on capture sur <code>enp0s3</code> ?</summary><p>C'est la carte NAT, qui mène à Internet : le ping vers 10.0.1.254 sort par la carte en pont et ne passe jamais par elle.</p></details>
+      <details><summary>Le filtre <code>icmp</code> a-t-il supprimé l'ARP de la capture ?</summary><p>Non, un filtre d'affichage masque sans rien jeter : effacer le filtre fait réapparaître l'ARP et le reste du trafic.</p></details>
+    </section>
+
+    <!-- ===================================================== -->
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. Que faire de la configuration d'un switch en fin de TP ?</summary><p>Rien : ne <strong>pas</strong> la sauvegarder. La running-config disparaît au redémarrage, l'équipement est rendu propre au binôme suivant.</p></details>
+    <details><summary>2. Vous tapez <code>sudo ip address add 10.0.1.10 dev enp0s8</code> et le ping vers 10.0.1.254 échoue. Pourquoi ?</summary><p>Le masque manque : Linux pose un <code>/32</code> et la machine ne considère aucune autre adresse comme voisine. Il faut <code>10.0.1.10/24</code>.</p></details>
+    <details><summary>3. <code>screen /dev/ttyUSB0 9600</code> renvoie « Permission denied ». Que faire ?</summary><p>Relancer avec <code>sudo</code> : le port série n'est accessible qu'à root et au groupe <code>dialout</code>.</p></details>
+    <details><summary>4. Un camarade obtient « Resource temporarily unavailable » en ouvrant la console. Pourquoi ?</summary><p>Une ancienne session screen (fenêtre fermée ou détachée) tient encore le port. <code>sudo screen -ls</code> puis <code>sudo screen -X -S &lt;id&gt; quit</code>. Pour l'éviter : sortir par <kbd>Ctrl-A</kbd> <kbd>k</kbd> <kbd>y</kbd>.</p></details>
+    <details><summary>5. Votre VM en NAT ne parvient pas à pinguer le switch de la maquette. Quel mode faut-il ?</summary><p>L'<strong>accès par pont</strong> sur net1 : la VM devient une machine du réseau de la maquette. En NAT, elle est cachée derrière un routeur privé de VirtualBox et ne sort que vers Internet.</p></details>
+    <details><summary>6. Vous tapez <code>host 10.0.1.10</code> dans la barre de filtre de Wireshark et elle devient rouge. Pourquoi ?</summary><p><code>host</code> est la syntaxe du filtre de capture. Dans la barre du haut (filtre d'affichage), il faut <code>ip.addr == 10.0.1.10</code>.</p></details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="index.html"><span>← Précédent</span>Accueil</a>
+      <a class="next" href="01-reseaux-aujourdhui.html"><span>Suivant →</span>Les réseaux aujourd'hui</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

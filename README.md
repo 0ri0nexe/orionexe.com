@@ -146,6 +146,28 @@ sets none by default, and a silent portal once froze a run indefinitely — and
 the previous `schedule.json` untouched, so the page shows slightly stale data
 rather than nothing.
 
+## Course notes (`/cours/`)
+
+My course notes, written as standalone HTML pages outside this repo, then copied
+into `src/lib/server/cours/content/`:
+
+```
+content/
+├── index.html              # /cours/
+├── reseaux/index.html      # /cours/reseaux/
+└── reseaux/05-vlans.html   # /cours/reseaux/05-vlans/
+```
+
+`src/lib/server/cours/index.ts` keeps each page's `<main>`, rewrites its relative
+links (`05-vlans.html`, `index.html`, `assets/x`) to site routes and builds the
+sidebar from its `h2`/`h3` ids. A single route, `src/routes/cours/[...path]`,
+prerenders them all. The load runs server-side so the raw HTML is never bundled
+into the client; styling lives in `src/lib/cours.css`, scoped under `.cours`.
+
+To add a subject: drop its pages in `content/<slug>/`, add `<slug>` to `SUBJECTS`
+in `index.ts`, add a card to `content/index.html`, then `npm run deploy`. Files a
+page links to (`assets/...`) go in `static/cours/<slug>/`.
+
 ## Adding pages
 
 Routes live in `src/routes/`. Everything is prerendered (`src/routes/+layout.ts`),

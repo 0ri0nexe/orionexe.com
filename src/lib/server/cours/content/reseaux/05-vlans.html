@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Les VLANs · Introduction aux réseaux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Introduction aux réseaux</a>
+    <div class="course-code">DIV 8404 · Chapitre 05</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 05</div>
+    <h1>Les VLANs</h1>
+    <p class="lead">Un même switch peut héberger plusieurs réseaux locaux séparés. Pourquoi découper un LAN en VLANs, comment une trame indique son VLAN quand elle passe d'un switch à l'autre, et comment le configurer sous Cisco IOS.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>Un <strong>VLAN</strong> est un <strong>domaine de broadcast</strong> logique : le trafic reste dans son VLAN, et chaque VLAN a son propre sous-réseau IP.</li>
+        <li>Deux VLANs différents ne communiquent <strong>pas</strong> sans équipement de <strong>couche 3</strong> (routeur), même sur le même switch.</li>
+        <li>Un port <strong>access</strong> appartient à un seul VLAN ; un <strong>trunk</strong> transporte plusieurs VLANs entre deux switchs.</li>
+        <li>Sur un trunk, chaque trame porte un <strong>tag 802.1Q</strong> (4 octets, dont un VLAN ID de 12 bits), sauf celles du <strong>VLAN natif</strong>, qui doit être le même aux deux bouts.</li>
+        <li>Bonne pratique : fixer chaque port en <code>access</code> ou <code>trunk</code> plutôt que de laisser DTP négocier.</li>
+      </ul>
+    </div>
+
+    <h2 id="pourquoi">Pourquoi des VLANs ?</h2>
+    <p>Un <strong>VLAN (Virtual LAN)</strong> est un groupe de ports qui se comporte comme un LAN physique isolé, quel que soit le switch où les équipements sont branchés. Chaque VLAN est un <strong>domaine de broadcast</strong> distinct et correspond à <strong>un sous-réseau IP</strong>.</p>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : le domaine de broadcast</span>
+      <p>Sans VLAN, un switch relaie chaque broadcast (par exemple une requête ARP « qui a 192.168.1.20 ? ») sur <strong>tous</strong> ses ports. Avec 500 postes, chacun reçoit et traite les broadcasts des 499 autres.</p>
+      <p>Découper en 5 VLANs de 100 postes, c'est remplacer un grand open space où chacun entend toutes les annonces par 5 bureaux fermés : une annonce ne dérange plus que les 100 occupants de son bureau. Le switch est le même, mais il se comporte comme 5 switchs indépendants.</p>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 640 230" role="img" aria-label="Un commutateur avec six PC répartis entre VLAN 1 et VLAN 2">
+        <rect class="box" x="220" y="20" width="200" height="50" rx="8"/><text x="320" y="51" text-anchor="middle" font-weight="600">Switch S1</text>
+        <rect class="accent" x="20" y="150" width="290" height="70" rx="10" fill-opacity=".35"/>
+        <text x="30" y="214" class="muted" font-size="12">VLAN 1 (192.168.1.0/24)</text>
+        <rect class="box" x="330" y="150" width="290" height="70" rx="10" stroke-dasharray="5 4"/>
+        <text x="340" y="214" class="muted" font-size="12">VLAN 2 (192.168.2.0/24)</text>
+        <g>
+          <rect class="box" x="40" y="160" width="70" height="34" rx="6"/><text x="75" y="182" text-anchor="middle" font-size="13">PC A</text>
+          <rect class="box" x="130" y="160" width="70" height="34" rx="6"/><text x="165" y="182" text-anchor="middle" font-size="13">PC B</text>
+          <rect class="box" x="220" y="160" width="70" height="34" rx="6"/><text x="255" y="182" text-anchor="middle" font-size="13">PC C</text>
+          <rect class="box" x="350" y="160" width="70" height="34" rx="6"/><text x="385" y="182" text-anchor="middle" font-size="13">PC D</text>
+          <rect class="box" x="440" y="160" width="70" height="34" rx="6"/><text x="475" y="182" text-anchor="middle" font-size="13">PC E</text>
+          <rect class="box" x="530" y="160" width="70" height="34" rx="6"/><text x="565" y="182" text-anchor="middle" font-size="13">PC F</text>
+        </g>
+        <path class="line" d="M75 160 L280 70 M165 160 L295 70 M255 160 L310 70"/>
+        <path class="line" stroke-dasharray="5 4" d="M385 160 L330 70 M475 160 L345 70 M565 160 L360 70"/>
+        <text x="320" y="118" text-anchor="middle" class="muted" font-size="12">pas de communication directe entre VLANs</text>
+      </svg>
+      <figcaption>Un seul switch, deux VLANs : PC A, B, C ne voient jamais le trafic de PC D, E, F (et inversement).</figcaption>
+    </figure>
+
+    <p>On y gagne moins de broadcasts, de la <strong>sécurité</strong> (groupes isolés) et des économies (un switch pour plusieurs groupes). Attention : « même switch » ne veut pas dire « même réseau ». Deux PC de VLANs différents ne se pinguent pas, même avec des adresses du même sous-réseau. Pour les relier, il faut du <strong>routage inter-VLAN</strong> (vu plus tard).</p>
+
+    <p><strong>Types de VLANs.</strong> Le <strong>VLAN 1</strong> est le VLAN par défaut : tous les ports y sont au démarrage, et il ne peut être ni supprimé ni renommé. Par défaut, il est aussi le <strong>VLAN natif</strong> (trunks) et le <strong>VLAN de gestion</strong>, celui qui porte l'adresse IP du switch via sa <strong>SVI</strong> (<code>interface vlan X</code>). On recommande de déplacer ces deux rôles vers d'autres VLANs. Un <strong>VLAN voix</strong> peut enfin être réservé à la téléphonie IP, qui exige priorité et faible délai.</p>
+
+    <h2 id="access-trunk">Ports access et trunks</h2>
+    <p>Un <strong>port access</strong> appartient à un seul VLAN : on y branche un PC, qui envoie des trames Ethernet normales sans savoir qu'il est dans un VLAN. Un <strong>trunk</strong> est une liaison point à point entre deux switchs qui transporte <strong>plusieurs VLANs</strong> (par défaut, tous) sur un seul câble.</p>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : access vs trunk</span>
+      <p>Un port access est une porte qui donne sur <em>une seule</em> pièce. Un trunk est un couloir entre deux bâtiments, emprunté par plusieurs équipes : chacun porte un badge (le <strong>tag</strong>) qui indique son équipe (son VLAN). À l'arrivée, le switch lit le badge, le retire et envoie la personne dans la bonne pièce.</p>
+      <p>Sans trunk, il faudrait un câble par VLAN entre deux switchs : 10 VLANs, 10 câbles et 20 ports gaspillés.</p>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 680 300" role="img" aria-label="Deux commutateurs reliés par un trunk transportant VLAN 1 et VLAN 2">
+        <defs><marker id="arr05" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill:var(--accent)"/></marker></defs>
+        <rect class="box" x="120" y="40" width="130" height="46" rx="8"/><text x="185" y="69" text-anchor="middle" font-weight="600">S1</text>
+        <rect class="box" x="430" y="40" width="130" height="46" rx="8"/><text x="495" y="69" text-anchor="middle" font-weight="600">S2</text>
+        <line class="line" x1="250" y1="58" x2="430" y2="58" stroke-width="3"/>
+        <line class="line" x1="250" y1="70" x2="430" y2="70" stroke-dasharray="6 4" stroke-width="2"/>
+        <text x="340" y="38" text-anchor="middle" font-weight="600">Trunk 802.1Q</text>
+        <text x="340" y="96" text-anchor="middle" class="muted" font-size="12">VLAN 1 (trait plein) · VLAN 2 (pointillé)</text>
+        <rect class="box" x="40" y="200" width="70" height="34" rx="6"/><text x="75" y="222" text-anchor="middle" font-size="13">PC A</text>
+        <rect class="box" x="150" y="200" width="70" height="34" rx="6"/><text x="185" y="222" text-anchor="middle" font-size="13">PC B</text>
+        <rect class="box" x="260" y="200" width="70" height="34" rx="6"/><text x="295" y="222" text-anchor="middle" font-size="13">PC C</text>
+        <rect class="box" x="400" y="200" width="70" height="34" rx="6"/><text x="435" y="222" text-anchor="middle" font-size="13">PC G</text>
+        <rect class="box" x="520" y="200" width="70" height="34" rx="6"/><text x="555" y="222" text-anchor="middle" font-size="13">PC H</text>
+        <path class="line" d="M75 200 L160 86 M185 200 L185 86 M435 200 L480 86"/>
+        <path class="line" stroke-dasharray="6 4" d="M295 200 L215 86 M555 200 L515 86"/>
+        <text x="75" y="252" text-anchor="middle" class="muted" font-size="12">VLAN 1</text>
+        <text x="185" y="252" text-anchor="middle" class="muted" font-size="12">VLAN 1</text>
+        <text x="295" y="252" text-anchor="middle" class="muted" font-size="12">VLAN 2</text>
+        <text x="435" y="252" text-anchor="middle" class="muted" font-size="12">VLAN 1</text>
+        <text x="555" y="252" text-anchor="middle" class="muted" font-size="12">VLAN 2</text>
+        <path d="M60 196 C 90 130, 250 120, 300 120 L 380 120 C 420 120, 420 150, 425 194" fill="none" style="stroke:var(--accent)" stroke-width="2" marker-end="url(#arr05)"/>
+        <rect class="accent" x="275" y="108" width="130" height="24" rx="5"/><text x="340" y="125" text-anchor="middle" font-size="12">trame + tag VLAN 1</text>
+        <text x="75" y="280" text-anchor="middle" class="muted" font-size="11">trame sans tag</text>
+        <text x="435" y="280" text-anchor="middle" class="muted" font-size="11">tag retiré</text>
+      </svg>
+      <figcaption>PC A (VLAN 1, sur S1) joint PC G (VLAN 1, sur S2) : S1 ajoute le tag à l'entrée du trunk, S2 le retire avant de livrer. PC C (VLAN 2) ne reçoit jamais cette trame.</figcaption>
+    </figure>
+
+    <h2 id="tag-8021q" data-toc="Tag 802.1Q et VLAN natif">Le tag 802.1Q et le VLAN natif</h2>
+    <p>Pour qu'un switch sache à quel VLAN appartient une trame reçue sur un trunk, on insère un <strong>tag 802.1Q de 4 octets</strong> entre l'adresse MAC source et le champ Type.</p>
+
+    <figure>
+      <svg viewBox="0 0 720 300" role="img" aria-label="Insertion du tag 802.1Q dans une trame Ethernet">
+        <text x="10" y="28" font-size="13" font-weight="600">Trame Ethernet standard</text>
+        <rect class="box" x="10" y="38" width="110" height="36" rx="4"/><text x="65" y="61" text-anchor="middle" font-size="12">MAC dest. (6)</text>
+        <rect class="box" x="120" y="38" width="110" height="36" rx="4"/><text x="175" y="61" text-anchor="middle" font-size="12">MAC src. (6)</text>
+        <rect class="box" x="230" y="38" width="100" height="36" rx="4"/><text x="280" y="61" text-anchor="middle" font-size="12">Type/Long. (2)</text>
+        <rect class="box" x="330" y="38" width="200" height="36" rx="4"/><text x="430" y="61" text-anchor="middle" font-size="12">Données</text>
+        <rect class="box" x="530" y="38" width="80" height="36" rx="4"/><text x="570" y="61" text-anchor="middle" font-size="12">FCS (4)</text>
+
+        <text x="10" y="118" font-size="13" font-weight="600">Trame taguée 802.1Q (sur un trunk)</text>
+        <rect class="box" x="10" y="128" width="110" height="36" rx="4"/><text x="65" y="151" text-anchor="middle" font-size="12">MAC dest. (6)</text>
+        <rect class="box" x="120" y="128" width="110" height="36" rx="4"/><text x="175" y="151" text-anchor="middle" font-size="12">MAC src. (6)</text>
+        <rect class="accent" x="230" y="128" width="80" height="36" rx="4"/><text x="270" y="151" text-anchor="middle" font-size="12" font-weight="600">Tag (4)</text>
+        <rect class="box" x="310" y="128" width="100" height="36" rx="4"/><text x="360" y="151" text-anchor="middle" font-size="12">Type/Long. (2)</text>
+        <rect class="box" x="410" y="128" width="200" height="36" rx="4"/><text x="510" y="151" text-anchor="middle" font-size="12">Données</text>
+        <rect class="accent" x="610" y="128" width="90" height="36" rx="4"/><text x="655" y="151" text-anchor="middle" font-size="12">FCS recalculé</text>
+
+        <path class="line" d="M230 164 L60 210 M310 164 L700 210"/>
+        <rect class="accent" x="60" y="210" width="300" height="40" rx="4"/><text x="210" y="235" text-anchor="middle" font-size="12">TPID = 0x8100</text>
+        <rect class="box" x="360" y="210" width="80" height="40" rx="4"/><text x="400" y="235" text-anchor="middle" font-size="12">PCP</text>
+        <rect class="box" x="440" y="210" width="50" height="40" rx="4"/><text x="465" y="235" text-anchor="middle" font-size="12">CFI</text>
+        <rect class="accent" x="490" y="210" width="210" height="40" rx="4"/><text x="595" y="235" text-anchor="middle" font-size="12" font-weight="600">VLAN ID (VID)</text>
+        <text x="210" y="270" text-anchor="middle" class="muted" font-size="12">16 bits (2 octets)</text>
+        <text x="400" y="270" text-anchor="middle" class="muted" font-size="12">3 bits</text>
+        <text x="465" y="270" text-anchor="middle" class="muted" font-size="12">1 bit</text>
+        <text x="595" y="270" text-anchor="middle" class="muted" font-size="12">12 bits</text>
+      </svg>
+      <figcaption>Le tag de 4 octets s'insère après la MAC source. La trame change, donc le FCS doit être recalculé.</figcaption>
+    </figure>
+
+    <p>Les deux champs à retenir : le <strong>TPID</strong>, valeur fixe <code>0x8100</code> qui signale « trame taguée », et le <strong>VID</strong> sur 12 bits, soit 2<sup>12</sup> = 4096 valeurs (0 et 4095 réservés). Le tag n'existe que <em>sur le trunk</em> : le switch l'ajoute en entrée et le retire avant de livrer la trame au PC, en recalculant le FCS à chaque fois, puisque le FCS couvre toute la trame.</p>
+
+    <p>Le <strong>VLAN natif</strong> est le seul VLAN dont les trames circulent <strong>sans tag</strong> sur un trunk. Par défaut, c'est le VLAN 1.</p>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : le VLAN natif</span>
+      <p>Une trame qui arrive <strong>sans tag</strong> sur un trunk doit bien être rangée quelque part : le switch la place dans son VLAN natif. Dans l'autre sens, il envoie les trames du VLAN natif sans tag. C'est une règle de compatibilité avec les équipements qui ne comprennent pas les tags.</p>
+      <p>Conséquence : le switch qui reçoit ne voit aucune étiquette, il fait <em>confiance</em> à sa propre configuration pour deviner le VLAN. Si les deux bouts ne sont pas d'accord, il se trompe.</p>
+    </div>
+
+    <div class="callout warn"><span class="callout-title">Piège classique : VLAN natif différent aux deux bouts</span>
+      <p>S1 a <code>native vlan 99</code>, S2 garde le natif VLAN 1. Une trame du VLAN 99 part de S1 <strong>sans tag</strong> ; S2 la reçoit et la range dans <strong>son</strong> natif, le VLAN 1. Du trafic passe d'un VLAN à l'autre, des pings échouent, et la console affiche <code>%CDP-4-NATIVE_VLAN_MISMATCH</code>. Toujours configurer le même VLAN natif des deux côtés.</p>
+    </div>
+
+    <h2 id="configuration">Configuration et vérification</h2>
+
+    <h3 id="creer-affecter">Créer un VLAN et y affecter un port</h3>
+    <pre data-label="Cisco IOS"><code><span class="prompt">S1(config)#</span> vlan 20
+<span class="prompt">S1(config-vlan)#</span> name student          <span class="cmt">! sinon nommé VLAN0020</span>
+<span class="prompt">S1(config-vlan)#</span> exit
+<span class="prompt">S1(config)#</span> interface fa0/18
+<span class="prompt">S1(config-if)#</span> switchport mode access
+<span class="prompt">S1(config-if)#</span> switchport access vlan 20
+<span class="prompt">S1(config-if)#</span> end</code></pre>
+    <p>Le PC branché sur fa0/18 doit ensuite avoir une adresse du sous-réseau du VLAN 20. <code>no switchport access vlan</code> remet le port dans le VLAN 1. Pour un téléphone IP avec un PC derrière, on ajoute <code>switchport voice vlan 150</code> : le port reste access (un seul VLAN de données), la voix arrive taguée.</p>
+
+    <h3 id="cmd-trunk">Configurer un trunk</h3>
+    <pre data-label="Cisco IOS · S1 et S2"><code><span class="prompt">S1(config)#</span> interface fa0/1
+<span class="prompt">S1(config-if)#</span> switchport mode trunk
+<span class="prompt">S1(config-if)#</span> switchport trunk native vlan 99             <span class="cmt">! identique des deux côtés</span>
+<span class="prompt">S1(config-if)#</span> switchport trunk allowed vlan 10,20,30,99   <span class="cmt">! facultatif : par défaut tous</span>
+<span class="prompt">S1(config-if)#</span> end</code></pre>
+    <p>Sur un switch de couche 3, il faut d'abord taper <code>switchport trunk encapsulation dot1q</code>.</p>
+
+    <p><strong>DTP</strong> (Dynamic Trunking Protocol, propriétaire Cisco) permet à deux switchs de négocier seuls la formation d'un trunk. Le mode par défaut d'un 2960 est <code>dynamic auto</code> (passif : accepte mais ne propose pas) ; <code>dynamic desirable</code> propose activement.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Côté A \ Côté B</th><th>auto</th><th>desirable</th><th>trunk</th><th>access</th></tr></thead>
+      <tbody>
+        <tr><th>auto</th><td><strong>Access</strong></td><td>Trunk</td><td>Trunk</td><td>Access</td></tr>
+        <tr><th>desirable</th><td>Trunk</td><td>Trunk</td><td>Trunk</td><td>Access</td></tr>
+        <tr><th>trunk</th><td>Trunk</td><td>Trunk</td><td>Trunk</td><td><em>Limitée</em></td></tr>
+        <tr><th>access</th><td>Access</td><td>Access</td><td><em>Limitée</em></td><td>Access</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="callout warn"><span class="callout-title">Piège classique : deux switchs neufs ne forment pas de trunk</span><p>Avec <code>dynamic auto</code> des deux côtés, chacun attend que l'autre propose : la liaison reste en <strong>access</strong> (VLAN 1). Les PC du VLAN 10 sur deux switchs différents ne se joignent donc pas. Configurez <code>switchport mode trunk</code> des deux côtés.</p></div>
+
+    <h3 id="verifier">Vérifier</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Commande</th><th>Ce qu'on y lit</th></tr></thead>
+      <tbody>
+        <tr><td><code>show vlan brief</code></td><td>Chaque VLAN, son nom et ses ports access. Les ports trunk n'y apparaissent pas.</td></tr>
+        <tr><td><code>show interfaces trunk</code></td><td>Les trunks actifs, leur mode, le VLAN natif et les VLANs autorisés.</td></tr>
+        <tr><td><code>show interfaces fa0/1 switchport</code></td><td>Mode <em>administratif</em> (ce qu'on a demandé) et <em>opérationnel</em> (ce que fait vraiment le port).</td></tr>
+      </tbody>
+    </table></div>
+    <pre data-label="Cisco IOS"><code><span class="prompt">S1#</span> show vlan brief
+<span class="out">VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    Fa0/1, Fa0/2, Fa0/3, ...
+</span><span class="hl">20   student                          active    Fa0/18</span></code></pre>
+    <p>Les VLANs 1 à 1005 sont stockés dans <code>flash:vlan.dat</code>, <strong>pas</strong> dans la startup-config : pour repartir de zéro, il faut <code>delete vlan.dat</code> en plus de <code>erase startup-config</code>, puis <code>reload</code>.</p>
+
+    <h2 id="tp">Travaux pratiques</h2>
+    <section class="tp">
+      <h3 id="tp-vlan-trunk">TP · Configurer les VLAN et le trunking <span class="badge">2 switchs Catalyst 2960 / 9200</span></h3>
+      <p><strong>Objectif :</strong> PC-A (S1 F0/6) et PC-B (S2 F0/18) dans le VLAN 10 doivent se joindre à travers un trunk S1–S2 sur F0/1 (sur C9200, F0/x devient Gi1/0/x).</p>
+      <ol class="steps">
+        <li><strong>Créer les VLANs</strong> 10 (Operations), 20 (Parking_Lot), 99 (Management), 1000 (Native), identiques sur S1 et S2 : <code>vlan 10</code> puis <code>name Operations</code>, etc. Vérifier avec <code>show vlan brief</code>.</li>
+        <li><strong>Affecter les ports</strong> des PC au VLAN 10 (<code>switchport mode access</code>, <code>switchport access vlan 10</code>) et déplacer l'adresse de gestion de <code>interface vlan 1</code> vers <code>interface vlan 99</code>.</li>
+        <li><strong>Trunk par DTP</strong> : S1 F0/1 en <code>switchport mode dynamic desirable</code>, S2 laissé en <code>dynamic auto</code>. Le trunk se forme ; <code>show interfaces trunk</code> affiche <em>desirable</em> et <em>auto</em>.</li>
+        <li><strong>Trunk manuel</strong> sur les deux switchs : <code>switchport mode trunk</code> et <code>switchport trunk native vlan 1000</code>. Le mode affiché passe à <em>on</em>.</li>
+        <li><strong>Nettoyage</strong> : <code>delete vlan.dat</code>, sans sauvegarder la configuration.</li>
+      </ol>
+      <details><summary>Avant le trunk, PC-A peut-il pinger PC-B ? S1 peut-il pinger S2 ?</summary>
+        <p><strong>Non.</strong> F0/1 est encore un port access du VLAN 1 : le VLAN 10 des PC et le VLAN 99 de gestion ne la traversent pas. La SVI VLAN 99 reste d'ailleurs <em>down</em> tant qu'aucun port actif n'appartient à ce VLAN.</p></details>
+      <details><summary>Une fois le trunk établi, quels pings fonctionnent ?</summary>
+        <p>PC-A ↔ PC-B (VLAN 10) et S1 ↔ S2 (VLAN 99) : <strong>oui</strong>, le trunk transporte les deux VLANs. PC-A → S1 : <strong>non</strong>, VLANs et sous-réseaux différents sans routeur.</p></details>
+      <details><summary>Pourquoi préférer le trunk manuel et changer le VLAN natif ?</summary>
+        <p>DTP est propriétaire Cisco et dépend du voisin ; il permet aussi à un attaquant de négocier un trunk depuis son PC. Un VLAN natif dédié et inutilisé (ici 1000), identique des deux côtés, évite les attaques par double tag sur le VLAN 1.</p></details>
+    </section>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. Pourquoi deux PC sur le même switch mais dans des VLANs différents ne se pinguent-ils pas ?</summary><p>Chaque VLAN est un domaine de broadcast séparé : le switch ne transmet jamais une trame d'un VLAN à l'autre. Il faut un équipement de couche 3.</p></details>
+    <details><summary>2. Quelle est la différence entre un port access et un trunk ?</summary><p>Un port access appartient à un seul VLAN et envoie des trames sans tag. Un trunk transporte plusieurs VLANs, en taguant les trames (sauf celles du VLAN natif).</p></details>
+    <details><summary>3. Quelle est la taille du tag 802.1Q et combien de bits code le VLAN ID ?</summary><p>4 octets ; le VID fait <strong>12 bits</strong>, soit 4096 valeurs. Le TPID vaut <code>0x8100</code>.</p></details>
+    <details><summary>4. Que se passe-t-il si le VLAN natif diffère aux deux bouts d'un trunk ?</summary><p>Les trames du natif partent sans tag et sont rangées dans le natif de l'autre switch, donc dans le mauvais VLAN. Fuites de trafic, pings en échec, message <code>NATIVE_VLAN_MISMATCH</code>.</p></details>
+    <details><summary>5. Deux switchs 2960 sont reliés avec leurs réglages d'usine. Le trunk se forme-t-il ?</summary><p><strong>Non</strong> : <code>dynamic auto</code> des deux côtés donne un lien access. Il faut au moins un côté en <code>trunk</code> ou <code>dynamic desirable</code>.</p></details>
+    <details><summary>6. Deux PC du VLAN 10 sur des switchs différents ne se pinguent pas, le trunk est up. Pistes ?</summary><p>VLAN 10 absent d'un switch, non autorisé sur le trunk, VLAN natif différent, ou PC dans des sous-réseaux différents. Vérifier avec <code>show vlan brief</code> et <code>show interfaces trunk</code>.</p></details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="04-ethernet.html"><span>← Précédent</span>Couche accès réseau et Ethernet</a>
+      <a class="next" href="06-stp.html"><span>Suivant →</span>Spanning Tree (STP)</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

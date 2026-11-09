@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GSM et GPRS · Réseaux cellulaires</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Réseaux cellulaires</a>
+    <div class="course-code">NET 8465 · Chapitre 03</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 03</div>
+    <h1>2G : GSM et GPRS (GRAN)</h1>
+    <p class="lead">Le réseau d'accès GSM/GPRS : le découpage du temps radio, l'architecture, et le partage dynamique des timeslots par GPRS.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>GSM combine <strong>FDMA</strong> (porteuses de 200 kHz) et <strong>TDMA</strong> (8 timeslots par porteuse). La ressource de base est le <strong>timeslot</strong> : 0,577 ms, 156,25 bits.</li>
+        <li>Hiérarchie : timeslot → <strong>trame TDMA</strong> (8 slots, 4,615 ms) → <strong>multitrame</strong> (26 trames = 120 ms pour le trafic, 51 trames pour la signalisation) → supertrame (6,12 s).</li>
+        <li>Architecture : <strong>MS</strong> → <strong>BTS</strong> → <strong>BSC</strong> (le BSS, partie radio) → <strong>MSC</strong> + HLR/VLR (cœur circuit), via les interfaces Um, Abis, A.</li>
+        <li><strong>GPRS</strong> ajoute la commutation de paquets : <strong>PCU</strong> dans le BSS, <strong>SGSN</strong> et <strong>GGSN</strong> dans le cœur. On paie au volume, pas au temps.</li>
+        <li>Un <strong>TBF</strong> est une connexion temporaire et unidirectionnelle, identifiée par un <strong>TFI</strong>. En montant, l'<strong>USF</strong> donne la parole bloc par bloc.</li>
+      </ul>
+    </div>
+
+    <h2 id="trames">La hiérarchie de trames GSM</h2>
+    <p>La bande GSM de 25 MHz donne 125 porteuses de 200 kHz, dont <strong>124 utiles</strong> (une de garde) : c'est le <strong>FDMA</strong>. Chaque porteuse est partagée dans le temps entre <strong>8 utilisateurs</strong> : c'est le <strong>TDMA</strong>.</p>
+
+    <figure>
+      <svg viewBox="0 0 720 400" role="img" aria-label="Hiérarchie des trames GSM, du timeslot à la supertrame">
+        <text x="20" y="40" font-size="14" font-weight="600">Supertrame</text>
+        <rect class="accent" x="250" y="22" width="300" height="28" rx="4"/>
+        <text x="400" y="41" font-size="12" text-anchor="middle">51 × multitrame 26 (ou 26 × multitrame 51)</text>
+        <text x="570" y="41" font-size="13" class="muted">6,12 s</text>
+
+        <line class="line" x1="250" y1="50" x2="140" y2="100" stroke-dasharray="4 3"/>
+        <line class="line" x1="290" y1="50" x2="620" y2="100" stroke-dasharray="4 3"/>
+
+        <text x="20" y="122" font-size="14" font-weight="600">Multitrame</text>
+        <g>
+          <rect class="box" x="140" y="100" width="18.5" height="34"/><rect class="box" x="158.5" y="100" width="18.5" height="34"/><rect class="box" x="177" y="100" width="18.5" height="34"/><rect class="box" x="195.5" y="100" width="18.5" height="34"/><rect class="box" x="214" y="100" width="18.5" height="34"/><rect class="box" x="232.5" y="100" width="18.5" height="34"/><rect class="box" x="251" y="100" width="18.5" height="34"/><rect class="box" x="269.5" y="100" width="18.5" height="34"/><rect class="box" x="288" y="100" width="18.5" height="34"/><rect class="box" x="306.5" y="100" width="18.5" height="34"/><rect class="box" x="325" y="100" width="18.5" height="34"/><rect class="box" x="343.5" y="100" width="18.5" height="34"/><rect class="box" x="362" y="100" width="18.5" height="34"/>
+          <rect class="box" x="380.5" y="100" width="18.5" height="34"/><rect class="box" x="399" y="100" width="18.5" height="34"/><rect class="box" x="417.5" y="100" width="18.5" height="34"/><rect class="box" x="436" y="100" width="18.5" height="34"/><rect class="box" x="454.5" y="100" width="18.5" height="34"/><rect class="box" x="473" y="100" width="18.5" height="34"/><rect class="box" x="491.5" y="100" width="18.5" height="34"/><rect class="box" x="510" y="100" width="18.5" height="34"/><rect class="box" x="528.5" y="100" width="18.5" height="34"/><rect class="box" x="547" y="100" width="18.5" height="34"/><rect class="box" x="565.5" y="100" width="18.5" height="34"/><rect class="box" x="584" y="100" width="18.5" height="34"/>
+          <rect class="accent" x="602.5" y="100" width="18.5" height="34"/>
+        </g>
+        <text x="380" y="152" font-size="12" text-anchor="middle" class="muted">26 trames TDMA = 120 ms (trafic, TCH)  ·  51 trames = 235,4 ms (signalisation)</text>
+
+        <line class="line" x1="602" y1="134" x2="160" y2="190" stroke-dasharray="4 3"/>
+        <line class="line" x1="621" y1="134" x2="600" y2="190" stroke-dasharray="4 3"/>
+
+        <text x="20" y="212" font-size="14" font-weight="600">Trame TDMA</text>
+        <g font-size="13" text-anchor="middle">
+          <rect class="box" x="160" y="190" width="55" height="34"/><text x="187" y="212">TS0</text>
+          <rect class="box" x="215" y="190" width="55" height="34"/><text x="242" y="212">TS1</text>
+          <rect class="accent" x="270" y="190" width="55" height="34"/><text x="297" y="212">TS2</text>
+          <rect class="box" x="325" y="190" width="55" height="34"/><text x="352" y="212">TS3</text>
+          <rect class="box" x="380" y="190" width="55" height="34"/><text x="407" y="212">TS4</text>
+          <rect class="box" x="435" y="190" width="55" height="34"/><text x="462" y="212">TS5</text>
+          <rect class="box" x="490" y="190" width="55" height="34"/><text x="517" y="212">TS6</text>
+          <rect class="box" x="545" y="190" width="55" height="34"/><text x="572" y="212">TS7</text>
+        </g>
+        <text x="620" y="212" font-size="13" class="muted">4,615 ms</text>
+
+        <line class="line" x1="270" y1="224" x2="40" y2="290" stroke-dasharray="4 3"/>
+        <line class="line" x1="325" y1="224" x2="680" y2="290" stroke-dasharray="4 3"/>
+
+        <text x="20" y="280" font-size="14" font-weight="600">Timeslot (burst) : 576,9 µs, 156,25 bits</text>
+        <g font-size="12" text-anchor="middle">
+          <rect class="box" x="40" y="290" width="24" height="40"/><text x="52" y="315">3</text>
+          <rect class="accent" x="64" y="290" width="170" height="40"/><text x="149" y="315">57 données</text>
+          <rect class="box" x="234" y="290" width="22" height="40"/><text x="245" y="315">1</text>
+          <rect class="box" x="256" y="290" width="150" height="40"/><text x="331" y="315">26 séquence d'apprentissage</text>
+          <rect class="box" x="406" y="290" width="22" height="40"/><text x="417" y="315">1</text>
+          <rect class="accent" x="428" y="290" width="170" height="40"/><text x="513" y="315">57 données</text>
+          <rect class="box" x="598" y="290" width="24" height="40"/><text x="610" y="315">3</text>
+          <rect class="box" x="622" y="290" width="58" height="40" stroke-dasharray="3 3"/><text x="651" y="315">8,25</text>
+        </g>
+        <g font-size="11" class="muted" text-anchor="middle">
+          <text x="52" y="350" class="muted">queue</text>
+          <text x="245" y="350" class="muted">vol</text>
+          <text x="331" y="350" class="muted">midambule</text>
+          <text x="417" y="350" class="muted">vol</text>
+          <text x="610" y="350" class="muted">queue</text>
+          <text x="651" y="350" class="muted">garde</text>
+        </g>
+        <text x="360" y="385" font-size="12" text-anchor="middle" class="muted">« vol » = bit de vol (stealing flag) : signale que le burst est emprunté pour de la signalisation urgente (FACCH)</text>
+      </svg>
+      <figcaption>Du plus petit au plus grand : burst dans un timeslot, 8 slots par trame, 26 ou 51 trames par multitrame, puis supertrame.</figcaption>
+    </figure>
+
+    <div class="formula">T<sub>slot</sub> = 15/26 ms ≈ 0,577 ms &nbsp;·&nbsp; T<sub>trame</sub> = 8 × T<sub>slot</sub> ≈ 4,615 ms &nbsp;·&nbsp; D = 156,25 bits / T<sub>slot</sub> ≈ 270,833 kbit/s
+      <span class="where">D est le débit brut de la porteuse, partagé par les 8 slots. 26 × 4,615 ms = 120 ms ; 51 × 4,615 ms ≈ 235,4 ms ; 51 × 120 ms = 26 × 235,4 ms = 6,12 s.</span>
+    </div>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : un mobile n'a qu'un slot sur huit</span>
+      <p>Imaginez un manège à 8 nacelles qui fait un tour toutes les 4,615 ms. Vous avez la nacelle n°2 : vous parlez 0,577 ms, puis vous vous taisez 7 × 0,577 ms pendant que les 7 autres parlent. À ce rythme, chaque mobile ne voit passer que 114 bits utiles (2 × 57) toutes les 4,615 ms, soit environ 24,7 kbit/s bruts avant codage canal.</p>
+      <p>Sur les 26 trames d'une multitrame de trafic, 24 portent la voix, une le <strong>SACCH</strong> (mesures) et une reste libre.</p>
+    </div>
+
+    <h2 id="architecture">Architecture GSM et ajouts GPRS</h2>
+    <p>Trois domaines : la <strong>station mobile</strong> (MS = terminal ME + SIM), le <strong>sous-système radio</strong> (BSS) et le <strong>sous-système réseau</strong> (NSS), reliés par les interfaces <strong>Um</strong> (radio), <strong>Abis</strong> (BTS-BSC) et <strong>A</strong> (BSC-MSC). GPRS garde la radio et le BSS, et ajoute une branche paquet.</p>
+
+    <figure>
+      <svg viewBox="0 0 720 330" role="img" aria-label="Architecture GSM avec la branche GPRS">
+        <text x="20" y="22" font-size="12" class="muted">MS</text>
+        <text x="130" y="22" font-size="12" class="muted">BSS (GRAN)</text>
+        <text x="390" y="22" font-size="12" class="muted">Cœur de réseau</text>
+        <line class="line" x1="115" y1="30" x2="115" y2="300" stroke-dasharray="3 4"/>
+        <line class="line" x1="370" y1="30" x2="370" y2="300" stroke-dasharray="3 4"/>
+
+        <rect class="box" x="15" y="130" width="85" height="44" rx="8"/><text x="57" y="150" font-size="13" text-anchor="middle">MS</text><text x="57" y="166" font-size="11" text-anchor="middle" class="muted">ME + SIM</text>
+        <rect class="box" x="135" y="130" width="70" height="44" rx="8"/><text x="170" y="157" font-size="13" text-anchor="middle">BTS</text>
+        <rect class="box" x="245" y="110" width="105" height="84" rx="8"/><text x="297" y="140" font-size="13" text-anchor="middle">BSC</text>
+        <rect class="accent" x="255" y="155" width="85" height="30" rx="6"/><text x="297" y="175" font-size="12" text-anchor="middle">PCU</text>
+
+        <line class="line" x1="100" y1="152" x2="135" y2="152"/><text x="117" y="146" font-size="11" text-anchor="middle" class="muted">Um</text>
+        <line class="line" x1="205" y1="152" x2="245" y2="152"/><text x="225" y="146" font-size="11" text-anchor="middle" class="muted">Abis</text>
+
+        <rect class="box" x="400" y="60" width="90" height="44" rx="8"/><text x="445" y="87" font-size="13" text-anchor="middle">MSC/VLR</text>
+        <line class="line" x1="350" y1="125" x2="400" y2="85"/><text x="378" y="98" font-size="11" class="muted">A</text>
+        <rect class="box" x="530" y="40" width="70" height="30" rx="6"/><text x="565" y="60" font-size="12" text-anchor="middle">HLR</text>
+        <rect class="box" x="620" y="40" width="80" height="30" rx="6"/><text x="660" y="60" font-size="12" text-anchor="middle">AuC · EIR</text>
+        <line class="line" x1="490" y1="75" x2="530" y2="58" stroke-dasharray="4 3"/>
+        <rect class="box" x="560" y="95" width="140" height="34" rx="17"/><text x="630" y="117" font-size="12" text-anchor="middle">RTC / RNIS</text>
+        <line class="line" x1="490" y1="90" x2="560" y2="110"/>
+
+        <rect class="accent" x="400" y="200" width="90" height="44" rx="8"/><text x="445" y="227" font-size="13" text-anchor="middle">SGSN</text>
+        <line class="line" x1="340" y1="178" x2="400" y2="215"/><text x="370" y="212" font-size="11" class="muted">Gb</text>
+        <rect class="accent" x="540" y="200" width="80" height="44" rx="8"/><text x="580" y="227" font-size="13" text-anchor="middle">GGSN</text>
+        <line class="line" x1="490" y1="222" x2="540" y2="222"/><text x="515" y="214" font-size="11" text-anchor="middle" class="muted">GTP</text>
+        <rect class="box" x="560" y="270" width="140" height="34" rx="17"/><text x="630" y="292" font-size="12" text-anchor="middle">Internet / X.25</text>
+        <line class="line" x1="590" y1="244" x2="615" y2="270"/>
+        <line class="line" x1="445" y1="200" x2="555" y2="70" stroke-dasharray="4 3"/>
+
+        <text x="135" y="290" font-size="11" class="muted">Trait plein : trafic + signalisation · pointillés : signalisation seule</text>
+        <text x="135" y="310" font-size="11" class="muted">En couleur : éléments ajoutés par GPRS</text>
+      </svg>
+      <figcaption>Le chemin circuit (voix) passe par le MSC, le chemin paquet (données GPRS) par le PCU, le SGSN puis le GGSN.</figcaption>
+    </figure>
+
+    <div class="table-wrap"><table>
+      <thead><tr><th>Élément</th><th>Rôle</th></tr></thead>
+      <tbody>
+        <tr><td><strong>BTS</strong> (<em>Base Transceiver Station</em>)</td><td>L'antenne : gère le lien radio.</td></tr>
+        <tr><td><strong>BSC</strong> (<em>Base Station Controller</em>)</td><td>Pilote plusieurs BTS : allocation des canaux, saut de fréquence, handovers.</td></tr>
+        <tr><td><strong>MSC</strong> (<em>Mobile services Switching Center</em>)</td><td>Commutateur circuit, relie GSM au RTC/RNIS.</td></tr>
+        <tr><td><strong>HLR / VLR</strong></td><td>HLR : base centrale des abonnés. VLR : copie locale des abonnés présents dans la zone du MSC.</td></tr>
+        <tr><td><strong>AuC / EIR</strong></td><td>Authentification de la SIM / liste des terminaux (IMEI) autorisés.</td></tr>
+        <tr><td><strong>PCU</strong> (<em>Packet Control Unit</em>)</td><td>Ajouté au BSS par GPRS : accès radio paquet (RLC/MAC, PDCH).</td></tr>
+        <tr><td><strong>SGSN</strong> (<em>Serving GPRS Support Node</em>)</td><td>Équivalent paquet du MSC + VLR : mobilité, relais des paquets vers le GGSN.</td></tr>
+        <tr><td><strong>GGSN</strong> (<em>Gateway GPRS Support Node</em>)</td><td>Passerelle vers les réseaux de données externes (IP, X.25).</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3 id="gprs">Ce que GPRS change</h3>
+    <ul>
+      <li><strong>Commutation de paquets</strong> : le mobile parle à la même BTS, mais il est relié au <strong>SGSN</strong> au lieu du MSC. Un <strong>contexte PDP</strong> (<em>Packet Data Protocol</em>) établit une connexion logique mobile-GGSN.</li>
+      <li><strong>Tunnel GTP</strong> (<em>GPRS Tunnelling Protocol</em>) entre SGSN et GGSN : les paquets IP de l'utilisateur sont encapsulés dans de l'IP (IP sur IP).</li>
+      <li><strong>Efficacité spectrale</strong> : ressources occupées seulement quand il y a des données ; facturation <strong>au volume</strong>.</li>
+      <li><strong>Débit</strong> : même modulation GMSK, mais jusqu'à <strong>171,2 kbit/s</strong> théoriques (8 slots × 21,4 kbit/s) contre 9,6 kbit/s pour les données GSM. Voix et données peuvent être simultanées.</li>
+    </ul>
+
+    <h3 id="canaux" data-toc="Canaux logiques">Canaux logiques (utile pour le TP)</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Canal</th><th>Sens</th><th>À quoi il sert</th></tr></thead>
+      <tbody>
+        <tr><td><strong>BCCH</strong> (<em>Broadcast Control</em>)</td><td>↓</td><td>Informations système de la cellule, sur le TS0.</td></tr>
+        <tr><td><strong>CCCH</strong> (<em>Common Control</em>)</td><td>↑↓</td><td>Canaux communs : <strong>PCH</strong> (paging ↓), <strong>RACH</strong> (demande d'accès aléatoire ↑), <strong>AGCH</strong> (attribution d'un canal dédié ↓).</td></tr>
+        <tr><td><strong>SDCCH</strong> (<em>Stand-alone Dedicated Control</em>)</td><td>↑↓</td><td>Signalisation dédiée : localisation, authentification, chiffrement, SMS.</td></tr>
+        <tr><td><strong>SACCH / FACCH</strong></td><td>↑↓</td><td>Contrôle associé à un TCH : lent (mesures) ou rapide (handover).</td></tr>
+        <tr><td><strong>TCH</strong> (<em>Traffic Channel</em>)</td><td>↑↓</td><td>La voix (circuit).</td></tr>
+        <tr><td><strong>PDCH</strong> (<em>Packet Data Channel</em>)</td><td>↑↓</td><td>Timeslot GPRS, portant PRACH, PAGCH, PACCH, PDTCH.</td></tr>
+      </tbody>
+    </table></div>
+    <p>Dans une trace : BCCH, <em>Channel Request</em> (RACH), <em>Immediate Assignment</em> (AGCH), SDCCH, puis TCH.</p>
+
+    <h2 id="partage">Allocation dynamique et TBF</h2>
+    <p>Les 8 slots d'une porteuse sont partagés entre GSM et GPRS. Le TS0 porte le BCCH ; les autres sont des <strong>TCH</strong> (un appel voix chacun) ou des <strong>PDCH</strong> (partagés par plusieurs mobiles GPRS). Le partage est <strong>dynamique</strong>, avec <strong>priorité à la voix</strong> : si un appel arrive et qu'aucun TCH n'est libre, un PDCH est repris et redevient TCH.</p>
+    <p>Un <strong>TBF</strong> (<em>Temporary Block Flow</em>) est une connexion <strong>temporaire et unidirectionnelle</strong> entre un mobile et le réseau, qui ne dure que le temps du transfert. Il peut utiliser un ou plusieurs PDCH. Le réseau lui attribue un <strong>TFI</strong> (<em>Temporary Flow Identity</em>), unique par sens parmi les TBF actifs, porté dans l'en-tête RLC de chaque bloc.</p>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : le partage des slots, exemple chiffré</span>
+      <p>Porteuse : TS0 = BCCH, TS1 à 3 = TCH, TS4 à 7 = PDCH. Règle : au plus <strong>2 TBF par PDCH</strong>.</p>
+      <ol>
+        <li>TBF1 demande 3 slots : il reçoit TS5, TS6, TS7.</li>
+        <li>TBF2 demande 2 slots : TS6 et TS7 (désormais à 2 TBF chacun, donc pleins).</li>
+        <li>TBF3 demande 3 slots : seuls TS4 et TS5 ont encore une place. Il n'en obtient que <strong>2</strong>.</li>
+        <li>Un appel voix arrive alors que TS1 à 3 sont occupés : TS4, utilisé par TBF3 seul, est repris en TCH. TBF3 se replie sur TS5.</li>
+      </ol>
+    </div>
+
+    <h2 id="tbf">L'établissement d'un TBF montant</h2>
+    <p>Sur un PDCH, chaque <strong>bloc radio</strong> descendant fait deux choses à la fois : il porte des données pour un mobile (identifié par TFI) <em>et</em> contient un <strong>USF</strong> (<em>Uplink State Flag</em>) qui désigne le mobile autorisé à émettre sur le bloc montant correspondant.</p>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : TFI et USF, deux étiquettes différentes</span>
+      <p>Le <strong>TFI</strong> répond à « à qui est ce bloc ? ». L'<strong>USF</strong> répond à « qui parle au prochain tour ? ». Exemple de la slide : le bloc 2 descendant sur TS1 contient des données pour <strong>MS 3</strong> mais un USF = 1, donc c'est <strong>MS 1</strong> qui émettra sur le bloc 2 montant de TS1. Un même bloc sert deux mobiles différents.</p>
+    </div>
+
+    <p>Contexte : deux slots TS0 et TS1 en PDCH. MS 1 a déjà un TBF montant (TS0 et TS1), MS 3 un TBF descendant sur TS1. MS 2 veut émettre :</p>
+    <ol class="steps">
+      <li>Un bloc descendant sur TS0 porte <strong>USF = R</strong> : le bloc montant suivant est un <strong>PRACH</strong> (accès aléatoire libre).</li>
+      <li>MS 2 y envoie un <strong>Packet Channel Request</strong> (PCR).</li>
+      <li>Le réseau répond sur PAGCH par un <strong>Packet Uplink Assignment</strong> (PUA) : quels PDTCH utiliser, avec quel TFI et quel USF.</li>
+      <li>MS 2 <strong>écoute l'USF</strong> sur TS0 et TS1 et émet un bloc de données chaque fois qu'il y voit sa valeur.</li>
+      <li>Le réseau acquitte par des <strong>Packet Uplink Ack/Nack</strong> (sur PACCH) et redemande les blocs perdus.</li>
+      <li>À la fin, un dernier bloc est attribué à MS 2 pour envoyer le <strong>Packet Control Acknowledgment</strong> (PCA) : le TBF est libéré.</li>
+    </ol>
+
+    <div class="callout warn"><span class="callout-title">Piège classique : le décalage USF</span>
+      <p>L'USF lu dans le bloc descendant n°N donne le droit d'émettre sur un bloc montant <strong>ultérieur</strong>, pas simultané : il y a un décalage (<em>uplink/downlink offset</em>), car le mobile doit d'abord recevoir et décoder l'USF avant d'émettre.</p>
+    </div>
+
+    <div class="callout warn"><span class="callout-title">Piège classique : un TBF n'est pas bidirectionnel</span>
+      <p>Un TBF va dans <strong>un seul sens</strong> : un mobile qui envoie et reçoit a <strong>deux TBF</strong>, chacun avec son TFI. Et il est relâché dès que les données sont passées, contrairement au TCH alloué pendant tout l'appel.</p>
+    </div>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. Retrouvez la durée d'une trame TDMA et d'une multitrame 26 à partir du timeslot.</summary>
+      <p>Timeslot = 15/26 ms ≈ 0,577 ms. Trame = 8 slots ≈ <strong>4,615 ms</strong>. Multitrame 26 = 26 × 4,615 ≈ <strong>120 ms</strong>.</p>
+    </details>
+    <details><summary>2. D'où vient le débit de 270,833 kbit/s ?</summary>
+      <p>156,25 bits par timeslot de 0,577 ms : 156,25 / 0,577 ms ≈ 270,8 kbit/s. C'est le débit brut de la porteuse, partagé entre 8 slots.</p>
+    </details>
+    <details><summary>3. Quels nœuds GPRS ajoute-t-il, et à quoi correspond chacun ?</summary>
+      <p><strong>PCU</strong> dans le BSS (accès radio paquet), <strong>SGSN</strong> (équivalent paquet du MSC/VLR, mobilité), <strong>GGSN</strong> (passerelle vers Internet). SGSN et GGSN dialoguent via un tunnel GTP.</p>
+    </details>
+    <details><summary>4. Un mobile reçoit un bloc avec un TFI qui n'est pas le sien mais un USF qui est le sien. Que fait-il ?</summary>
+      <p>Il ignore les données mais <strong>émet</strong> sur le bloc montant correspondant : l'USF lui donne la parole.</p>
+    </details>
+    <details><summary>5. Avec 2 TBF max par PDCH et 4 PDCH, combien de TBF d'un slot chacun peut-on servir au plus ?</summary>
+      <p>4 × 2 = <strong>8</strong>, tant qu'aucun appel voix ne reprend un PDCH.</p>
+    </details>
+    <details><summary>6. Dans une trace GSM, sur quels canaux voit-on la demande d'accès puis l'attribution du canal dédié ?</summary>
+      <p><em>Channel Request</em> sur le <strong>RACH</strong> (montant), <em>Immediate Assignment</em> sur l'<strong>AGCH</strong> (descendant), tous deux dans le CCCH ; la suite se passe sur le <strong>SDCCH</strong>.</p>
+    </details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="02-acces-multiple.html"><span>← Précédent</span>Partage des ressources radio</a>
+      <a class="next" href="04-umts.html"><span>Suivant →</span>3G : UMTS (UTRAN)</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

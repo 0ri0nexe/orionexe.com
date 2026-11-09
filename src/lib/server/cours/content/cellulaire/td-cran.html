@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TD : C-RAN, eICIC et CoMP · Réseaux cellulaires</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Réseaux cellulaires</a>
+    <div class="course-code">NET 8465 · TD</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">TD</div>
+    <h1>TD : C-RAN, eICIC et CoMP</h1>
+    <p class="lead">Modéliser une cellule LTE comme une file à S serveurs, calculer son débit avec Erlang B dans Excel, puis mesurer l'effet d'eICIC-ABS et de CoMP-JT.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>20 MHz donnent <strong>S = 500 GRB par trame</strong>, les « serveurs » de la file.</li>
+        <li>Bonnes conditions radio : <strong>1 GRB</strong> ; mauvaises : <strong>2 GRB</strong>. Le coût moyen fixe la charge <strong>ρ = λ/μ</strong>.</li>
+        <li><strong>Erlang B</strong> donne le blocage P<sub>S</sub> ; le débit <strong>X = λ(1 − P<sub>S</sub>)</strong> sature vers S / coût moyen (500 ou 333).</li>
+        <li><strong>eICIC-ABS</strong> partage le <em>temps</em> : la macro se tait sur des sous-trames réservées à la small cell. Deux files Erlang (S<sub>M</sub> + S<sub>m</sub> = 500).</li>
+        <li><strong>CoMP-JT</strong> : deux cellules voisines servent ensemble l'utilisateur de bordure, qui redevient « bon » (1 GRB au lieu de 2).</li>
+      </ul>
+    </div>
+
+    <h2 id="modele">Modéliser une cellule</h2>
+    <p>Contexte : dans un <strong>H-CRAN</strong>, la bande de base est centralisée et une macro-cellule partage ses fréquences avec des <strong>small cells</strong>. Les utilisateurs de bordure subissent des interférences, d'où eICIC et CoMP.</p>
+
+    <h3 id="grille">La ressource : S = 500 GRB par trame</h3>
+    <p>Trame LTE : 10 ms = 10 sous-trames = <strong>20 slots</strong> de 0,5 ms. Un RB occupe un slot × 12 sous-porteuses (180 kHz). La station attribue des groupes de 4 RB : les <strong>GRB</strong>.</p>
+    <ol class="steps">
+      <li>Bande de garde : 10 % de 20 MHz = 2 MHz, il reste <strong>18 MHz</strong>.</li>
+      <li>RB par slot : 18 000 kHz / 180 kHz = <strong>100 RB</strong>.</li>
+      <li>RB par trame : 100 × 20 slots = <strong>2 000 RB</strong>.</li>
+      <li>GRB par trame : 2 000 / 4 = <strong>S = 500 GRB</strong>.</li>
+    </ol>
+
+    <h3 id="regions">Découper la cellule en régions</h3>
+    <p>La station choisit le <strong>MCS</strong> (QPSK à 256-QAM) selon le SINR remonté par l'UE : mauvais SINR, plus de GRB par paquet. Le TD découpe la cellule en régions à MCS constant, avec de bonnes conditions sur 70 % du <em>rayon</em> :</p>
+    <figure>
+      <svg viewBox="0 0 640 260" role="img" aria-label="Cellule de rayon R avec une région centrale de rayon 0,7R et une région de bordure">
+        <circle class="box" cx="150" cy="130" r="115"/>
+        <circle class="accent" cx="150" cy="130" r="80"/>
+        <line class="line" x1="150" y1="130" x2="265" y2="130"/>
+        <line class="line" x1="150" y1="130" x2="207" y2="74"/>
+        <text x="150" y="150" text-anchor="middle" font-weight="700">λ₁ : 1 GRB</text>
+        <text x="185" y="98" font-size="13">0,7R</text>
+        <text x="225" y="124" font-size="13">R</text>
+        <text x="150" y="235" text-anchor="middle" font-weight="700">λ₂ : 2 GRB</text>
+        <text x="300" y="70">Centre : π(0,7R)² = <tspan font-weight="700">0,49 πR²</tspan></text>
+        <text x="300" y="96" class="muted" font-size="13">bonnes conditions, 1 GRB par paquet</text>
+        <text x="300" y="150">Bordure : πR² − 0,49 πR² = <tspan font-weight="700">0,51 πR²</tspan></text>
+        <text x="300" y="176" class="muted" font-size="13">mauvaises conditions, 2 GRB par paquet</text>
+      </svg>
+      <figcaption>70 % du rayon ne fait que 49 % de la surface : la bordure, plus coûteuse, est majoritaire.</figcaption>
+    </figure>
+
+    <h3 id="charge">Arrivées et charge</h3>
+    <p>Arrivées de <strong>Poisson</strong> de taux λ par trame, réparties au prorata des surfaces : λ<sub>1</sub> = 0,49λ, λ<sub>2</sub> = 0,51λ. Un paquet occupe ses GRB pendant une trame (l'unité de temps) : la durée de service moyenne est son coût moyen en GRB.</p>
+    <div class="formula">1/μ = 1 × (λ<sub>1</sub>/λ) + 2 × (λ<sub>2</sub>/λ) &nbsp;&nbsp;&nbsp; ρ = λ/μ = λ<sub>1</sub> + 2λ<sub>2</sub>
+      <span class="where">Avec 0,49/0,51 : 1/μ = 1,51 ; ρ est le nombre moyen de GRB demandés par trame.</span></div>
+
+    <h2 id="erlang">Erlang B : la file M/G/S/S</h2>
+    <p>La cellule est une file <strong>M/G/S/S</strong> : arrivées poissonniennes, service quelconque, S serveurs (les GRB), <strong>sans attente</strong> : un paquet qui trouve tout occupé est perdu. Le blocage ne dépend que du service moyen, d'où la formule d'Erlang B.</p>
+    <div class="formula">P<sub>S</sub> = (ρ<sup>S</sup> / S!) / Σ<sub>n=0..S</sub> (ρ<sup>n</sup> / n!) &nbsp;&nbsp;&nbsp; X = λ × (1 − P<sub>S</sub>)
+      <span class="where">P<sub>S</sub> : probabilité que les S serveurs soient occupés (blocage). X : débit écoulé, en paquets par trame.</span></div>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : pourquoi le débit sature</span>
+      <p>Un parking de S places sans file d'attente. Tant que ρ (places demandées en moyenne) reste nettement sous S, il n'est presque jamais plein : P<sub>S</sub> ≈ 0 et X ≈ λ. Quand ρ approche S, il est souvent plein et les arrivants repartent.</p>
+      <p>Au-delà, toute arrivée supplémentaire est refusée : le système écoule au plus <strong>S × μ</strong> paquets par trame. Tous bons (1 GRB) : 500. Moitié bons, moitié mauvais (1,5 GRB) : 500/1,5 ≈ <strong>333</strong>.</p>
+    </div>
+
+    <h3 id="excel">Le calcul dans Excel</h3>
+    <p>Poisson ponctuelle divisée par Poisson cumulée : le facteur e<sup>−ρ</sup> se simplifie et il reste Erlang B :</p>
+    <div class="formula">P<sub>S</sub> = POISSON(S; ρ; FAUX) / POISSON(S; ρ; VRAI) &nbsp;&nbsp;&nbsp; Débit = λ × (1 − P<sub>S</sub>)
+      <span class="where">Dans le modèle : colonnes Lambda, Mu, S, Rho, Pn, Throughput. Feuille 1 : tous bons. Feuille 2 : deux zones.</span></div>
+
+    <div class="callout warn"><span class="callout-title">Attention au modèle Excel fourni</span>
+      <p>La colonne « Mu » contient en fait le <strong>coût moyen 1/μ</strong> (Rho = λ × Mu). La feuille 2 découpe à <strong>50/50</strong>, pas 49/51 comme les slides. Les feuilles 3 et 4 sont vides.</p>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 680 290" role="img" aria-label="Débit en fonction de la charge lambda pour la feuille 1 et la feuille 2">
+        <line class="line" x1="60" y1="250" x2="670" y2="250"/>
+        <line class="line" x1="60" y1="250" x2="60" y2="20"/>
+        <line class="line" x1="60" y1="30" x2="660" y2="30" stroke-dasharray="3 4"/>
+        <line class="line" x1="60" y1="103.3" x2="660" y2="103.3" stroke-dasharray="3 4"/>
+        <text x="52" y="34" text-anchor="end" font-size="12" class="muted">500</text>
+        <text x="52" y="107" text-anchor="end" font-size="12" class="muted">333</text>
+        <text x="52" y="254" text-anchor="end" font-size="12" class="muted">0</text>
+        <text x="60" y="270" text-anchor="middle" font-size="12" class="muted">0</text>
+        <text x="360" y="270" text-anchor="middle" font-size="12" class="muted">300</text>
+        <text x="660" y="270" text-anchor="middle" font-size="12" class="muted">600</text>
+        <text x="370" y="286" text-anchor="middle" font-size="12" class="muted">λ (paquets par trame)</text>
+        <polyline style="fill:none;stroke:var(--accent);stroke-width:2.5" points="60,250.0 85,239.0 110,228.0 135,217.0 160,206.0 185,195.0 210,184.0 235,173.0 260,162.0 285,151.0 310,140.0 335,129.0 360,118.0 385,107.0 410,96.0 435,85.0 460,74.0 485,63.0 510,52.2 535,43.2 560,37.7 585,34.8 610,33.3 635,32.5 660,32.0"/>
+        <polyline class="line" style="stroke-width:2.5;stroke-dasharray:7 4" points="60,250.0 85,239.0 110,228.0 135,217.0 160,206.0 185,195.0 210,184.0 235,173.0 260,162.0 285,151.0 310,140.0 335,129.0 360,118.2 385,110.0 410,106.5 435,105.3 460,104.7 485,104.3 510,104.1 535,104.0 560,103.9 585,103.8 610,103.8 635,103.7 660,103.7"/>
+        <text x="470" y="58" font-size="13">Feuille 1 : tous bons</text>
+        <text x="470" y="128" font-size="13">Feuille 2 : moitié bons</text>
+      </svg>
+      <figcaption>X = λ jusqu'au coude, puis saturation : vers 500 (feuille 1, 495,5 à λ = 600) et vers 333 (feuille 2, 332,5 à λ = 600).</figcaption>
+    </figure>
+
+    <h2 id="eicic">eICIC-ABS : partager le temps</h2>
+    <p>Une micro-cellule en bordure accueille λ<sub>m</sub> utilisateurs « bons », <em>si la macro ne les brouille pas</em>.</p>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : les Almost Blank Subframes</span>
+      <p>La macro est une voix forte, la micro un murmure. Pour que les clients de la micro l'entendent, la macro <strong>se tait</strong> pendant certaines sous-trames (« <em>almost</em> » : seuls des signaux de contrôle subsistent). Ces sous-trames sont à la micro.</p>
+      <p>nb_ABS sous-trames sur 10 vont à la micro : <strong>deux files Erlang indépendantes</strong> se partagent les 500 GRB.</p>
+    </div>
+    <div class="formula">S<sub>m</sub> = 500 × nb_ABS / 10 &nbsp;&nbsp;&nbsp; S<sub>M</sub> = 500 − S<sub>m</sub>
+      <span class="where">Exemple du cours : nb_ABS = 4 donne S<sub>m</sub> = 200 et S<sub>M</sub> = 300. Pour le TD : S<sub>M</sub> = 450, S<sub>m</sub> = 50 (nb_ABS = 1).</span></div>
+    <ul>
+      <li><strong>Macro</strong> : λ<sub>M</sub> = λ<sub>1</sub> + λ<sub>2</sub>, 1/μ<sub>M</sub> = 1 × (λ<sub>1</sub>/λ<sub>M</sub>) + 2 × (λ<sub>2</sub>/λ<sub>M</sub>), ρ<sub>M</sub> = λ<sub>M</sub>/μ<sub>M</sub>, n = S<sub>M</sub>.</li>
+      <li><strong>Micro</strong> : 1/μ<sub>m</sub> = 1 (bons utilisateurs), ρ<sub>m</sub> = λ<sub>m</sub>, n = S<sub>m</sub>.</li>
+      <li>Débits : X<sub>M</sub> = λ<sub>M</sub>(1 − P<sub>SM</sub>), X<sub>m</sub> = λ<sub>m</sub>(1 − P<sub>Sm</sub>), X<sub>total</sub> = X<sub>M</sub> + X<sub>m</sub>.</li>
+    </ul>
+    <p>Slide 15 : micro de rayon 0,15R, donc λ<sub>m</sub> = λ × π(0,15R)²/πR² = <strong>0,0225λ</strong>. La micro étant en bordure, λ<sub>2</sub> = 0,51λ − 0,0225λ = 0,4875λ (la ligne « Lambda_2 = » est vide sur la slide : déduction par analogie avec la slide 21).</p>
+
+    <h2 id="comp">CoMP-JT : coopérer sur la bordure</h2>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : la Joint Transmission</span>
+      <p>À la frontière, la station voisine est l'ennemie : son signal est de l'interférence. Avec CoMP-JT, les deux stations envoient <strong>les mêmes données, sur la même fréquence et la même sous-trame</strong> : le bruit devient du signal utile.</p>
+      <p>L'utilisateur du recouvrement passe de « mauvais » (2 GRB) à « bon » avec <strong>1 GRB commun</strong>. Il faut partager données et ordonnancement en temps réel, ce que facilite la bande de base centralisée du C-RAN.</p>
+    </div>
+    <p>Trois flux par cellule (slide 21) : λ<sub>1</sub> = 0,49λ (1 GRB), λ<sub>2</sub> = 0,51λ − λ<sub>3</sub> (2 GRB) et λ<sub>3</sub> dans la lentille de recouvrement (1 GRB commun). Calcul de λ<sub>3</sub> (slides 24-25) : six cellules voisines autour d'une cellule, θ = 360/6 = 60°.</p>
+    <div class="formula">Aire A = 2 × (πR²/6 − ½R² sin 60°) = R²(π/3 − √3/2) ≈ 0,181 R² &nbsp;&nbsp;&nbsp; λ<sub>3</sub> = λ × A/πR² ≈ 0,058λ
+      <span class="where">Secteur (aire B = πR²/6) moins triangle (aire C = ½R² sin θ), doublé. Le sujet calcule <strong>une</strong> lentille : en compter une ou six par cellule est un choix à justifier.</span></div>
+    <p>Une seule file à S = 500, avec 1/μ = (λ<sub>1</sub> + 2λ<sub>2</sub> + λ<sub>3</sub>)/λ ≈ 1,452 (une lentille) au lieu de 1,51 : plafond ≈ 344.</p>
+
+    <h2 id="demarche">Questions du TD et démarche</h2>
+    <p>Travail demandé (slides 13 et 22) : exprimer P<sub>SM</sub> et P<sub>Sm</sub> ; tracer les débits macro, micro et total pour λ de 0 à 600 par pas de 50 (S<sub>M</sub> = 450, S<sub>m</sub> = 50) ; discuter ; étendre à CoMP-JT et comparer. Le volet CoMP est un rapport noté (examen).</p>
+    <ol class="steps">
+      <li><strong>Entrées</strong> : λ de 0 à 600, puis λ<sub>1</sub>, λ<sub>2</sub>, λ<sub>m</sub> ou λ<sub>3</sub>. Commencez à λ = 1 : à λ = 0, 1/μ = …/λ divise par zéro.</li>
+      <li><strong>Coût moyen</strong> 1/μ et charge ρ = λ × (1/μ) pour chaque file.</li>
+      <li><strong>Blocage</strong> : P = POISSON(S; ρ; FAUX)/POISSON(S; ρ; VRAI) avec le bon S (450, 50 ou 500).</li>
+      <li><strong>Débits</strong> X = λ(1 − P), puis la somme macro + micro.</li>
+      <li><strong>Courbes</strong> : macro, micro, total, et la macro seule comme référence.</li>
+      <li><strong>Discussion</strong> : comparer les plafonds et le point où le blocage apparaît.</li>
+    </ol>
+    <p>Résultats (calculés en Python, hypothèses ci-dessus, paquets par trame) :</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>λ</th><th>Feuille 1</th><th>Feuille 2</th><th>Sans mécanisme (49/51)</th><th>eICIC X<sub>M</sub> / X<sub>m</sub> / total</th><th>CoMP (1 lentille)</th></tr></thead>
+      <tbody>
+        <tr><td>300</td><td>300,0</td><td>299,6</td><td>299,5</td><td>286,3 / 6,8 / 293,1</td><td>299,9</td></tr>
+        <tr><td>350</td><td>350,0</td><td>326,0</td><td>324,3</td><td>296,3 / 7,9 / 304,2</td><td>334,1</td></tr>
+        <tr><td>400</td><td>400,0</td><td>330,3</td><td>328,2</td><td>298,2 / 9,0 / 307,2</td><td>340,6</td></tr>
+        <tr><td>500</td><td>482,6</td><td>332,0</td><td>329,9</td><td>299,2 / 11,2 / 310,5</td><td>342,8</td></tr>
+        <tr><td>600</td><td>495,5</td><td>332,5</td><td>330,3</td><td>299,6 / 13,5 / 313,1</td><td>343,4</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn"><span class="callout-title">Ce que disent ces chiffres</span>
+      <p>Avec λ<sub>m</sub> = 0,0225λ, la micro reçoit au plus 13,5 paquets par trame pour 50 GRB réservés : ses ressources dorment pendant que la macro (450 GRB) sature vers 300. eICIC-ABS fait alors <strong>moins bien</strong> que la cellule seule : nb_ABS doit suivre le trafic réel de la micro. CoMP ne réserve rien et rend la bordure moins chère : son plafond monte. La courbe de la slide 16 utilise des paramètres non précisés.</p>
+    </div>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. Retrouvez S pour 20 MHz.</summary>
+      <p>18 MHz utiles / 180 kHz = 100 RB par slot, × 20 slots = 2 000 RB par trame, / 4 = <strong>500 GRB</strong>.</p>
+    </details>
+    <details><summary>2. Pourquoi la feuille 2 plafonne-t-elle vers 333 et non 500 ?</summary>
+      <p>Chaque paquet coûte en moyenne 1,5 GRB : 500 GRB écoulent au plus 500/1,5 ≈ <strong>333</strong> paquets par trame.</p>
+    </details>
+    <details><summary>3. Pourquoi POISSON(S;ρ;FAUX)/POISSON(S;ρ;VRAI) donne-t-il Erlang B ?</summary>
+      <p>Les deux termes contiennent le facteur e<sup>−ρ</sup>, qui se simplifie : il reste (ρ<sup>S</sup>/S!) / Σ<sub>n≤S</sub> ρ<sup>n</sup>/n!.</p>
+    </details>
+    <details><summary>4. Avec nb_ABS = 2, que valent S<sub>m</sub> et S<sub>M</sub> ?</summary>
+      <p>S<sub>m</sub> = 500 × 2/10 = <strong>100</strong>, S<sub>M</sub> = <strong>400</strong>.</p>
+    </details>
+    <details><summary>5. Qu'est-ce que CoMP-JT change dans le modèle Erlang ?</summary>
+      <p>Le coût moyen, pas S : λ<sub>3</sub> passe de 2 GRB à 1. 1/μ et ρ baissent, le plafond monte.</p>
+    </details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="06-5g.html"><span>← Précédent</span>5G : architecture</a>
+      <a class="next" href="tp-traces-gsm.html"><span>Suivant →</span>TP : analyse de traces GSM</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

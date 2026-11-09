@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ethernet · Introduction aux réseaux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Introduction aux réseaux</a>
+    <div class="course-code">DIV 8404 · Chapitre 04</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 04</div>
+    <h1>Couche accès réseau et Ethernet</h1>
+    <p class="lead">Comment une trame passe d'une carte réseau à une autre : la trame Ethernet, les adresses MAC, et surtout la façon dont un commutateur apprend où se trouve chaque machine.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li><strong>Ethernet</strong> couvre les couches 1 (physique) et 2 (liaison) d'OSI. La couche 2 se divise en <strong>LLC</strong> (802.2, quel protocole de couche 3) et <strong>MAC</strong> (802.3, adressage et accès au support).</li>
+        <li>Une trame fait <strong>64 à 1518 octets</strong> : MAC dest. (6) + MAC source (6) + Type (2) + Données (46 à 1500) + FCS (4).</li>
+        <li>Une <strong>adresse MAC</strong> fait 48 bits : 24 bits d'OUI (constructeur) + 24 bits (numéro de l'interface). Elle identifie une <em>interface</em>, pas une machine.</li>
+        <li>Le switch <strong>apprend</strong> avec la MAC <em>source</em> et <strong>transfère</strong> avec la MAC <em>destination</em>. Destination inconnue ou broadcast : il <strong>inonde</strong> tous les ports sauf celui d'entrée.</li>
+        <li>Un switch moderne travaille en <strong>full-duplex</strong> : plus de collision, donc plus besoin de CSMA/CD.</li>
+      </ul>
+    </div>
+
+    <h2 id="ethernet">Ethernet et la couche liaison</h2>
+    <p>Ethernet gère les échanges entre <strong>cartes réseau</strong> (NIC) d'un même réseau local. Il <strong>encapsule</strong> les paquets IP dans des <strong>trames</strong>, les adresse avec des adresses MAC, détecte les erreurs et définit la partie physique.</p>
+
+    <h3 id="sous-couches">Les sous-couches LLC et MAC</h3>
+    <ul>
+      <li><strong>LLC</strong> (<em>Logical Link Control</em>, IEEE 802.2) dialogue avec la couche réseau : elle indique <strong>quel protocole de couche 3</strong> est transporté (IPv4, IPv6...).</li>
+      <li><strong>MAC</strong> (<em>Media Access Control</em>, IEEE 802.3 pour Ethernet, 802.11 pour le Wi-Fi) construit la trame, gère l'<strong>adressage</strong> et l'<strong>accès au support</strong>.</li>
+    </ul>
+
+    <h3 id="duplex">Half-duplex, full-duplex et CSMA/CD</h3>
+    <p>En <strong>half-duplex</strong>, on émet ou on reçoit, mais pas les deux à la fois (talkie-walkie). En <strong>full-duplex</strong>, émission et réception sont simultanées (téléphone). L'Ethernet historique (bus, concentrateurs ou <em>hubs</em>) était un support <strong>partagé et half-duplex</strong>, avec une méthode d'accès appelée <strong>CSMA/CD</strong>. L'Ethernet moderne relie chaque machine à un <strong>commutateur</strong> par un lien dédié full-duplex.</p>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : CSMA/CD</span>
+      <p>Pensez à un dîner où tout le monde partage la même conversation. Avant de parler, j'écoute si quelqu'un parle déjà (<em>Carrier Sense</em>) ; tout le monde a le droit de parler (<em>Multiple Access</em>) ; si deux personnes commencent en même temps, elles s'en aperçoivent, se taisent, attendent chacune un délai <em>aléatoire</em> et réessaient (<em>Collision Detection</em>).</p>
+      <p>Avec un switch en full-duplex, chaque PC a sa propre ligne avec le switch, dans chaque sens : il n'y a plus personne avec qui entrer en collision, CSMA/CD devient inutile.</p>
+    </div>
+
+    <h3 id="physique" data-toc="Supports physiques">Supports physiques en bref</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Support</th><th>Points clés</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Cuivre UTP</strong></td><td>Le plus courant et le moins cher. Connecteur RJ-45, 4 paires torsadées, <strong>100 m maximum</strong> (atténuation). Les torsades limitent la diaphonie et les interférences.</td></tr>
+        <tr><td><strong>Fibre optique</strong></td><td>Impulsions lumineuses, longues distances, insensible aux interférences électromagnétiques, plus chère. <strong>Monomode</strong> (laser, cœur fin, des km) ou <strong>multimode</strong> (LED, environ 550 m). Sert de dorsale.</td></tr>
+        <tr><td><strong>Sans fil</strong></td><td>Ondes radio (Wi-Fi, IEEE 802.11). Mobilité, mais support partagé et half-duplex.</td></tr>
+      </tbody>
+    </table></div>
+    <p>Le nom d'une norme se lit <code>[débit]BASE-[support]</code> : <strong>1000BASE-T</strong> = 1000 Mb/s sur paires Torsadées. Enfin, grâce à l'<strong>auto-MDIX</strong>, les ports modernes s'adaptent seuls au câble : un câble droit suffit même entre deux switchs.</p>
+
+    <h2 id="trame">La trame Ethernet</h2>
+    <p>La sous-couche MAC construit la trame. Elle fait <strong>64 octets au minimum</strong> et <strong>1518 octets au maximum</strong>, le préambule n'étant pas compté.</p>
+
+    <figure>
+      <svg viewBox="0 0 720 200" role="img" aria-label="Champs de la trame Ethernet avec leur taille en octets">
+        <line class="line" x1="110" y1="22" x2="710" y2="22"/>
+        <line class="line" x1="110" y1="16" x2="110" y2="28"/><line class="line" x1="710" y1="16" x2="710" y2="28"/>
+        <text x="410" y="16" text-anchor="middle" font-size="13" font-weight="700">64 à 1518 octets (taille de la trame)</text>
+        <text x="55" y="52" text-anchor="middle" class="muted" font-size="12">8 octets</text>
+        <text x="175" y="52" text-anchor="middle" class="muted" font-size="12">6 octets</text>
+        <text x="295" y="52" text-anchor="middle" class="muted" font-size="12">6 octets</text>
+        <text x="400" y="52" text-anchor="middle" class="muted" font-size="12">2 octets</text>
+        <text x="535" y="52" text-anchor="middle" class="muted" font-size="12">46 à 1500 octets</text>
+        <text x="665" y="52" text-anchor="middle" class="muted" font-size="12">4 octets</text>
+        <rect class="box" x="0" y="62" width="110" height="70" rx="4"/>
+        <text x="55" y="93" text-anchor="middle" font-size="13">Préambule</text><text x="55" y="111" text-anchor="middle" font-size="13">+ SFD</text>
+        <rect class="accent" x="110" y="62" width="130" height="70" rx="4"/>
+        <text x="175" y="93" text-anchor="middle" font-size="13">Adresse MAC</text><text x="175" y="111" text-anchor="middle" font-size="13">destination</text>
+        <rect class="accent" x="240" y="62" width="110" height="70" rx="4"/>
+        <text x="295" y="93" text-anchor="middle" font-size="13">Adresse MAC</text><text x="295" y="111" text-anchor="middle" font-size="13">source</text>
+        <rect class="accent" x="350" y="62" width="100" height="70" rx="4"/>
+        <text x="400" y="93" text-anchor="middle" font-size="13">Type /</text><text x="400" y="111" text-anchor="middle" font-size="13">Longueur</text>
+        <rect class="box" x="450" y="62" width="170" height="70" rx="4"/>
+        <text x="535" y="93" text-anchor="middle" font-size="13">Données</text><text x="535" y="111" text-anchor="middle" font-size="12" class="muted">(paquet IP + bourrage)</text>
+        <rect class="accent" x="620" y="62" width="90" height="70" rx="4"/>
+        <text x="665" y="102" text-anchor="middle" font-size="13">FCS</text>
+        <text x="55" y="155" text-anchor="middle" class="muted" font-size="11">synchronisation</text>
+        <text x="55" y="170" text-anchor="middle" class="muted" font-size="11">(non comptés)</text>
+        <text x="295" y="155" text-anchor="middle" class="muted" font-size="11">en-tête : 14 octets</text>
+        <text x="400" y="170" text-anchor="middle" class="muted" font-size="11">0x0800 = IPv4, 0x86DD = IPv6</text>
+        <text x="665" y="155" text-anchor="middle" class="muted" font-size="11">contrôle CRC</text>
+      </svg>
+      <figcaption>Trame Ethernet : 14 octets d'en-tête + 46 à 1500 octets de données + 4 octets de FCS = 64 à 1518 octets.</figcaption>
+    </figure>
+
+    <ul>
+      <li><strong>Préambule + SFD</strong> (8 octets) : motif qui synchronise le récepteur et annonce le début de la trame.</li>
+      <li><strong>MAC destination</strong> puis <strong>MAC source</strong> (6 octets chacune). La destination est en premier pour que le switch puisse décider au plus vite.</li>
+      <li><strong>Type</strong> (2 octets) : protocole encapsulé (<code>0x0800</code> IPv4, <code>0x86DD</code> IPv6, <code>0x0806</code> ARP).</li>
+      <li><strong>Données</strong> (46 à 1500 octets) : le paquet de couche 3. En dessous de 46 octets, on ajoute du <strong>bourrage</strong>. Les 1500 octets maximum forment le <strong>MTU</strong> Ethernet.</li>
+      <li><strong>FCS</strong> (4 octets) : code CRC calculé par l'émetteur et recalculé par le récepteur. S'ils diffèrent, la trame est jetée (Ethernet détecte l'erreur mais ne la corrige pas).</li>
+    </ul>
+
+    <div class="callout warn"><span class="callout-title">Piège classique : les tailles</span>
+      <p>Minimum : 6 + 6 + 2 + 46 + 4 = <strong>64</strong>. Maximum : 6 + 6 + 2 + 1500 + 4 = <strong>1518</strong>, et non 1526 : on ne compte pas le préambule. Une trame de moins de 64 octets est un <strong>runt</strong> (fragment de collision) et elle est rejetée ; au-delà de 1518, c'est une trame <strong>jumbo</strong>, non standard.</p>
+    </div>
+
+    <h2 id="mac">Adresses MAC</h2>
+    <p>Une <strong>adresse MAC</strong> fait <strong>48 bits</strong> (6 octets), écrits en <strong>12 chiffres hexadécimaux</strong> : <code>00-60-2F-3A-07-BC</code>, ou <code>0060.2f3a.07bc</code> chez Cisco. Pour garantir l'unicité, l'IEEE attribue à chaque constructeur un <strong>OUI</strong> de 24 bits (ici <code>00-60-2F</code>) et le constructeur numérote ensuite ses interfaces avec les 24 bits restants (<code>3A-07-BC</code>).</p>
+    <p>Chaque <strong>interface</strong> a sa propre MAC : un PC avec une carte Ethernet et une carte Wi-Fi en a deux. Un switch en a une par port, plus une pour son interface de gestion (SVI).</p>
+
+    <div class="table-wrap"><table>
+      <thead><tr><th>Type</th><th>Destination</th><th>Qui reçoit</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Unicast</strong></td><td>MAC d'une interface</td><td>Un seul destinataire</td></tr>
+        <tr><td><strong>Broadcast</strong></td><td><code>FF-FF-FF-FF-FF-FF</code></td><td>Tout le réseau local. Un routeur ne le transmet pas.</td></tr>
+        <tr><td><strong>Multicast</strong></td><td><code>01-00-5E-...</code> (IPv4), <code>33-33-...</code> (IPv6)</td><td>Les membres d'un groupe</td></tr>
+      </tbody>
+    </table></div>
+    <p>La MAC <strong>source</strong> est <strong>toujours unicast</strong> : broadcast et multicast désignent plusieurs machines et n'apparaissent que comme destination. Pour trouver la MAC qui correspond à une adresse IP, un hôte utilise <strong>ARP</strong> en IPv4.</p>
+
+    <h2 id="table-mac" data-toc="Table d'adresses MAC">Le commutateur et sa table d'adresses MAC</h2>
+    <p>Le switch tient une <strong>table d'adresses MAC</strong> (ou table CAM) qui associe chaque MAC au port par lequel on la joint. Au démarrage elle est <strong>vide</strong> : il la remplit tout seul en observant le trafic.</p>
+
+    <figure>
+      <svg viewBox="0 0 640 260" role="img" aria-label="Commutateur avec trois PC et sa table d'adresses MAC">
+        <rect class="accent" x="240" y="100" width="140" height="56" rx="8"/><text x="310" y="133" text-anchor="middle" font-weight="700">Switch</text>
+        <rect class="box" x="30" y="20" width="110" height="44" rx="8"/><text x="85" y="47" text-anchor="middle">PC A</text>
+        <rect class="box" x="30" y="190" width="110" height="44" rx="8"/><text x="85" y="217" text-anchor="middle">PC B</text>
+        <rect class="box" x="480" y="20" width="110" height="44" rx="8"/><text x="535" y="47" text-anchor="middle">PC C</text>
+        <line class="line" x1="140" y1="42" x2="240" y2="112" stroke-width="2"/>
+        <line class="line" x1="140" y1="212" x2="240" y2="146" stroke-width="2"/>
+        <line class="line" x1="480" y1="42" x2="380" y2="112" stroke-width="2"/>
+        <text x="215" y="90" class="muted" font-size="12">port 1</text>
+        <text x="200" y="180" class="muted" font-size="12">port 2</text>
+        <text x="385" y="90" class="muted" font-size="12">port 3</text>
+        <rect class="box" x="420" y="150" width="200" height="100" rx="6"/>
+        <text x="470" y="172" text-anchor="middle" font-weight="700" font-size="13">MAC</text><text x="575" y="172" text-anchor="middle" font-weight="700" font-size="13">Port</text>
+        <line class="line" x1="430" y1="180" x2="610" y2="180"/>
+        <text x="470" y="200" text-anchor="middle" font-size="13">MAC-PCA</text><text x="575" y="200" text-anchor="middle" font-size="13">1</text>
+        <text x="470" y="220" text-anchor="middle" font-size="13">MAC-PCB</text><text x="575" y="220" text-anchor="middle" font-size="13">2</text>
+        <text x="470" y="240" text-anchor="middle" font-size="13">MAC-PCC</text><text x="575" y="240" text-anchor="middle" font-size="13">3</text>
+        <text x="310" y="190" text-anchor="middle" class="muted" font-size="12">PC C → PC A :</text>
+        <text x="310" y="206" text-anchor="middle" class="muted" font-size="12">D = MAC-PCA → port 1</text>
+      </svg>
+      <figcaption>PC C envoie une trame à destination de MAC-PCA : le switch trouve l'entrée dans sa table et ne la relaie que sur le port 1.</figcaption>
+    </figure>
+
+    <div class="callout key"><span class="callout-title">L'algorithme du commutateur, à chaque trame reçue</span>
+      <ol>
+        <li><strong>Apprendre</strong> : lire la MAC <em>source</em> et noter (ou rafraîchir) « cette MAC est derrière le port d'entrée ».</li>
+        <li><strong>Transférer</strong> selon la MAC <em>destination</em> :
+          <ul>
+            <li>connue → envoi sur <strong>ce seul port</strong> ;</li>
+            <li>inconnue, broadcast ou multicast → <strong>inondation</strong> (<em>flooding</em>) sur tous les ports sauf celui d'entrée.</li>
+          </ul>
+        </li>
+      </ol>
+    </div>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : le concierge</span>
+      <p>Un concierge ne connaît pas les habitants de l'immeuble. Chaque fois que quelqu'un dépose du courrier, il note « M. Dupont est passé par l'escalier B » : il apprend grâce à l'<em>expéditeur</em> (MAC source). Quand une lettre arrive pour M. Dupont, il sait la monter par l'escalier B (transfert). Pour une lettre adressée à un inconnu, il en dépose une copie dans chaque escalier (inondation) : quand l'inconnu répondra, il saura où il habite. Les notes trop anciennes sont effacées : sur un Cisco, une entrée non revue depuis <strong>300 secondes</strong> disparaît.</p>
+    </div>
+
+    <h3 id="multi-switch" data-toc="Plusieurs commutateurs">Avec plusieurs commutateurs</h3>
+    <p>Chaque switch construit sa table indépendamment. PC A (<code>AAAA</code>) écrit à PC B (<code>BBBB</code>), tables vides : la trame est inondée, donc les trois switchs apprennent <code>AAAA</code>. PC B répond : Switch B puis Switch A apprennent <code>BBBB</code> et transfèrent directement vers PC A. Switch C, qui n'est pas sur le chemin de la réponse, ne connaîtra pas <code>BBBB</code>.</p>
+    <figure>
+      <svg viewBox="0 0 680 330" role="img" aria-label="Trois commutateurs A, B, C et leurs tables après un échange entre PC A et PC B">
+        <rect class="accent" x="250" y="40" width="120" height="44" rx="8"/><text x="310" y="67" text-anchor="middle" font-weight="700">Switch C</text>
+        <rect class="accent" x="150" y="180" width="120" height="44" rx="8"/><text x="210" y="207" text-anchor="middle" font-weight="700">Switch A</text>
+        <rect class="accent" x="410" y="180" width="120" height="44" rx="8"/><text x="470" y="207" text-anchor="middle" font-weight="700">Switch B</text>
+        <rect class="box" x="30" y="270" width="130" height="44" rx="8"/><text x="95" y="290" text-anchor="middle" font-size="13">PC A</text><text x="95" y="306" text-anchor="middle" class="muted" font-size="11">MAC AAAA</text>
+        <rect class="box" x="520" y="270" width="130" height="44" rx="8"/><text x="585" y="290" text-anchor="middle" font-size="13">PC B</text><text x="585" y="306" text-anchor="middle" class="muted" font-size="11">MAC BBBB</text>
+        <rect class="box" x="490" y="40" width="130" height="44" rx="8"/><text x="555" y="60" text-anchor="middle" font-size="13">PC C</text><text x="555" y="76" text-anchor="middle" class="muted" font-size="11">MAC CCCC</text>
+        <line class="line" x1="230" y1="180" x2="290" y2="84" stroke-width="2"/>
+        <line class="line" x1="270" y1="202" x2="410" y2="202" stroke-width="2"/>
+        <line class="line" x1="180" y1="224" x2="110" y2="270" stroke-width="2"/>
+        <line class="line" x1="500" y1="224" x2="570" y2="270" stroke-width="2"/>
+        <line class="line" x1="370" y1="62" x2="490" y2="62" stroke-width="2"/>
+        <text x="236" y="168" class="muted" font-size="11">G0/1</text>
+        <text x="282" y="100" class="muted" font-size="11">G0/1</text>
+        <text x="274" y="196" class="muted" font-size="11">G1/0</text>
+        <text x="372" y="196" class="muted" font-size="11">G0/1</text>
+        <text x="120" y="245" class="muted" font-size="11">G0/0</text>
+        <text x="535" y="245" class="muted" font-size="11">G0/0</text>
+        <text x="380" y="55" class="muted" font-size="11">G0/0</text>
+        <rect class="box" x="20" y="100" width="150" height="62" rx="6"/>
+        <text x="95" y="118" text-anchor="middle" font-size="12" font-weight="700">Table Switch A</text>
+        <text x="95" y="136" text-anchor="middle" font-size="12" font-family="monospace">AAAA → G0/0</text>
+        <text x="95" y="152" text-anchor="middle" font-size="12" font-family="monospace">BBBB → G1/0</text>
+        <rect class="box" x="60" y="10" width="150" height="46" rx="6"/>
+        <text x="135" y="28" text-anchor="middle" font-size="12" font-weight="700">Table Switch C</text>
+        <text x="135" y="46" text-anchor="middle" font-size="12" font-family="monospace">AAAA → G0/1</text>
+        <rect class="box" x="510" y="100" width="150" height="62" rx="6"/>
+        <text x="585" y="118" text-anchor="middle" font-size="12" font-weight="700">Table Switch B</text>
+        <text x="585" y="136" text-anchor="middle" font-size="12" font-family="monospace">AAAA → G0/1</text>
+        <text x="585" y="152" text-anchor="middle" font-size="12" font-family="monospace">BBBB → G0/0</text>
+      </svg>
+      <figcaption>État final : Switch C n'a vu que la première trame (inondée), il ne connaît que AAAA.</figcaption>
+    </figure>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : « par quelle porte », pas « où »</span>
+      <p>Une entrée de table ne dit pas où se trouve réellement le PC, mais <strong>par quelle porte sortir</strong> pour l'atteindre. Pour Switch B, PC A est « derrière G0/1 », même s'il y a un autre switch au milieu. C'est pourquoi un port qui relie deux switchs accumule beaucoup de MAC, alors qu'un port relié à un PC n'en porte normalement qu'une.</p>
+    </div>
+
+    <div class="callout warn"><span class="callout-title">Piège classique</span>
+      <p>Le switch apprend avec la MAC <strong>source</strong>, jamais avec la destination. Et une destination inconnue n'est <strong>pas</strong> jetée : elle est inondée.</p>
+    </div>
+
+    <p><strong>Méthodes de commutation.</strong> En <strong>store-and-forward</strong> (défaut des Catalyst), le switch reçoit la trame entière et vérifie le FCS avant de la transférer : aucune trame corrompue ne passe. En <strong>cut-through</strong>, il commence à la transférer dès qu'il a lu la MAC destination : latence plus faible, mais des trames erronées peuvent être propagées.</p>
+
+    <h2 id="tp">Travaux pratiques</h2>
+    <section class="tp">
+      <h3 id="tp-table-mac">TP · Table d'adresses MAC du commutateur <span class="badge">Salle B107 · Catalyst 2960 / 9200</span></h3>
+      <p><strong>Objectif :</strong> relier PC-A (F0/6 de S1) et PC-B (F0/18 de S2) par deux switchs reliés en F0/1, puis observer comment chaque table MAC se remplit (réseau 192.168.1.0/24, SVI en .11 et .12).</p>
+      <ol class="steps">
+        <li><strong>Configurer la SVI</strong> de chaque switch pour pouvoir le pinguer.
+<pre data-label="Cisco IOS"><code><span class="prompt">S1(config)#</span> interface vlan 1
+<span class="prompt">S1(config-if)#</span> ip address 192.168.1.11 255.255.255.0
+<span class="prompt">S1(config-if)#</span> no shutdown</code></pre></li>
+        <li><strong>Relever les MAC</strong> : <code>ip a</code> sur les PC (ligne <code>link/ether</code>), <code>show interfaces f0/1</code> sur les switchs (champ <code>address is</code>).</li>
+        <li><strong>Afficher, vider, réafficher</strong> la table de S2.
+<pre data-label="Cisco IOS"><code><span class="prompt">S2#</span> show mac address-table
+<span class="out">Vlan    Mac Address       Type        Ports
+   1    0cd9.96e2.3d81    DYNAMIC     Fa0/1   <span class="cmt">! port F0/1 de S1</span>
+   1    0050.56be.f6db    DYNAMIC     Fa0/18  <span class="cmt">! PC-B</span></span>
+<span class="prompt">S2#</span> clear mac address-table dynamic</code></pre></li>
+        <li><strong>Depuis PC-B</strong> : <code>arp -a</code>, puis <code>ping</code> vers PC-A, S1 et S2, puis à nouveau <code>arp -a</code> et <code>show mac address-table</code> sur S2.</li>
+      </ol>
+      <details><summary>Avant tout ping, la table de S2 contient-elle des adresses ? Et juste après un <code>clear</code> ?</summary>
+        <p>Oui : les équipements émettent du trafic de contrôle (STP, CDP), donc S2 connaît déjà PC-B (F0/18) et le port F0/1 de S1. Les entrées <code>STATIC</code> du CPU sont à ignorer. Après le <code>clear</code>, les entrées dynamiques disparaissent puis reviennent en quelques secondes.</p>
+      </details>
+      <details><summary>Après les pings, pourquoi le port F0/1 de S2 est-il associé à plusieurs MAC ?</summary>
+        <p>Parce que tout ce qui est derrière S1 est joint par F0/1 : la MAC du port F0/1 de S1, celle de la SVI de S1 (réponse au ping vers .11) et celle de PC-A. Le cache ARP de PC-B contient lui trois entrées : PC-A, S1 et S2.</p>
+      </details>
+    </section>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. Quelle est la taille minimale et maximale d'une trame Ethernet, et pourquoi ?</summary>
+      <p><strong>64 et 1518 octets</strong> : 14 octets d'en-tête + 46 à 1500 octets de données + 4 octets de FCS, préambule non compté.</p>
+    </details>
+    <details><summary>2. Quelle sous-couche indique le protocole de couche 3 transporté : LLC ou MAC ?</summary>
+      <p><strong>LLC</strong> (802.2). La sous-couche MAC (802.3) gère l'encapsulation, l'adressage et l'accès au support.</p>
+    </details>
+    <details><summary>3. Laquelle peut être une MAC source : FF-FF-FF-FF-FF-FF, 01-00-5E-00-00-FB, 00-1B-63-84-45-E6 ?</summary>
+      <p>Seulement <strong>00-1B-63-84-45-E6</strong> (unicast). Les deux autres sont un broadcast et un multicast IPv4, qui ne peuvent être que des destinations.</p>
+    </details>
+    <details><summary>4. Quelle information le switch utilise-t-il pour remplir sa table, et laquelle pour transférer ?</summary>
+      <p>Il <strong>apprend</strong> avec la MAC <strong>source</strong> et le port d'entrée, il <strong>transfère</strong> selon la MAC <strong>destination</strong>.</p>
+    </details>
+    <details><summary>5. Le switch reçoit une trame unicast dont la destination est absente de sa table. Que fait-il ?</summary>
+      <p>Il l'<strong>inonde</strong> sur tous les ports sauf celui d'entrée (il ne la jette pas), et apprend quand même la MAC source.</p>
+    </details>
+    <details><summary>6. Pourquoi CSMA/CD n'est-il plus utilisé sur un réseau commuté ?</summary>
+      <p>Les liens switch ↔ hôte sont <strong>full-duplex</strong> et dédiés : aucune collision n'est possible. CSMA/CD ne sert que sur un support partagé half-duplex (hub).</p>
+    </details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="03-protocoles-modeles.html"><span>← Précédent</span>Protocoles et modèles</a>
+      <a class="next" href="05-vlans.html"><span>Suivant →</span>Les VLANs</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

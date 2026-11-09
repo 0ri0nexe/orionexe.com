@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>5G : architecture · Réseaux cellulaires</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Réseaux cellulaires</a>
+    <div class="course-code">NET 8465 · Chapitre 06</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 06</div>
+    <h1>5G : architecture</h1>
+    <p class="lead">La 5G est un réseau logiciel, virtualisé et découpable en tranches : spectre, transition NSA vers SA, RAN désagrégé, puis cœur orienté services.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>Quatre piliers : <strong>network slicing</strong> de bout en bout, <strong>architecture orientée services</strong> (SBA), <strong>SDN</strong> et <strong>NFV</strong>.</li>
+        <li>Spectre : bandes basses (300 MHz à 3 GHz, portée) et <strong>ondes millimétriques</strong> (24 à 100 GHz alloués, gros débit mais faible portée).</li>
+        <li><strong>NSA</strong> (option 3) : radio 5G greffée sur une eNB 4G et un cœur EPC. <strong>SA</strong> (option 2) : gNB 5G + cœur 5G natif.</li>
+        <li>Le cœur 5G (5GC) est un ensemble de fonctions logicielles (AMF, SMF, UPF...) qui se parlent par <strong>API REST sur HTTP/2</strong>.</li>
+        <li>Correspondance clé : MME → AMF + SMF, SGW/PGW → UPF (données) + SMF (contrôle), HSS → UDM + AUSF, PCRF → PCF.</li>
+      </ul>
+    </div>
+
+    <h2 id="vision">Vision et spectre</h2>
+    <p>La 5G sert à la fois des humains et des machines, aux indicateurs de performance (KPI) très différents : un réseau « taille unique » ne suffit plus. D'où quatre piliers : le <strong>découpage en tranches</strong> (<em>network slicing</em>), l'<strong>architecture orientée services</strong> (<em>Service-Based Architecture</em>, SBA), le <strong>SDN</strong> (réseau piloté par logiciel) et la <strong>virtualisation des fonctions réseau</strong> (<em>Network Functions Virtualisation</em>, NFV).</p>
+    <p>La nouvelle interface radio s'appelle <strong>NR</strong> (<em>New Radio</em>). Elle exploite deux familles de fréquences :</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Bandes</th><th>Fréquences</th><th>Atout</th><th>Limite</th></tr></thead>
+      <tbody>
+        <tr><td>Basses / moyennes (UHF réutilisées)</td><td>300 MHz à 3 GHz</td><td>Bonne portée, pénétration</td><td>Débit limité</td></tr>
+        <tr><td><strong>Ondes millimétriques</strong> (<em>mmWave</em>)</td><td>30 à 300 GHz (λ de 1 à 10 mm) ; 24 à 100 GHz alloués à la 5G</td><td>Très gros débit, zones denses</td><td>Portée très courte</td></tr>
+      </tbody>
+    </table></div>
+    <p>En 3GPP, on parle de <strong>FR1</strong> (sous 6 GHz, extension de la plage basse) et <strong>FR2</strong> (ondes millimétriques, à partir de 24 GHz).</p>
+
+    <h2 id="nsa-sa">NSA et SA : les options d'architecture</h2>
+    <p>Passer de la 4G à la 5G se fait par étapes. Le 3GPP (Release 15) définit plusieurs <strong>options</strong>, qui combinent une radio (4G ou 5G) et un cœur (EPC 4G ou 5GC).</p>
+
+    <figure>
+      <svg viewBox="0 0 640 230" role="img" aria-label="Option 3 NSA : eNB maître et en-gNB secondaire reliées à l'EPC. Option 2 SA : gNB reliée au cœur 5G.">
+        <text x="160" y="22" text-anchor="middle" font-weight="700">Option 3 : NSA</text>
+        <text x="490" y="22" text-anchor="middle" font-weight="700">Option 2 : SA</text>
+        <rect class="box" x="100" y="40" width="120" height="40" rx="8"/>
+        <text x="160" y="65" text-anchor="middle">Cœur 4G (EPC)</text>
+        <rect class="box" x="30" y="140" width="120" height="50" rx="8"/>
+        <text x="90" y="162" text-anchor="middle">eNB 4G</text>
+        <text x="90" y="180" text-anchor="middle" class="muted" font-size="12">maître (ancre)</text>
+        <rect class="accent" x="180" y="140" width="120" height="50" rx="8"/>
+        <text x="240" y="162" text-anchor="middle">en-gNB 5G</text>
+        <text x="240" y="180" text-anchor="middle" class="muted" font-size="12">secondaire (débit)</text>
+        <line class="line" x1="130" y1="80" x2="90" y2="140" stroke-width="2"/>
+        <line class="line" x1="190" y1="80" x2="240" y2="140" stroke-width="2" stroke-dasharray="5 4"/>
+        <line class="line" x1="150" y1="165" x2="180" y2="165" stroke-width="2"/>
+        <text x="160" y="218" text-anchor="middle" class="muted" font-size="12">signalisation via la 4G, données aussi via la 5G</text>
+        <line class="line" x1="330" y1="35" x2="330" y2="210" stroke-dasharray="3 5"/>
+        <rect class="accent" x="430" y="40" width="120" height="40" rx="8"/>
+        <text x="490" y="65" text-anchor="middle">Cœur 5G (5GC)</text>
+        <rect class="accent" x="430" y="140" width="120" height="50" rx="8"/>
+        <text x="490" y="170" text-anchor="middle">gNB 5G</text>
+        <line class="line" x1="490" y1="80" x2="490" y2="140" stroke-width="2"/>
+        <text x="490" y="218" text-anchor="middle" class="muted" font-size="12">5G de bout en bout</text>
+      </svg>
+      <figcaption>NSA : la 5G s'appuie sur la 4G existante. SA : tout est 5G, radio et cœur.</figcaption>
+    </figure>
+
+    <ul>
+      <li><strong>Non autonome</strong> (<em>Non-Standalone</em>, NSA), <strong>option 3</strong> (3/3a/3x) : l'eNB 4G est le nœud <strong>maître</strong> (MN) et l'ancre de la signalisation ; une <strong>en-gNB</strong> 5G est ajoutée comme nœud <strong>secondaire</strong> (SN) qui apporte du débit (double connectivité). Le cœur reste l'<strong>EPC</strong>.</li>
+      <li><strong>Autonome</strong> (<em>Standalone</em>, SA), <strong>option 2</strong> : une <strong>gNB</strong> reliée au <strong>cœur 5G</strong> (5GC, noté NGC sur les slides). C'est la seule qui donne accès à toutes les fonctions 5G (slicing, SBA, faible latence).</li>
+      <li>Variantes : option 5 (eNB évoluée sur 5GC, SA), options 4 et 7 (NSA sur 5GC).</li>
+    </ul>
+
+    <div class="callout explain">
+      <span class="callout-title">Pour comprendre : pourquoi commencer en NSA ?</span>
+      <p>Imaginez une gare qu'on agrandit : on ajoute des quais rapides (la radio 5G) mais on garde l'ancien hall et les guichets (l'EPC et l'eNB qui gère la signalisation). Les voyageurs vont plus vite tout de suite, sans attendre une gare neuve.</p>
+      <p>NSA réutilise le cœur et la couverture 4G déjà payés, donne vite des débits 5G et a été normalisé en premier (déc. 2017, SA en juin 2018). Le prix : sans cœur 5G, ni slicing ni SBA. SA vient ensuite.</p>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-title">Piège classique</span>
+      <p>« NSA = pas de radio 5G » est faux. En NSA, la radio 5G est bien là ; c'est le <strong>cœur</strong> (et l'ancre de signalisation) qui reste 4G. Ce qui distingue NSA et SA, c'est donc le cœur et le rôle de maître, pas la présence de NR.</p>
+    </div>
+
+    <h2 id="ran">RAN 5G, MEC et NFV</h2>
+    <h3 id="gnb">La gNB et son découpage CU / DU / RU</h3>
+    <p>La station de base 5G est la <strong>gNB</strong>. Elle n'est plus un boîtier monolithique : elle est <strong>désagrégée</strong> en trois parties.</p>
+    <div class="grid">
+      <div class="card"><h4>RU (<em>Radio Unit</em>)</h4><p>Antennes et radiofréquence, sur le site.</p></div>
+      <div class="card"><h4>DU (<em>Distributed Unit</em>)</h4><p>Traitement temps réel des couches basses, proche de l'antenne.</p></div>
+      <div class="card"><h4>CU (<em>Central Unit</em>)</h4><p>Couches hautes, centralisées et virtualisables, séparées en CU-C (contrôle) et CU-U (données).</p></div>
+    </div>
+    <p>Le transport entre ces blocs s'appelle <em>fronthaul</em>, <em>midhaul</em> puis <em>backhaul</em>. L'alliance <strong>O-RAN</strong> pousse des interfaces ouvertes pour mélanger plusieurs fournisseurs sur du matériel standard, ce qui réduit les coûts.</p>
+
+    <h3 id="mec">MEC : le calcul en bordure</h3>
+    <p>Le <strong>MEC</strong> (<em>Multi-Access Edge Computing</em>) déplace les applications des grands datacenters vers la <strong>bordure du réseau</strong>, près des antennes. Résultat : <strong>latence plus faible</strong>, débit plus élevé, accès temps réel aux informations radio.</p>
+
+    <h3 id="nfv">NFV</h3>
+    <p>La <strong>NFV</strong> sépare le logiciel du matériel : les fonctions réseau deviennent des <strong>instances logicielles</strong> sur des serveurs banalisés : moins de matériel dédié, déploiement plus rapide, et base technique du slicing.</p>
+
+    <h2 id="slicing">Network slicing</h2>
+    <p>Le slicing fait tourner <strong>plusieurs réseaux logiques de bout en bout</strong> sur <strong>une même infrastructure physique</strong>, chacun avec son débit, sa latence et sa disponibilité, attribué à un client (<em>tenant</em>).</p>
+
+    <div class="callout explain">
+      <span class="callout-title">Pour comprendre : l'autoroute à voies réservées</span>
+      <p>Une autoroute (l'infrastructure physique) est partagée. Le slicing revient à peindre des voies dédiées avec leurs propres règles : une voie bus à haut débit pour la vidéo (très haut débit mobile, <em>eMBB</em>), une voie réservée aux ambulances qui ne doit jamais être bloquée (faible latence et haute fiabilité, <em>URLLC</em>), et une voie lente pour des milliers de petits véhicules de livraison (IoT massif, <em>mMTC</em> : énormément d'utilisateurs mais peu de débit chacun).</p>
+      <p>Un bouchon dans la voie vidéo ne ralentit pas les ambulances : les tranches sont <strong>isolées</strong>. Et les voies étant « peintes » par logiciel (NFV, SDN), en créer une pour tester un service est rapide.</p>
+    </div>
+    <p>Dans le cœur, la <strong>NSSF</strong> choisit la tranche, l'AMF l'autorise selon l'abonnement.</p>
+
+    <h2 id="coeur">Le cœur 5G en architecture orientée services</h2>
+    <p>Le 5GC est <em>cloud-native</em> : chaque fonction réseau (NF) est un logiciel virtualisé. Deux ruptures avec l'EPC : la <strong>séparation contrôle / données</strong> (l'UPF ne fait que transporter les paquets, le contrôle est ailleurs) et la séparation de la <strong>mobilité</strong> (AMF) et des <strong>sessions</strong> (SMF), que le MME mélangeait.</p>
+
+    <figure>
+      <svg viewBox="0 0 640 260" role="img" aria-label="Fonctions du plan de contrôle reliées à un bus de services ; UPF dans le plan usager entre gNB et réseau de données.">
+        <rect class="box" x="10" y="20" width="70" height="36" rx="6"/><text x="45" y="43" text-anchor="middle">NSSF</text>
+        <rect class="box" x="90" y="20" width="70" height="36" rx="6"/><text x="125" y="43" text-anchor="middle">NEF</text>
+        <rect class="box" x="170" y="20" width="70" height="36" rx="6"/><text x="205" y="43" text-anchor="middle">NRF</text>
+        <rect class="box" x="250" y="20" width="70" height="36" rx="6"/><text x="285" y="43" text-anchor="middle">PCF</text>
+        <rect class="box" x="330" y="20" width="70" height="36" rx="6"/><text x="365" y="43" text-anchor="middle">UDM</text>
+        <rect class="box" x="410" y="20" width="70" height="36" rx="6"/><text x="445" y="43" text-anchor="middle">AF</text>
+        <line class="line" x1="45" y1="56" x2="45" y2="90"/><line class="line" x1="125" y1="56" x2="125" y2="90"/>
+        <line class="line" x1="205" y1="56" x2="205" y2="90"/><line class="line" x1="285" y1="56" x2="285" y2="90"/>
+        <line class="line" x1="365" y1="56" x2="365" y2="90"/><line class="line" x1="445" y1="56" x2="445" y2="90"/>
+        <rect class="accent" x="10" y="90" width="490" height="22" rx="11"/>
+        <text x="255" y="106" text-anchor="middle" font-size="13">Bus de services : API REST sur HTTP/2</text>
+        <line class="line" x1="85" y1="112" x2="85" y2="140"/><line class="line" x1="205" y1="112" x2="205" y2="140"/>
+        <line class="line" x1="325" y1="112" x2="325" y2="140"/>
+        <rect class="box" x="50" y="140" width="70" height="36" rx="6"/><text x="85" y="163" text-anchor="middle">AUSF</text>
+        <rect class="box" x="170" y="140" width="70" height="36" rx="6"/><text x="205" y="163" text-anchor="middle">AMF</text>
+        <rect class="box" x="290" y="140" width="70" height="36" rx="6"/><text x="325" y="163" text-anchor="middle">SMF</text>
+        <text x="570" y="106" text-anchor="middle" class="muted" font-size="12">plan de contrôle</text>
+        <line class="line" x1="10" y1="195" x2="630" y2="195" stroke-dasharray="3 5"/>
+        <text x="570" y="215" text-anchor="middle" class="muted" font-size="12">plan usager</text>
+        <rect class="box" x="10" y="215" width="90" height="36" rx="6"/><text x="55" y="238" text-anchor="middle">UE + gNB</text>
+        <rect class="accent" x="290" y="215" width="70" height="36" rx="6"/><text x="325" y="238" text-anchor="middle">UPF</text>
+        <rect class="box" x="420" y="215" width="90" height="36" rx="6"/><text x="465" y="238" text-anchor="middle">Internet (DN)</text>
+        <line class="line" x1="100" y1="233" x2="290" y2="233" stroke-width="2"/>
+        <line class="line" x1="360" y1="233" x2="420" y2="233" stroke-width="2"/>
+        <line class="line" x1="205" y1="176" x2="100" y2="220" stroke-dasharray="4 4"/>
+        <line class="line" x1="325" y1="176" x2="325" y2="215" stroke-dasharray="4 4"/>
+      </svg>
+      <figcaption>Les fonctions de contrôle exposent des services sur un bus commun. L'UPF, piloté par la SMF, transporte seul les données.</figcaption>
+    </figure>
+
+    <div class="callout explain">
+      <span class="callout-title">Pour comprendre : la SBA comme un ensemble de microservices</span>
+      <p>En 4G, chaque équipement parlait à ses voisins par des interfaces point à point dédiées (S1, S6a, S11...) : un câblage figé. En 5G, chaque fonction est un <strong>producteur</strong> de services qui publie une API, et toute fonction autorisée peut la <strong>consommer</strong>, comme des microservices web.</p>
+      <p>La <strong>NRF</strong> joue l'annuaire : chaque NF s'y enregistre, et les autres l'y découvrent (l'AMF trouve ainsi une SMF adaptée au service demandé). Les échanges suivent deux modèles : <strong>requête / réponse</strong> ou <strong>abonnement / notification</strong>.</p>
+    </div>
+
+    <h3 id="fonctions">Les principales fonctions</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Fonction</th><th>Rôle</th></tr></thead>
+      <tbody>
+        <tr><td><strong>AMF</strong> (<em>Access and Mobility Management Function</em>)</td><td>Point d'entrée unique de l'UE : enregistrement, connexion, mobilité. Choisit la SMF.</td></tr>
+        <tr><td><strong>SMF</strong> (<em>Session Management Function</em>)</td><td>Sessions PDU, attribution de l'adresse IP, choix et pilotage de l'UPF, politiques côté contrôle.</td></tr>
+        <tr><td><strong>UPF</strong> (<em>User Plane Function</em>)</td><td>Plan usager : routage et transfert des paquets, inspection, application de la QoS et des politiques.</td></tr>
+        <tr><td><strong>AUSF</strong> (<em>Authentication Server Function</em>)</td><td>Permet à l'AMF d'authentifier l'UE.</td></tr>
+        <tr><td><strong>UDM</strong> (<em>Unified Data Management</em>)</td><td>Identités et abonnements, données d'authentification, autorisations (itinérance).</td></tr>
+        <tr><td><strong>PCF</strong> (<em>Policy Control Function</em>)</td><td>Cadre de politiques : décide des règles qui gouvernent le réseau.</td></tr>
+        <tr><td><strong>NRF</strong> (<em>NF Repository Function</em>)</td><td>Annuaire des NF : enregistrement et découverte de services.</td></tr>
+        <tr><td><strong>NSSF</strong> (<em>Network Slice Selection Function</em>)</td><td>Liste les tranches de l'opérateur et oriente l'UE vers la bonne.</td></tr>
+        <tr><td><strong>NEF</strong> (<em>Network Exposure Function</em>)</td><td>Expose les services du cœur par API REST, y compris à des applications tierces.</td></tr>
+        <tr><td><strong>AF</strong> (<em>Application Function</em>)</td><td>Application qui dialogue avec le cœur (NEF, PCF).</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3 id="correspondance">De l'EPC 4G au 5GC</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>EPC (4G)</th><th>5GC</th><th>Remarque</th></tr></thead>
+      <tbody>
+        <tr><td>MME</td><td><strong>AMF</strong> + <strong>SMF</strong></td><td>Mobilité d'un côté, sessions de l'autre.</td></tr>
+        <tr><td>SGW-U + PGW-U</td><td><strong>UPF</strong></td><td>Toute la partie données des passerelles.</td></tr>
+        <tr><td>SGW-C + PGW-C</td><td><strong>SMF</strong></td><td>La partie contrôle des passerelles rejoint la SMF.</td></tr>
+        <tr><td>HSS / AAA</td><td><strong>UDM</strong> + <strong>AUSF</strong></td><td>Données d'abonnés d'un côté, authentification de l'autre.</td></tr>
+        <tr><td>PCRF</td><td><strong>PCF</strong></td><td>Contrôle des politiques.</td></tr>
+        <tr><td>AF</td><td><strong>AF</strong></td><td>Inchangé.</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="callout warn">
+      <span class="callout-title">Piège classique</span>
+      <p>Ne pas écrire « MME → AMF » tout court. Le MME gérait aussi la signalisation de session : en 5G elle part dans la <strong>SMF</strong>. De même, SGW/PGW ne deviennent pas seulement l'UPF : leur plan de contrôle (-C) va aussi dans la SMF.</p>
+    </div>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. Quels sont les quatre piliers de l'architecture 5G ?</summary>
+      <p>Le <strong>network slicing</strong> de bout en bout, l'<strong>architecture orientée services</strong> (SBA), le <strong>SDN</strong> et la <strong>NFV</strong>.</p>
+    </details>
+    <details><summary>2. Pourquoi les ondes millimétriques conviennent-elles aux zones denses mais pas à la couverture large ?</summary>
+      <p>Beaucoup de bande passante, mais une portée très courte.</p>
+    </details>
+    <details><summary>3. En option 3, quel est le cœur de réseau et qui est le nœud maître ?</summary>
+      <p>Cœur <strong>EPC 4G</strong>, maître <strong>eNB 4G</strong> ; l'en-gNB 5G est secondaire.</p>
+    </details>
+    <details><summary>4. Pourquoi un opérateur commence-t-il par du NSA, et que lui manque-t-il alors ?</summary>
+      <p>Il réutilise son réseau 4G et déploie vite. Il lui manque les fonctions du cœur 5G (slicing, SBA).</p>
+    </details>
+    <details><summary>5. Quel rôle joue la NRF, et comment l'AMF trouve-t-elle une SMF ?</summary>
+      <p>La NRF est l'annuaire des fonctions réseau. La SMF s'y enregistre, l'AMF l'y <strong>découvre</strong> puis l'appelle par API REST sur HTTP/2.</p>
+    </details>
+    <details><summary>6. Que devient le MME de la 4G dans le cœur 5G ?</summary>
+      <p>Il est éclaté : la mobilité et l'accès vont à l'<strong>AMF</strong>, la gestion des sessions à la <strong>SMF</strong>.</p>
+    </details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="05-lte.html"><span>← Précédent</span>4G : LTE (eUTRAN et EPC)</a>
+      <a class="next" href="td-cran.html"><span>Suivant →</span>TD : C-RAN, eICIC et CoMP</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>
