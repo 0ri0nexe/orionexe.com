@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Antisèche de syntaxe · Algorithmique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Algorithmique</a>
+    <div class="course-code">CSC 8445</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Annexe</div>
+    <h1>Antisèche de syntaxe algorithmique</h1>
+    <p class="lead">La syntaxe imposée en cours et en contrôle, reprise de la fiche officielle CSC 8445. La section fonctions, absente de la fiche, est complétée d'après le cours 2.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>Chaque bloc se ferme par son mot réservé : <code>fsi</code>, <code>fcas</code>, <code>ftq</code>, <code>fpour</code>, <code>ffct</code>, <code>fstruct</code>.</li>
+        <li><code>=</code> affecte, <code>==</code> compare, <code>≠</code> pour « différent ».</li>
+        <li><code>div</code> et <code>mod</code> pour les entiers, <code>/</code> pour les réels, <code>×</code> pour multiplier.</li>
+        <li>Commentaire : <code>// …</code> jusqu'à la fin de la ligne.</li>
+      </ul>
+    </div>
+
+    <h2 id="bases">Types, déclarations, entrées/sorties</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Concept</th><th>Syntaxe</th><th>Exemple</th></tr></thead>
+      <tbody>
+        <tr><td>Types prédéfinis</td><td><code>entier</code>, <code>réel</code>, <code>caractère</code>, <code>chaîne</code>, <code>booléen</code></td><td><code>3</code>, <code>3.5</code>, <code>'A'</code>, <code>"Algo"</code>, <code>vrai</code> / <code>faux</code></td></tr>
+        <tr><td>Déclaration (initialisation facultative)</td><td><code>type nom1, nom2 = valeur</code></td><td><code>entier a, b=3</code></td></tr>
+        <tr><td>Constante</td><td><code>constante NOM = valeur</code></td><td><code>constante N = 8</code></td></tr>
+        <tr><td>Affectation</td><td><code>variable = expression</code></td><td><code>x = x + 1</code></td></tr>
+        <tr><td>Saisie</td><td><code>saisir(variable)</code></td><td><code>saisir(a)</code></td></tr>
+        <tr><td>Affichage</td><td><code>afficher(expr1, expr2, …)</code></td><td><code>afficher("a=", a)</code></td></tr>
+        <tr><td>Retour à la ligne</td><td><code>allerALaLigne()</code></td><td><code>allerALaLigne()</code></td></tr>
+        <tr><td>Commentaire</td><td><code>// texte</code></td><td><code>c = a + b // somme</code></td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="operateurs">Opérateurs</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Concept</th><th>Syntaxe</th><th>Exemple</th></tr></thead>
+      <tbody>
+        <tr><td>Logiques</td><td><code>non</code>, <code>et</code>, <code>ou</code></td><td><code>non trouve et i &lt; n</code></td></tr>
+        <tr><td>Arithmétiques</td><td><code>+</code>, <code>−</code>, <code>×</code></td><td><code>2 × PI × rayon</code></td></tr>
+        <tr><td>Spécifiques aux entiers</td><td><code>div</code> (division entière), <code>mod</code> (modulo)</td><td><code>17 div 5</code> vaut 3, <code>17 mod 5</code> vaut 2</td></tr>
+        <tr><td>Spécifique aux réels</td><td><code>/</code> (division réelle)</td><td><code>7.0 / 2</code> vaut 3.5</td></tr>
+        <tr><td>Comparaison</td><td><code>==</code> (égalité), <code>≠</code> (différent)</td><td><code>si i mod 2 == 0 alors</code></td></tr>
+      </tbody>
+    </table></div>
+    <p>Les supports utilisent aussi <code>&lt;</code>, <code>&gt;</code>, <code>≤</code> dans les conditions (<code>si n ≤ 1 alors</code>).</p>
+
+    <h2 id="choix">Schéma alternatif</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Concept</th><th>Syntaxe</th><th>Exemple</th></tr></thead>
+      <tbody>
+        <tr><td>Simple (<code>sinon</code> optionnel)</td><td><pre><code>si condition alors
+    action1  // condition = vrai
+sinon        // optionnel
+    action2  // condition = faux
+fsi</code></pre></td><td><pre><code>si x &gt; y alors
+    max = x
+sinon
+    max = y
+fsi</code></pre></td></tr>
+        <tr><td>Complexe (<code>autre</code> optionnel)</td><td><pre><code>cas où v vaut
+    v1 : action1
+    ...
+    vN : actionN
+    autre : actionD
+fcas</code></pre></td><td><pre><code>cas où choix vaut
+    1 : afficher("un")
+    2 : afficher("deux")
+    autre : afficher("?")
+fcas</code></pre></td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="iteratif">Schéma itératif</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Concept</th><th>Syntaxe</th><th>Exemple</th></tr></thead>
+      <tbody>
+        <tr><td>tant que (0 tour ou plus)</td><td><pre><code>tant que condition faire
+    action
+ftq</code></pre></td><td><pre><code>tant que n ≠ 0 faire
+    n = n div 10
+ftq</code></pre></td></tr>
+        <tr><td>faire … tant que (au moins 1 tour)</td><td><pre><code>faire
+    action
+tant que condition</code></pre></td><td><pre><code>faire
+    saisir(n)
+tant que n &lt; 0</code></pre></td></tr>
+        <tr><td>pour (pas optionnel, 1 par défaut)</td><td><pre><code>pour entier i = valeurInitiale à valeurFinale [ pas h ] faire
+    action
+fpour</code></pre></td><td><pre><code>pour entier i = 2 à n pas 2 faire
+    somme = somme + i
+fpour</code></pre></td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="fonctions">Fonctions (d'après le cours 2)</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Concept</th><th>Syntaxe</th><th>Exemple</th></tr></thead>
+      <tbody>
+        <tr><td>Fonction avec résultat</td><td><pre><code>fonction Type nom ( Type p1, … )
+    …
+    retourner valeur
+ffct</code></pre></td><td><pre><code>fonction entier min ( entier n, entier m )
+    si n &lt; m alors
+        retourner n
+    fsi
+    retourner m
+ffct</code></pre></td></tr>
+        <tr><td>Fonction sans résultat</td><td><code>fonction nom ( … ) … ffct</code></td><td><code>fonction afficheMin ( entier x, entier y )</code></td></tr>
+        <tr><td>Paramètre modifiable</td><td><code>modifiable Type p</code></td><td><code>fonction echanger ( modifiable entier x, modifiable entier y )</code></td></tr>
+        <tr><td>Appel</td><td><code>nom ( effectifs )</code></td><td><code>valMin = min ( a , b )</code></td></tr>
+        <tr><td>Fonction principale</td><td><pre><code>fonction CodeRetour principale ( )
+    …
+    retourner OK
+ffct</code></pre></td><td><code>CodeRetour</code> : booléen, valeurs <code>OK</code> / <code>KO</code></td></tr>
+        <tr><td>Tableau en paramètre</td><td><code>Type t[], entier n</code></td><td><code>fonction saisieTab ( modifiable entier t[], entier n )</code></td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="tableaux">Tableaux</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Concept</th><th>Syntaxe</th><th>Exemple</th></tr></thead>
+      <tbody>
+        <tr><td>Tableau à 1 et 2 dimensions</td><td><code>entier t [N], m[N][M]</code></td><td><code>t[0]</code> … <code>t[N-1]</code>, <code>m[i][j]</code></td></tr>
+        <tr><td>Tableau initialisé</td><td><code>entier t1[ ] = {1,2,3}</code></td><td><code>t1[2]</code> vaut 3</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="structures">Structures et types</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Concept</th><th>Syntaxe</th><th>Exemple</th></tr></thead>
+      <tbody>
+        <tr><td>Type tableau</td><td><code>type Vecteur = entier[N]</code></td><td><code>Vecteur v</code></td></tr>
+        <tr><td>Type structure</td><td><pre><code>type Exemple = structure
+    entier num
+    chaîne texte
+fstruct</code></pre></td><td><pre><code>Exemple e = {1, "a"}
+e.num = 2
+afficher(e.texte)</code></pre></td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="listes">Listes, piles et files (chapitre 4)</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Concept</th><th>Syntaxe</th><th>Remarque</th></tr></thead>
+      <tbody>
+        <tr><td>Nœud</td><td><pre><code>type Noeud = structure
+    TypeValeur valeur
+    lien&lt;Noeud&gt; suivant
+fstruct</code></pre></td><td><code>lien&lt;Noeud&gt;</code> désigne un autre nœud</td></tr>
+        <tr><td>Liste simplement chaînée</td><td><code>type Liste = lien&lt;Noeud&gt;</code></td><td>Lien vers le premier nœud</td></tr>
+        <tr><td>Pile</td><td><code>type Pile = lien&lt;Noeud&gt;</code></td><td>Lien vers le sommet</td></tr>
+        <tr><td>File</td><td><pre><code>type File = structure
+    lien&lt;Nœud&gt; tete
+    lien&lt;Nœud&gt; queue
+fstruct</code></pre></td><td>Deux liens : tête et queue</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="chapter-nav">
+      <a class="prev" href="02-fonctions-types-composites.html"><span>← Précédent</span>Fonctions et types composites</a>
+      <a class="next" href="index.html"><span>Suivant →</span>Retour au sommaire</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Suites · Fondements mathématiques</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}]})"></script>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Fondements mathématiques</a>
+    <div class="course-code">MAT 8457</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 02</div>
+    <h1>Suites</h1>
+    <p class="lead">Définir précisément « tendre vers une limite », puis disposer d'outils pour la trouver : opérations, gendarmes, monotonie, et formules explicites des suites usuelles.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>\(u_n \to \ell\) : \(\forall \epsilon &gt; 0,\ \exists N,\ \forall n \ge N,\ |u_n - \ell| \le \epsilon\). Si elle existe, la limite est <strong>unique</strong>.</li>
+        <li>Convergente = limite <strong>finie</strong>. Toute suite convergente est bornée (réciproque fausse).</li>
+        <li><strong>Croissante et majorée</strong> \(\Rightarrow\) convergente. <strong>Gendarmes</strong> : \(u_n \le v_n \le w_n\) et \(u_n, w_n \to \ell\) donnent \(v_n \to \ell\).</li>
+        <li>Arithmétique : \(u_n = u_0 + nr\). Géométrique : \(u_n = u_0 q^n\). Ordre 2 : équation caractéristique \(r^2 - ar - b = 0\).</li>
+        <li>Deux sous-suites de limites différentes \(\Rightarrow\) divergence. <strong>Bolzano-Weierstrass</strong> : toute suite bornée a une sous-suite convergente.</li>
+      </ul>
+    </div>
+
+    <h2 id="definition">Définitions de base</h2>
+    <p>Une <strong>suite</strong> est une application \(u : \mathbb{N} \to \mathbb{R}\). On note \(u_n\) le \(n\)-ième terme (terme général) et \((u_n)_{n \in \mathbb{N}}\), ou \((u_n)_{n \ge n_0}\) si elle commence au rang \(n_0\).</p>
+    <p>Exemples : \((\sqrt n)\) : \(0, 1, \sqrt2, \sqrt3, \dots\) ; \(((-1)^n)\) : \(1, -1, 1, \dots\) ; Fibonacci \(F_0 = F_1 = 1\), \(F_{n+2} = F_{n+1} + F_n\) : \(1, 1, 2, 3, 5, 8, 13, \dots\)</p>
+
+    <h3 id="bornee">Suite bornée</h3>
+    <ul>
+      <li><strong>Majorée</strong> : \(\exists M \in \mathbb{R},\ \forall n,\ u_n \le M\).</li>
+      <li><strong>Minorée</strong> : \(\exists m \in \mathbb{R},\ \forall n,\ u_n \ge m\).</li>
+      <li><strong>Bornée</strong> : majorée et minorée, soit \(\exists M,\ \forall n,\ |u_n| \le M\).</li>
+    </ul>
+
+    <h3 id="monotone">Suite monotone</h3>
+    <ul>
+      <li><strong>Croissante</strong> : \(\forall n,\ u_{n+1} \ge u_n\) (strictement : \(&gt;\)).</li>
+      <li><strong>Décroissante</strong> : \(\forall n,\ u_{n+1} \le u_n\) (strictement : \(&lt;\)).</li>
+      <li><strong>Monotone</strong> : croissante ou décroissante.</li>
+    </ul>
+    <p>Méthode : étudier le signe de \(u_{n+1} - u_n\), ou comparer \(u_{n+1}/u_n\) à \(1\) si les termes sont strictement positifs. Exemple : \(u_n = \frac{n}{n+1}\), \(u_{n+1} - u_n = \frac{1}{(n+1)(n+2)} &gt; 0\), donc croissante (et bornée par \(0\) et \(1\)).</p>
+    <div class="callout warn"><span class="callout-title">Piège classique : croissante ne veut pas dire majorée</span>
+      <p>Une suite croissante est toujours <strong>minorée</strong> (par \(u_0\)), mais pas forcément majorée : \(u_n = n\) est croissante et non majorée.</p>
+    </div>
+
+    <h2 id="limites">Limites</h2>
+    <div class="callout key"><span class="callout-title">À retenir : limite finie</span>
+      <p>\[ \lim_{n\to+\infty} u_n = \ell \iff \forall \epsilon &gt; 0 \ \ \exists N \in \mathbb{N} \ \ \forall n \in \mathbb{N} \quad (n \ge N \Rightarrow |u_n - \ell| \le \epsilon) \]</p>
+    </div>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : la définition en ε</span>
+      <p>C'est un défi. Un adversaire fixe une tolérance \(\epsilon\) aussi petite qu'il veut (une bande \([\ell - \epsilon, \ell + \epsilon]\) autour de \(\ell\)). Vous devez trouver un rang \(N\) à partir duquel <strong>tous</strong> les termes restent dans la bande. Si vous gagnez pour tout \(\epsilon\), la suite tend vers \(\ell\). Plus \(\epsilon\) est petit, plus \(N\) est grand en général.</p>
+      <p>Exemple : \(u_n = 1/n \to 0\). Pour \(\epsilon\) donné, \(|1/n| \le \epsilon\) dès que \(n \ge 1/\epsilon\) : on prend \(N\) entier supérieur à \(1/\epsilon\).</p>
+    </div>
+    <p><strong>Limites infinies</strong> :</p>
+    <ul>
+      <li>\(u_n \to +\infty\) : \(\forall A &gt; 0,\ \exists N,\ \forall n \ge N,\ u_n \ge A\).</li>
+      <li>\(u_n \to -\infty\) : \(\forall A &gt; 0,\ \exists N,\ \forall n \ge N,\ u_n \le -A\) (équivaut à \(-u_n \to +\infty\)).</li>
+    </ul>
+    <p>Une suite est <strong>convergente</strong> si elle a une limite <em>finie</em>, <strong>divergente</strong> sinon : elle tend vers \(\pm\infty\) <em>ou</em> n'a pas de limite (comme \((-1)^n\)).</p>
+    <p><strong>Unicité</strong> : une suite convergente a une seule limite. Idée : si \(\ell \neq \ell'\), on prend \(\epsilon &lt; |\ell - \ell'|/2\) ; les deux bandes sont disjointes, \(u_N\) ne peut pas être dans les deux.</p>
+
+    <h2 id="operations">Opérations sur les limites</h2>
+    <ul>
+      <li>\(u_n \to \ell \iff u_n - \ell \to 0 \iff |u_n - \ell| \to 0\). Et \(u_n \to \ell \Rightarrow |u_n| \to |\ell|\).</li>
+      <li>Si \(u_n \to \ell\) et \(v_n \to \ell'\) (finies) : \(\lambda u_n \to \lambda\ell\), \(u_n + v_n \to \ell + \ell'\), \(u_n v_n \to \ell\ell'\).</li>
+      <li>Si \(\ell \neq 0\) : \(u_n \neq 0\) à partir d'un rang et \(1/u_n \to 1/\ell\).</li>
+    </ul>
+    <p>Avec \(v_n \to +\infty\) :</p>
+    <ul>
+      <li>\(1/v_n \to 0\).</li>
+      <li>\((u_n)\) minorée \(\Rightarrow u_n + v_n \to +\infty\).</li>
+      <li>\((u_n)\) minorée par \(\lambda &gt; 0\) \(\Rightarrow u_n v_n \to +\infty\).</li>
+      <li>Si \(u_n \to 0\) avec \(u_n &gt; 0\) à partir d'un rang : \(1/u_n \to +\infty\).</li>
+    </ul>
+    <div class="callout key"><span class="callout-title">À retenir : borné fois tend vers 0</span>
+      <p>Si \((u_n)\) est bornée et \(v_n \to 0\), alors \(u_n v_n \to 0\). Exemple : \(\dfrac{\cos n}{\sqrt n} \to 0\), sans que \(\cos n\) ait de limite.</p>
+    </div>
+
+    <h3 id="indeterminees">Formes indéterminées</h3>
+    <p>Les opérations ne concluent pas dans les cas \(+\infty - \infty\), \(0 \times \infty\), \(\frac{\infty}{\infty}\), \(\frac00\), \(1^\infty\). Il faut étudier les suites elles-mêmes (factoriser par le terme dominant, etc.) :</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Forme</th><th>Exemple</th><th>Limite</th></tr></thead>
+      <tbody>
+        <tr><td>\(+\infty - \infty\)</td><td>\(e^n - \ln n\)</td><td>\(+\infty\)</td></tr>
+        <tr><td>\(+\infty - \infty\)</td><td>\(n - n^2\)</td><td>\(-\infty\)</td></tr>
+        <tr><td>\(+\infty - \infty\)</td><td>\((n + \frac1n) - n\)</td><td>\(0\)</td></tr>
+        <tr><td>\(0 \times \infty\)</td><td>\(\frac{1}{\ln n} \times e^n\)</td><td>\(+\infty\)</td></tr>
+        <tr><td>\(0 \times \infty\)</td><td>\(\frac1n \times \ln n\)</td><td>\(0\)</td></tr>
+        <tr><td>\(0 \times \infty\)</td><td>\(\frac1n \times (n+1)\)</td><td>\(1\)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn"><span class="callout-title">Piège classique : « \(1^\infty = 1\) »</span>
+      <p>C'est une forme indéterminée : \((1 + \frac1n)^n \to e\), pas \(1\). On repasse par l'exponentielle : \(u_n^{v_n} = e^{v_n \ln u_n}\).</p>
+    </div>
+
+    <h2 id="theoremes">Théorèmes de convergence</h2>
+    <h3 id="gendarmes">Comparaison et gendarmes</h3>
+    <ul>
+      <li>Passage à la limite : si \(u_n \le v_n\) pour tout \(n\) et les deux convergent, alors \(\lim u_n \le \lim v_n\).</li>
+      <li>Minoration : si \(u_n \to +\infty\) et \(v_n \ge u_n\), alors \(v_n \to +\infty\).</li>
+    </ul>
+    <div class="callout key"><span class="callout-title">À retenir : théorème des gendarmes</span>
+      <p>Si \(u_n \le v_n \le w_n\) pour tout \(n\) et \(\lim u_n = \lim w_n = \ell\), alors \((v_n)\) <strong>converge</strong> et \(\lim v_n = \ell\).</p>
+    </div>
+    <p>Exemple du cours : \(v_n = 2 + \dfrac{(-1)^n}{n^2+n}\). On encadre : \(2 - \dfrac{1}{n^2+n} \le v_n \le 2 + \dfrac{1}{n^2+n}\), les deux bornes tendent vers \(2\), donc \(v_n \to 2\).</p>
+    <div class="callout warn"><span class="callout-title">Piège classique : les inégalités strictes</span>
+      <p>Le passage à la limite transforme \(&lt;\) en \(\le\) : \(\frac1n &gt; 0\) pour tout \(n\), mais \(\lim \frac1n = 0\). Et il faut que les deux limites existent <em>avant</em> de comparer (sinon : gendarmes).</p>
+    </div>
+
+    <h3 id="rapport">Critère du rapport</h3>
+    <p>Si \(u_n \neq 0\) et s'il existe \(\ell\) tel que \(\left|\dfrac{u_{n+1}}{u_n}\right| &lt; \ell &lt; 1\) (à partir d'un certain rang), alors \(u_n \to 0\).</p>
+    <p>Idée : par produit télescopique, \(|u_n| &lt; |u_0|\,\ell^n\), et \(\ell^n \to 0\). Exemple : \(u_n = \frac{2^n}{n!}\), \(\frac{u_{n+1}}{u_n} = \frac{2}{n+1} \le \frac12\) dès \(n \ge 3\), donc \(u_n \to 0\).</p>
+
+    <h3 id="monotone-bornee">Suite monotone et bornée</h3>
+    <ul>
+      <li>Toute suite convergente est <strong>bornée</strong>. La réciproque est fausse : \((-1)^n\) est bornée mais diverge.</li>
+    </ul>
+    <div class="callout key"><span class="callout-title">À retenir : convergence monotone</span>
+      <p>Toute suite <strong>croissante et majorée</strong> converge. Toute suite décroissante et minorée converge.</p>
+      <p>Croissante non majorée \(\Rightarrow +\infty\). Décroissante non minorée \(\Rightarrow -\infty\).</p>
+    </div>
+    <p>Ce théorème prouve l'existence de la limite sans la donner. Il ne dit pas que la limite est le majorant trouvé : \(\frac{n}{n+1}\) est majorée par \(5\), mais tend vers \(1\).</p>
+
+    <h2 id="usuelles">Suites usuelles</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th></th><th>Arithmétique</th><th>Géométrique</th></tr></thead>
+      <tbody>
+        <tr><td>Définition</td><td>\(u_{n+1} = u_n + r\)</td><td>\(u_{n+1} = q\,u_n\)</td></tr>
+        <tr><td>Formule explicite</td><td>\(u_n = u_0 + nr\)</td><td>\(u_n = u_0\, q^n\)</td></tr>
+        <tr><td>Depuis le rang \(p\)</td><td>\(u_n = u_p + (n-p)r\)</td><td>\(u_n = u_p\, q^{n-p}\)</td></tr>
+        <tr><td>Exemple</td><td>\(u_0 = 2,\ r = 3\) : \(2 + 3n\) (2, 5, 8, 11…)</td><td>\(u_0 = 3,\ q = 2\) : \(3 \times 2^n\) (3, 6, 12, 24…)</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3 id="ordre2">Récurrence linéaire d'ordre 2</h3>
+    <p>\(u_{n+2} = a\,u_{n+1} + b\,u_n\) (\(a, b\) réels, \(b \neq 0\)). Les valeurs \(u_0\) et \(u_1\) déterminent toute la suite.</p>
+    <div class="callout key"><span class="callout-title">À retenir : équation caractéristique \(r^2 - ar - b = 0\), \(\Delta = a^2 + 4b\)</span>
+      <ul>
+        <li>\(\Delta &gt; 0\) : racines réelles \(r_1 \neq r_2\), \(u_n = \lambda r_1^n + \mu r_2^n\).</li>
+        <li>\(\Delta = 0\) : racine double \(r_0 = a/2\), \(u_n = (\lambda + \mu n)\, r_0^n\).</li>
+        <li>\(\Delta &lt; 0\) : racines \(\rho e^{\pm i\theta}\), \(u_n = \rho^n \big(\lambda \cos(n\theta) + \mu \sin(n\theta)\big)\).</li>
+      </ul>
+      <p>On trouve \(\lambda, \mu \in \mathbb{R}\) avec \(u_0\) et \(u_1\) (on écrit la formule pour \(n = 0\) puis \(n = 1\)).</p>
+    </div>
+    <p>D'où vient l'équation : on cherche \(u_n = r^n\) ; \(r^{n+2} = ar^{n+1} + br^n\) donne, après division par \(r^n\), \(r^2 - ar - b = 0\). Par linéarité, toute combinaison de deux solutions est solution.</p>
+    <div class="callout warn"><span class="callout-title">Piège classique : les signes de l'équation caractéristique</span>
+      <p>On passe tout du même côté : \(u_{n+2} - a u_{n+1} - b u_n = 0\) donne \(r^2 - ar - b\), donc \(\Delta = a^2 + 4b\) (et non \(a^2 - 4b\)). Pour \(u_{n+2} = 5u_{n+1} - 6u_n\) : \(r^2 - 5r + 6 = 0\), racines \(2\) et \(3\).</p>
+    </div>
+    <p><strong>Fibonacci</strong> (\(a = b = 1\)) : \(r^2 - r - 1 = 0\), \(\Delta = 5\), racines \(\varphi = \frac{1+\sqrt5}{2}\) (nombre d'or) et \(\psi = \frac{1-\sqrt5}{2}\). Avec \(F_0 = F_1 = 1\) : \(\lambda = \varphi/\sqrt5\), \(\mu = -\psi/\sqrt5\), d'où la <strong>formule de Binet</strong> :</p>
+    <p>\[ F_n = \frac{\varphi^{n+1} - \psi^{n+1}}{\sqrt5} \]</p>
+
+    <h2 id="sous-suites">Sous-suites et Bolzano-Weierstrass</h2>
+    <p>Une <strong>sous-suite</strong> (ou suite extraite) de \((u_n)\) est \((u_{\phi(n)})\), où \(\phi : \mathbb{N} \to \mathbb{N}\) est <strong>strictement croissante</strong> : on garde une infinité de termes, dans l'ordre. Exemple avec \(u_n = (-1)^n\) : \(\phi(n) = 2n\) donne la suite constante \(1\) ; \(\psi(n) = 3n\) redonne \((-1)^n\).</p>
+    <ul>
+      <li>Si \(u_n \to \ell\), <strong>toute</strong> sous-suite tend vers \(\ell\).</li>
+      <li>Donc : une sous-suite divergente, ou deux sous-suites de limites différentes, prouvent que \((u_n)\) <strong>diverge</strong>. Exemple : \(u_{2n} \to 1\), \(u_{2n+1} \to -1\), donc \((-1)^n\) diverge.</li>
+    </ul>
+    <div class="callout key"><span class="callout-title">À retenir : Bolzano-Weierstrass</span>
+      <p>Toute suite <strong>bornée</strong> admet une sous-suite convergente.</p>
+    </div>
+    <p>Idée de la preuve (dichotomie) : la suite vit dans \([a,b]\). On coupe en deux ; une moitié contient une infinité de termes, on la garde et on y choisit un terme. On recommence : les intervalles \([a_n, b_n]\) ont une longueur \(\frac{b-a}{2^n} \to 0\), \((a_n)\) croît, \((b_n)\) décroît, ils tendent vers une même limite \(\ell\) (suites adjacentes), et les gendarmes donnent \(u_{\phi(n)} \to \ell\). Exemple : \(\cos n\) a une sous-suite convergente, même si on ne sait pas l'expliciter.</p>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. \(\frac1n\) (\(n \ge 1\)) est-elle bornée ? monotone ?</summary>
+      <p>Bornée (\(0 &lt; \frac1n \le 1\)) et strictement décroissante. Elle converge vers \(0\).</p>
+    </details>
+    <details><summary>2. \(\frac{(-1)^n}{n}\) est-elle bornée ? monotone ?</summary>
+      <p>Bornée (\(|u_n| \le 1\)) mais pas monotone : les signes alternent. Elle tend pourtant vers \(0\) (bornée fois \(\frac1n \to 0\)).</p>
+    </details>
+    <details><summary>3. Une suite croissante est-elle minorée ? majorée ?</summary>
+      <p>Toujours minorée par son premier terme \(u_0\). Pas forcément majorée : \(u_n = n\).</p>
+    </details>
+    <details><summary>4. Une suite bornée converge-t-elle ?</summary>
+      <p>Non : \((-1)^n\) est bornée et diverge. Il faut en plus la monotonie. Bolzano-Weierstrass garantit seulement une <em>sous-suite</em> convergente.</p>
+    </details>
+    <details><summary>5. Limite de \(\frac{\sin n}{n}\) ?</summary>
+      <p>\(0\) : \(\sin n\) est bornée et \(\frac1n \to 0\). Ou par les gendarmes : \(-\frac1n \le \frac{\sin n}{n} \le \frac1n\).</p>
+    </details>
+    <details><summary>6. Limite de \(\sqrt{n+1} - \sqrt n\) ?</summary>
+      <p>Forme \(\infty - \infty\). Avec la quantité conjuguée : \(\frac{1}{\sqrt{n+1} + \sqrt n} \to 0\).</p>
+    </details>
+    <details><summary>7. Formule explicite de \(u_0 = 5\), \(u_{n+1} = u_n - 2\) ? Et de \(v_0 = 1\), \(v_{n+1} = v_n / 3\) ?</summary>
+      <p>Arithmétique de raison \(-2\) : \(u_n = 5 - 2n\). Géométrique de raison \(\frac13\) : \(v_n = (1/3)^n\), qui tend vers \(0\).</p>
+    </details>
+    <details><summary>8. Résolvez \(u_{n+2} = 4u_{n+1} - 4u_n\), \(u_0 = 1\), \(u_1 = 4\).</summary>
+      <p>\(r^2 - 4r + 4 = 0\), racine double \(2\) : \(u_n = (\lambda + \mu n)2^n\). \(n = 0\) : \(\lambda = 1\). \(n = 1\) : \(2(1 + \mu) = 4\), \(\mu = 1\). Donc \(u_n = (1 + n)2^n\).</p>
+    </details>
+    <details><summary>9. Comment montrer qu'une suite diverge avec des sous-suites ?</summary>
+      <p>Exhiber deux sous-suites qui convergent vers des limites différentes (ou une sous-suite divergente). Exemple : \(u_{2n}\) et \(u_{2n+1}\) pour \((-1)^n\).</p>
+    </details>
+    <details><summary>10. Que dit le critère du rapport sur \(u_n = n\left(\frac12\right)^n\) ?</summary>
+      <p>\(\frac{u_{n+1}}{u_n} = \frac{n+1}{2n} \le \frac34 &lt; 1\) dès \(n \ge 2\), donc \(u_n \to 0\).</p>
+    </details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="01-complexes.html"><span>← Précédent</span>Nombres complexes</a>
+      <a class="next" href="03-series.html"><span>Suivant →</span>Séries</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

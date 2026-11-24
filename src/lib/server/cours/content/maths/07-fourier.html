@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Séries et transformée de Fourier · Fondements mathématiques</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}]})"></script>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Fondements mathématiques</a>
+    <div class="course-code">MAT 8457</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 07</div>
+    <h1>Séries et transformée de Fourier</h1>
+    <p class="lead">Une fonction périodique se décompose en une valeur moyenne plus une somme d'harmoniques (sinus et cosinus de fréquences \(nf_0\)). La transformée de Fourier fait la même chose pour une fonction non périodique, avec un continuum de fréquences.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>Période \(T_0\), fréquence \(f_0=\frac1{T_0}\), pulsation \(\omega_0=2\pi f_0=\frac{2\pi}{T_0}\).</li>
+        <li><strong>Coefficients</strong> : \(a_0=\frac1{T_0}\int_0^{T_0}x\) (moyenne), \(a_n=\frac2{T_0}\int_0^{T_0}x(t)\cos(n\omega_0t)\,dt\), \(b_n=\frac2{T_0}\int_0^{T_0}x(t)\sin(n\omega_0t)\,dt\).</li>
+        <li><strong>Parité</strong> : \(x\) paire \(\Rightarrow b_n=0\) ; \(x\) impaire \(\Rightarrow a_0=a_n=0\).</li>
+        <li><strong>Dirichlet</strong> : \(x\) de classe \(\mathscr{C}^1\) par morceaux, \(S_N(t)\to\frac{x(t^-)+x(t^+)}{2}\) (moyenne des limites latérales aux sauts).</li>
+        <li><strong>Forme complexe</strong> : \(X_n=\frac1{T_0}\int_0^{T_0}x(t)e^{-in\omega_0t}dt\), \(X_n=\frac{a_n-ib_n}{2}\), \(X_{-n}=\overline{X_n}\).</li>
+        <li><strong>Parseval</strong> : \(\frac1{T_0}\int_0^{T_0}|x|^2=a_0^2+\frac12\sum(a_n^2+b_n^2)=\sum_{n\in\mathbb{Z}}|X_n|^2\).</li>
+        <li><strong>Transformée</strong> : \(X(f)=\int_{-\infty}^{+\infty}x(t)e^{-2\pi ift}dt\). Référence : \(\mathrm{rect}(t/T)\longleftrightarrow T\,\mathrm{sinc}(Tf)\).</li>
+      </ul>
+    </div>
+
+    <h2 id="periodiques">Fonctions périodiques et harmoniques</h2>
+    <p>\(x\) est <strong>périodique de période \(T_0\gt0\)</strong> si \(x(t+T_0)=x(t)\) pour tout \(t\in\mathbb{R}\). La plus petite période positive (si elle existe) est la <strong>période fondamentale</strong>. Dans la suite, \(T_0\) est <em>une</em> période, pas forcément la fondamentale. On pose</p>
+    \[f_0=\frac1{T_0}\ \text{(fréquence, en Hz)},\qquad\omega_0=2\pi f_0=\frac{2\pi}{T_0}\ \text{(pulsation, en rad/s)}.\]
+    <p>Exemple : \(\cos(4\pi t)\) a pour période fondamentale \(T_0=\frac12\), donc \(f_0=2\) et \(\omega_0=4\pi\).</p>
+    <p>Une <strong>sinusoïde</strong> \(A\sin(\omega t+\varphi)\) (\(A,\omega\gt0\)) a pour amplitude \(A\), phase \(\varphi\), période \(\frac{2\pi}{\omega}\). L'<strong>harmonique de rang \(n\)</strong> (\(n\ge1\)) est une composante sinusoïdale de fréquence \(nf_0\) : elle fait \(n\) cycles complets sur une durée \(T_0\). Une série de Fourier, c'est une valeur moyenne plus des harmoniques.</p>
+
+    <h3 id="euler">Exponentielles complexes</h3>
+    <p>Formules d'Euler : \(e^{i\theta}=\cos\theta+i\sin\theta\), \(\cos\theta=\frac{e^{i\theta}+e^{-i\theta}}{2}\), \(\sin\theta=\frac{e^{i\theta}-e^{-i\theta}}{2i}\). Une fonction complexe \(z=u+iv\) s'intègre partie réelle et partie imaginaire séparément : \(\int_a^bz=\int_a^bu+i\int_a^bv\). Comme \(\frac{d}{dt}e^{i\alpha t}=i\alpha e^{i\alpha t}\), pour \(\alpha\neq0\) :</p>
+    \[\int_a^be^{i\alpha t}\,dt=\left[\frac{e^{i\alpha t}}{i\alpha}\right]_a^b.\]
+
+    <h2 id="orthogonalite">Relations d'orthogonalité</h2>
+    <p>Pour \(k\neq0\) entier, \(\int_0^{T_0}\cos(k\omega_0t)\,dt=\int_0^{T_0}\sin(k\omega_0t)\,dt=0\) (car \(\omega_0T_0=2\pi\)). En linéarisant les produits (\(2\cos u\cos v=\cos(u-v)+\cos(u+v)\), \(2\sin u\sin v=\cos(u-v)-\cos(u+v)\), \(2\sin u\cos v=\sin(u+v)+\sin(u-v)\)) on obtient :</p>
+    <div class="callout key"><span class="callout-title">À retenir : orthogonalité (\(n,m\ge1\))</span>
+      \[\int_0^{T_0}\cos(n\omega_0t)\cos(m\omega_0t)\,dt=\int_0^{T_0}\sin(n\omega_0t)\sin(m\omega_0t)\,dt=\begin{cases}0&amp;n\neq m\\ T_0/2&amp;n=m\end{cases}\]
+      \[\int_0^{T_0}\sin(n\omega_0t)\cos(m\omega_0t)\,dt=0\ \text{(toujours)}.\]
+    </div>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : d'où viennent les formules des coefficients</span>
+      <p>Prenons un polynôme trigonométrique \(p_N(t)=a_0+\sum_{n=1}^N\big(a_n\cos(n\omega_0t)+b_n\sin(n\omega_0t)\big)\). En l'intégrant sur une période, tous les termes en cos/sin s'annulent : \(\int_0^{T_0}p_N=a_0T_0\), donc \(a_0\) est la moyenne. En multipliant par \(\cos(m\omega_0t)\) puis en intégrant, l'orthogonalité tue tout sauf \(a_m\frac{T_0}{2}\), d'où \(a_m=\frac2{T_0}\int_0^{T_0}p_N(t)\cos(m\omega_0t)\,dt\). Même chose avec \(\sin\) pour \(b_m\). C'est l'origine des facteurs \(\frac1{T_0}\) et \(\frac2{T_0}\).</p>
+    </div>
+
+    <h2 id="coefficients">Coefficients et série de Fourier</h2>
+    <p>Soit \(x:\mathbb{R}\to\mathbb{R}\), \(T_0\)-périodique, <strong>continue par morceaux</strong> (sur une période, continue sauf en un nombre fini de points où elle a des limites latérales finies).</p>
+    <div class="callout key"><span class="callout-title">À retenir : coefficients de Fourier</span>
+      \[a_0=\frac1{T_0}\int_0^{T_0}x(t)\,dt,\qquad a_n=\frac2{T_0}\int_0^{T_0}x(t)\cos(n\omega_0t)\,dt,\qquad b_n=\frac2{T_0}\int_0^{T_0}x(t)\sin(n\omega_0t)\,dt\quad(n\ge1)\]
+      <p>Série de Fourier : \(a_0+\sum_{n\ge1}\big(a_n\cos(n\omega_0t)+b_n\sin(n\omega_0t)\big)\). <strong>Somme partielle</strong> d'ordre \(N\) : \(S_N(t)\), la moyenne plus les \(N\) premières harmoniques.</p>
+    </div>
+    <p>À \(t\) fixé, \((S_N(t))_N\) est une suite numérique ; si \(S_N(t)\to x(t)\) pour chaque \(t\), on parle de <strong>convergence ponctuelle</strong>.</p>
+    <div class="callout warn"><span class="callout-title">Piège classique : \(\frac1{T_0}\) ou \(\frac2{T_0}\) ?</span>
+      <p>Ici \(a_0\) est la <strong>valeur moyenne</strong> (facteur \(\frac1{T_0}\)) et la série commence par \(a_0\), pas par \(\frac{a_0}{2}\). Certains livres utilisent l'autre convention ; dans ce cours (et dans la feuille d'exercices), \(a_0\) = moyenne.</p>
+    </div>
+
+    <h3 id="intervalle">Choix de l'intervalle et parité</h3>
+    <p>Pour une fonction \(T_0\)-périodique, l'intégrale sur <strong>n'importe quel intervalle de longueur \(T_0\)</strong> donne le même résultat. On peut donc intégrer sur \([-\frac{T_0}{2},\frac{T_0}{2}]\) au lieu de \([0,T_0]\), ce qui permet d'exploiter la parité (\(\int_{-a}^ag=0\) si \(g\) impaire, \(=2\int_0^ag\) si \(g\) paire).</p>
+    <div class="callout key"><span class="callout-title">À retenir : parité</span>
+      <p>\(x\) <strong>paire</strong> : \(b_n=0\) pour tout \(n\) (série en cosinus), et \(a_n=\frac4{T_0}\int_0^{T_0/2}x(t)\cos(n\omega_0t)\,dt\).</p>
+      <p>\(x\) <strong>impaire</strong> : \(a_0=a_n=0\) (série en sinus), et \(b_n=\frac4{T_0}\int_0^{T_0/2}x(t)\sin(n\omega_0t)\,dt\).</p>
+    </div>
+
+    <h3 id="dent-de-scie">Exemple du cours : la dent de scie</h3>
+    <p>\(x\) \(2\pi\)-périodique, \(x(t)=t\) sur \(]-\pi,\pi[\), \(x((2k+1)\pi)=0\). Ici \(T_0=2\pi\), \(\omega_0=1\). \(x\) impaire, donc seuls les \(b_n\) comptent. IPP avec \(u=t\), \(v'=\sin(nt)\) :</p>
+    \[b_n=\frac2\pi\int_0^\pi t\sin(nt)\,dt=\frac2\pi\left(\left[-\frac{t\cos(nt)}{n}\right]_0^\pi+\frac1n\int_0^\pi\cos(nt)\,dt\right)=\frac2\pi\cdot\frac{-\pi(-1)^n}{n}=\frac{2(-1)^{n+1}}{n}.\]
+    <p>Donc \(S_N(t)=2\sum_{n=1}^N\frac{(-1)^{n+1}}{n}\sin(nt)\) : \(b_1=2\), \(b_2=-1\), \(b_3=\frac23\). Près des sauts, les sommes partielles dépassent la fonction, dans une zone de plus en plus étroite quand \(N\) augmente : c'est le <strong>phénomène de Gibbs</strong>.</p>
+
+    <h3 id="valeur-absolue">Exemple du cours : la valeur absolue</h3>
+    <p>\(x\) \(2\pi\)-périodique, \(x(t)=|t|\) sur \([-\pi,\pi]\). Paire et continue, donc \(b_n=0\), et \(a_0=\frac1\pi\int_0^\pi t\,dt=\frac\pi2\). IPP avec \(u=t\), \(v'=\cos(nt)\) :</p>
+    \[a_n=\frac2\pi\int_0^\pi t\cos(nt)\,dt=\frac2\pi\cdot\frac{(-1)^n-1}{n^2}=\begin{cases}0&amp;n\text{ pair}\\ -\frac{4}{\pi n^2}&amp;n\text{ impair}\end{cases}\]
+    \[x(t)=\frac\pi2-\frac4\pi\sum_{k=0}^{+\infty}\frac{\cos((2k+1)t)}{(2k+1)^2}.\]
+    <p>Ici \(|a_n\cos(nt)|\le\frac{4}{\pi n^2}\) et \(\sum\frac1{n^2}\) converge : la série converge même <strong>absolument</strong> pour tout \(t\).</p>
+
+    <h2 id="dirichlet">Convergence : théorème de Dirichlet</h2>
+    <p>\(x\) est <strong>\(\mathscr{C}^1\) par morceaux</strong> si une période se découpe en un nombre fini d'intervalles sur lesquels \(x\) se prolonge en une fonction \(\mathscr{C}^1\) jusqu'aux extrémités. Les sauts entre morceaux sont permis.</p>
+    <div class="callout key"><span class="callout-title">À retenir : théorème de Dirichlet (admis)</span>
+      <p>Si \(x\) est \(T_0\)-périodique et \(\mathscr{C}^1\) par morceaux, alors pour tout \(t\in\mathbb{R}\) :</p>
+      \[\lim_{N\to+\infty}S_N(t)=\frac{x(t^-)+x(t^+)}{2}.\]
+      <p>En un point de continuité, c'est \(x(t)\) ; en un saut, c'est la <strong>moyenne des limites à gauche et à droite</strong>. C'est une convergence ponctuelle (on fixe \(t\), puis \(N\to+\infty\)).</p>
+    </div>
+    <p>Application à la dent de scie : pour \(-\pi\lt t\lt\pi\), \(t=2\sum_{n\ge1}\frac{(-1)^{n+1}}{n}\sin(nt)\). En \(t=\pi\) les limites latérales valent \(\pi\) et \(-\pi\), la série converge vers 0 (cohérent avec \(\sin(n\pi)=0\)). En \(t=\frac\pi2\), seuls les \(n=2k+1\) restent, avec \(\sin\frac{n\pi}{2}=(-1)^k\) :</p>
+    \[1-\frac13+\frac15-\frac17+\cdots=\frac\pi4.\]
+    <div class="callout warn"><span class="callout-title">Piège classique : la valeur au saut</span>
+      <p>La série ne « voit » pas la valeur que l'on a choisie pour \(x\) au point de saut : elle converge vers \(\frac{x(t^-)+x(t^+)}{2}\), quelle que soit \(x(t)\). Pour conclure \(S_N(t)\to x(t)\) partout, il faut \(x\) continue (ou définie au saut par cette moyenne). Pensez aussi à <strong>vérifier l'hypothèse</strong> (\(\mathscr{C}^1\) par morceaux) avant d'invoquer Dirichlet.</p>
+    </div>
+
+    <h2 id="complexe">Forme complexe</h2>
+    <p>Avec Euler et \(\frac1i=-i\) : \(a_n\cos(n\omega_0t)+b_n\sin(n\omega_0t)=\frac{a_n-ib_n}{2}e^{in\omega_0t}+\frac{a_n+ib_n}{2}e^{-in\omega_0t}\).</p>
+    <div class="callout key"><span class="callout-title">À retenir : coefficients complexes</span>
+      \[X_n=\frac1{T_0}\int_0^{T_0}x(t)e^{-in\omega_0t}\,dt\quad(n\in\mathbb{Z}),\qquad S_N(t)=\sum_{n=-N}^{N}X_ne^{in\omega_0t}.\]
+      <p>Lien avec la forme réelle : \(X_0=a_0\), \(X_n=\frac{a_n-ib_n}{2}\), \(X_{-n}=\frac{a_n+ib_n}{2}\) (\(n\ge1\)). Pour \(x\) réelle, \(X_{-n}=\overline{X_n}\). Inversement \(a_n=X_n+X_{-n}\), \(b_n=i(X_n-X_{-n})\).</p>
+    </div>
+    <p>La série complexe se comprend via les sommes <strong>symétriques</strong> \(\sum_{-N}^{N}\). On représente souvent le <strong>spectre</strong> : un trait de hauteur \(|X_n|\) à chaque fréquence \(nf_0\) (symétrique pour \(x\) réelle).</p>
+    <p>Exemple du cours : \(x(t)=1+2\cos(\omega_0t)+3\sin(2\omega_0t)\). On lit \(a_0=1\), \(a_1=2\), \(b_2=3\), d'où \(X_0=1\), \(X_{\pm1}=1\), \(X_2=-\frac{3i}2\), \(X_{-2}=\frac{3i}2\).</p>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : amplitude d'une harmonique (annexe)</span>
+      <p>On peut écrire \(a_n\cos\theta+b_n\sin\theta=A_n\cos(\theta+\varphi_n)\) avec \(A_n=\sqrt{a_n^2+b_n^2}\). En regroupant \(X_ne^{in\omega_0t}+X_{-n}e^{-in\omega_0t}=2|X_n|\cos(n\omega_0t+\arg X_n)\), on obtient \(A_n=2|X_n|\). Exemple : \(X_2=-\frac{3i}{2}\) donne \(3\cos(2\omega_0t-\frac\pi2)=3\sin(2\omega_0t)\).</p>
+    </div>
+    <div class="callout warn"><span class="callout-title">Piège classique : signes et facteur \(\frac12\)</span>
+      <p>\(X_n=\frac{a_n-ib_n}{2}\) avec un <strong>moins</strong> pour \(n\ge1\), et \(X_0=a_0\) <strong>sans</strong> \(\frac12\). Le coefficient d'un \(\sin\) donne un \(X_n\) imaginaire pur : \(b_2=3\Rightarrow X_2=-\frac{3i}{2}\), pas \(+\frac{3i}2\).</p>
+    </div>
+
+    <h2 id="parseval">Identité de Parseval</h2>
+    <div class="callout key"><span class="callout-title">À retenir : Parseval</span>
+      <p>\(x\) réelle, \(T_0\)-périodique, continue par morceaux :</p>
+      \[\frac1{T_0}\int_0^{T_0}|x(t)|^2\,dt=a_0^2+\frac12\sum_{n=1}^{+\infty}\left(a_n^2+b_n^2\right)=\sum_{n\in\mathbb{Z}}|X_n|^2.\]
+      <p>À gauche : la <strong>moyenne de \(|x|^2\)</strong> sur une période. Les deux formes concordent car \(|X_0|^2=a_0^2\) et \(|X_n|^2+|X_{-n}|^2=\frac{a_n^2+b_n^2}{2}\).</p>
+    </div>
+    <p>Pour un polynôme trigonométrique, c'est un calcul fini : \(\int_0^{T_0}\cos^2(n\omega_0t)\,dt=\int_0^{T_0}\sin^2(n\omega_0t)\,dt=\frac{T_0}2\) et les termes croisés s'annulent par orthogonalité. Le passage à la série infinie est admis (la convergence ponctuelle seule ne suffit pas à le justifier).</p>
+    <p><strong>Usage principal : calculer des sommes de séries.</strong> Dent de scie : \(\frac1{2\pi}\int_{-\pi}^\pi t^2\,dt=\frac{\pi^2}3\) et \(\frac12\sum b_n^2=2\sum\frac1{n^2}\), donc</p>
+    \[\sum_{n=1}^{+\infty}\frac1{n^2}=\frac{\pi^2}{6}.\]
+    <div class="callout warn"><span class="callout-title">Piège classique : oublier \(a_0^2\) ou le \(\frac12\)</span>
+      <p>Avec la forme réelle, il y a \(a_0^2\) (pas \(\frac{a_0^2}{2}\)) et \(\frac12\) devant la somme. Avec la forme complexe, il n'y a pas de \(\frac12\) mais la somme porte sur <strong>tous</strong> les \(n\in\mathbb{Z}\), négatifs compris. Et le membre de gauche se divise par \(T_0\).</p>
+    </div>
+
+    <h2 id="transformee">Transformée de Fourier</h2>
+    <p>Pour une fonction <strong>non périodique</strong> \(x\) définie sur \(\mathbb{R}\), continue par morceaux et <strong>absolument intégrable</strong> (\(\int_{-\infty}^{+\infty}|x(t)|\,dt\lt+\infty\)) :</p>
+    <div class="callout key"><span class="callout-title">À retenir : transformée de Fourier</span>
+      \[X(f)=\int_{-\infty}^{+\infty}x(t)\,e^{-2\pi ift}\,dt,\qquad f\in\mathbb{R}.\]
+      <p>L'intégrale converge absolument pour chaque \(f\) car \(|x(t)e^{-2\pi ift}|=|x(t)|\). On note \(x\longleftrightarrow X\). Toujours : \(X(0)=\int_{\mathbb{R}}x\) (aire sous le graphe).</p>
+    </div>
+
+    <h3 id="porte">Porte et sinus cardinal</h3>
+    <p>\(\mathrm{rect}(u)=1\) si \(|u|\lt\frac12\), \(\frac12\) si \(|u|=\frac12\), 0 sinon. \(x(t)=\mathrm{rect}(t/T)\) vaut 1 sur \(]-\frac T2,\frac T2[\) (largeur \(T\)). Pour \(f\neq0\) :</p>
+    \[X(f)=\int_{-T/2}^{T/2}e^{-2\pi ift}\,dt=\left[\frac{e^{-2\pi ift}}{-2\pi if}\right]_{-T/2}^{T/2}=\frac{e^{-i\pi fT}-e^{i\pi fT}}{-2\pi if}=\frac{\sin(\pi fT)}{\pi f},\]
+    <p>et \(X(0)=\int_{-T/2}^{T/2}1\,dt=T\) (à calculer à part, ou par limite). Avec le <strong>sinus cardinal normalisé</strong> \(\mathrm{sinc}(u)=\frac{\sin(\pi u)}{\pi u}\), \(\mathrm{sinc}(0)=1\) :</p>
+    \[\mathrm{rect}(t/T)\longleftrightarrow T\,\mathrm{sinc}(Tf),\qquad\text{zéros en }f=\tfrac kT,\ k\in\mathbb{Z}\setminus\{0\}.\]
+    <div class="callout warn"><span class="callout-title">Piège classique : le cas \(f=0\)</span>
+      <p>La primitive \(\frac{e^{-2\pi ift}}{-2\pi if}\) n'existe que pour \(f\neq0\). Il faut toujours traiter \(f=0\) séparément (ou vérifier que la formule se prolonge par continuité, ce que fait \(\mathrm{sinc}(0)=1\)).</p>
+    </div>
+
+    <h3 id="inversion">Inversion</h3>
+    <div class="callout key"><span class="callout-title">À retenir : formule d'inversion (admise)</span>
+      <p>Si \(x\) est absolument intégrable et \(\mathscr{C}^1\) par morceaux (sur tout intervalle borné), alors pour tout \(t\) :</p>
+      \[\lim_{R\to+\infty}\int_{-R}^{R}X(f)\,e^{2\pi ift}\,df=\frac{x(t^-)+x(t^+)}{2}.\]
+    </div>
+    <p>Même conclusion que Dirichlet : \(x(t)\) aux points de continuité, moyenne aux sauts. Pour la porte : 1 dedans, 0 dehors, \(\frac12\) aux bords. Si \(X\) est elle-même absolument intégrable, on peut prendre l'intégrale impropre usuelle sur \(\mathbb{R}\).</p>
+
+    <h3 id="lien">Lien avec les coefficients de Fourier</h3>
+    <p>Pour \(x\) \(T_0\)-périodique, on isole une période : \(u(t)=x(t)\) sur \([-\frac{T_0}2,\frac{T_0}2[\), 0 ailleurs. Alors</p>
+    \[X_n=\frac{U(nf_0)}{T_0},\qquad n\in\mathbb{Z}.\]
+    <p>Les coefficients de la fonction périodique sont les valeurs de la transformée d'une période, <strong>échantillonnée aux fréquences \(nf_0\)</strong> et divisée par \(T_0\). Exemple : dent de scie, \(|U(f_0)|=2\pi\), donc \(|X_1|=1\).</p>
+
+    <h3 id="proprietes">Propriétés</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Propriété</th><th>Fonction</th><th>Transformée</th></tr></thead>
+      <tbody>
+        <tr><td>Linéarité</td><td>\(\alpha x(t)+\beta y(t)\)</td><td>\(\alpha X(f)+\beta Y(f)\)</td></tr>
+        <tr><td>Translation (retard \(t_0\))</td><td>\(x(t-t_0)\)</td><td>\(e^{-2\pi ift_0}X(f)\)</td></tr>
+        <tr><td>Changement d'échelle (\(a\neq0\))</td><td>\(x(at)\)</td><td>\(\frac1{|a|}X\!\left(\frac fa\right)\)</td></tr>
+        <tr><td>Porte</td><td>\(\mathrm{rect}(t/T)\)</td><td>\(T\,\mathrm{sinc}(Tf)\)</td></tr>
+      </tbody>
+    </table></div>
+    <p>Preuves : linéarité de l'intégrale ; pour la translation, \(u=t-t_0\) ; pour l'échelle, \(u=at\) (si \(a\lt0\), l'échange des bornes donne le \(|a|\)). Exemple : \(2\,\mathrm{rect}(t-2)\longleftrightarrow2e^{-4\pi if}\mathrm{sinc}(f)\).</p>
+    <div class="callout warn"><span class="callout-title">Piège classique : une translation ne change pas le module</span>
+      <p>\(|e^{-2\pi ift_0}|=1\), donc \(|X|\) est inchangé par un retard : seule la phase bouge. Pour le changement d'échelle, une fonction plus large (\(a\lt1\)) a une transformée plus <strong>étroite</strong> et plus haute.</p>
+    </div>
+
+    <h2 id="methodes">Méthodes et exemples corrigés</h2>
+    <ol class="steps">
+      <li><strong>Identifier</strong> \(T_0\), \(\omega_0=\frac{2\pi}{T_0}\), et tracer \(x\) sur deux ou trois périodes.</li>
+      <li><strong>Parité</strong> : intégrer sur \([-\frac{T_0}2,\frac{T_0}2]\) et annuler d'office les \(b_n\) (paire) ou \(a_0,a_n\) (impaire).</li>
+      <li><strong>Calculer</strong> les intégrales restantes (souvent une IPP), simplifier avec \(\cos(n\pi)=(-1)^n\), \(\sin(n\pi)=0\), séparer \(n\) pair / impair.</li>
+      <li><strong>Convergence</strong> : vérifier \(\mathscr{C}^1\) par morceaux, puis Dirichlet ; aux sauts, moyenne des limites latérales.</li>
+      <li><strong>Sommes de séries</strong> : évaluer la série en un point bien choisi (Dirichlet) ou appliquer Parseval.</li>
+    </ol>
+    <p>Si \(x\) est déjà un polynôme trigonométrique, <strong>on lit les coefficients</strong> sans intégrer (unicité par orthogonalité).</p>
+
+    <h3 id="ex-polynome">Exemple 1 : lecture directe et Parseval</h3>
+    <p>\(x(t)=2+4\cos(2\pi t)-2\sin(4\pi t)\), \(T_0=1\), \(\omega_0=2\pi\). On lit \(a_0=2\), \(a_1=4\), \(b_2=-2\), tous les autres nuls. Forme complexe : \(X_0=2\), \(X_{\pm1}=\frac42=2\), \(X_2=\frac{0-i(-2)}{2}=i\), \(X_{-2}=-i\), les autres nuls. Parseval :</p>
+    \[\int_0^1x(t)^2\,dt=a_0^2+\tfrac12(a_1^2+b_2^2)=4+\tfrac12(16+4)=14,\qquad\sum|X_n|^2=4+2\cdot4+2\cdot1=14.\]
+
+    <h3 id="ex-creneau">Exemple 2 : le signal carré</h3>
+    <p>\(x\) \(2\pi\)-périodique, \(-1\) sur \(]-\pi,0[\), \(1\) sur \(]0,\pi[\), \(x(k\pi)=0\). \(x\) est impaire, donc \(a_0=a_n=0\) et</p>
+    \[b_n=\frac2\pi\int_0^\pi\sin(nt)\,dt=\frac2\pi\cdot\frac{1-(-1)^n}{n}=\begin{cases}0&amp;n\text{ pair}\\ \frac4{\pi n}&amp;n\text{ impair}\end{cases}\qquad x(t)\sim\frac4\pi\sum_{k=0}^{+\infty}\frac{\sin((2k+1)t)}{2k+1}.\]
+    <ul>
+      <li><strong>Dirichlet</strong> (\(x\) est \(\mathscr{C}^1\) par morceaux) : en \(t=0\) et \(t=\pi\) (sauts entre \(-1\) et \(1\)), la somme vaut 0 ; en \(t=\frac\pi2\) (continuité), elle vaut 1, ce qui redonne \(1-\frac13+\frac15-\cdots=\frac\pi4\).</li>
+      <li><strong>Parseval</strong> : \(\frac1{2\pi}\int_{-\pi}^{\pi}x^2=1=\frac12\sum_{k}\frac{16}{\pi^2(2k+1)^2}\), donc \(A=\sum_{k\ge0}\frac1{(2k+1)^2}=\frac{\pi^2}8\).</li>
+      <li><strong>Pairs / impairs</strong> : avec \(S=\sum_{n\ge1}\frac1{n^2}\), les pairs donnent \(\sum\frac1{(2k)^2}=\frac S4\), donc \(S=A+\frac S4\), \(S=\frac43A=\frac{\pi^2}6\).</li>
+    </ul>
+
+    <h3 id="ex-exponentielle">Exemple 3 : transformée de l'exponentielle tronquée</h3>
+    <p>\(a\gt0\), \(x(t)=e^{-at}\) pour \(t\ge0\), 0 sinon. Absolument intégrable : \(\int_0^{+\infty}e^{-at}dt=\frac1a\). Puis</p>
+    \[X(f)=\int_0^{+\infty}e^{-(a+2\pi if)t}\,dt=\left[\frac{e^{-(a+2\pi if)t}}{-(a+2\pi if)}\right]_0^{+\infty}=\frac1{a+2\pi if},\qquad|X(f)|=\frac1{\sqrt{a^2+4\pi^2f^2}},\]
+    <p>la limite en \(+\infty\) étant nulle car \(|e^{-(a+2\pi if)t}|=e^{-at}\to0\). En \(t=0\), \(x\) saute de 0 à 1 : la formule d'inversion restitue \(\frac{0+1}{2}=\frac12\), et non \(x(0)=1\).</p>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. Période fondamentale, fréquence et pulsation de \(\cos(4\pi t)\) ?</summary>
+      <p>\(T_0=\frac12\), \(f_0=2\) Hz, \(\omega_0=4\pi\) rad/s.</p>
+    </details>
+    <details><summary>2. Que vaut \(\int_0^{T_0}\sin(3\omega_0t)\cos(5\omega_0t)\,dt\) ? Et \(\int_0^{T_0}\cos^2(2\omega_0t)\,dt\) ?</summary>
+      <p>0 (sinus contre cosinus, toujours orthogonaux). \(\frac{T_0}{2}\) (cas \(n=m\)).</p>
+    </details>
+    <details><summary>3. \(x\) est impaire. Quels coefficients sont nuls d'office ?</summary>
+      <p>\(a_0\) et tous les \(a_n\) : \(x\) et \(x(t)\cos(n\omega_0t)\) sont impaires, leur intégrale sur \([-\frac{T_0}2,\frac{T_0}2]\) est nulle. Il ne reste que les \(b_n\).</p>
+    </details>
+    <details><summary>4. Vers quoi converge la série de Fourier de la dent de scie en \(t=\pi\) ?</summary>
+      <p>Vers \(\frac{\pi+(-\pi)}{2}=0\) (Dirichlet, point de saut), cohérent avec \(\sin(n\pi)=0\).</p>
+    </details>
+    <details><summary>5. Donner \(X_n\) en fonction de \(a_n,b_n\) pour \(n\ge1\), puis \(X_{-n}\) pour \(x\) réelle.</summary>
+      <p>\(X_n=\frac{a_n-ib_n}2\) et \(X_{-n}=\frac{a_n+ib_n}{2}=\overline{X_n}\). Et \(X_0=a_0\).</p>
+    </details>
+    <details><summary>6. Quelle est l'amplitude de l'harmonique de rang \(n\) ?</summary>
+      <p>\(A_n=\sqrt{a_n^2+b_n^2}=2|X_n|\).</p>
+    </details>
+    <details><summary>7. Avec Parseval sur \(|t|\) (\(a_0=\frac\pi2\), \(a_n=-\frac4{\pi n^2}\) pour \(n\) impair), calculez \(B=\sum_{k\ge0}\frac1{(2k+1)^4}\), puis \(\sum_{n\ge1}\frac1{n^4}\).</summary>
+      <p>\(\frac1{2\pi}\int_{-\pi}^\pi t^2=\frac{\pi^2}3=\frac{\pi^2}4+\frac12\cdot\frac{16}{\pi^2}B\), donc \(\frac{8B}{\pi^2}=\frac{\pi^2}{12}\), \(B=\frac{\pi^4}{96}\). Puis \(S=B+\frac S{16}\), \(S=\frac{16}{15}B=\frac{\pi^4}{90}\).</p>
+    </details>
+    <details><summary>8. Transformée de \(x(t)=3\,\mathrm{rect}\left(\frac{t-1}{2}\right)\) ?</summary>
+      <p>Directement : \(X(f)=3\int_0^2e^{-2\pi ift}dt=\frac{3(1-e^{-4\pi if})}{2\pi if}=6e^{-2\pi if}\mathrm{sinc}(2f)\) pour \(f\neq0\), et \(X(0)=6\). (Avec les propriétés : \(\mathrm{rect}(t/2)\leftrightarrow2\,\mathrm{sinc}(2f)\), puis retard de 1.)</p>
+    </details>
+    <details><summary>9. Pour la question 8 : \(|X(f)|\), ses zéros les plus proches de 0, et le sens de \(X(0)\) ?</summary>
+      <p>\(|X(f)|=6|\mathrm{sinc}(2f)|\), zéros en \(f=\pm\frac12\). \(X(0)=6\) est l'aire sous le graphe de \(x\) (hauteur 3, largeur 2).</p>
+    </details>
+    <details><summary>10. Pourquoi l'inversion de Fourier ne redonne-t-elle pas toujours \(x(t)\) ?</summary>
+      <p>Aux points de saut, elle donne \(\frac{x(t^-)+x(t^+)}2\), quelle que soit la valeur \(x(t)\) choisie. Exemple : \(e^{-at}\) tronquée en 0 donne \(\frac12\) au lieu de 1.</p>
+    </details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="06-integrales.html"><span>← Précédent</span>Intégrales</a>
+      <a class="next" href="08-algebre.html"><span>Suivant →</span>Algèbre</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

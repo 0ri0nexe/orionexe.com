@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fonctions · Fondements mathématiques</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}]})"></script>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Fondements mathématiques</a>
+    <div class="course-code">MAT 8457</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 04</div>
+    <h1>Fonctions continues</h1>
+    <p class="lead">Vocabulaire des fonctions réelles, limites (finies, infinies, à gauche, à droite), continuité, puis les trois grands théorèmes sur un segment ou un intervalle : valeurs intermédiaires, Weierstrass et bijection.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>Limite en \(x_0\) : \(\forall \varepsilon &gt; 0\ \exists \delta &gt; 0\ \forall x \in I,\ |x - x_0| &lt; \delta \Rightarrow |f(x) - \ell| &lt; \varepsilon\).</li>
+        <li>\(f\) est <strong>continue en \(x_0\)</strong> si \(\lim_{x_0} f = f(x_0)\). Sommes, produits, quotients (dénominateur non nul) et composées de fonctions continues sont continues.</li>
+        <li>Formes indéterminées : \(\infty - \infty\), \(0 \times \infty\), \(\frac{\infty}{\infty}\), \(\frac00\), \(1^\infty\), \(\infty^0\).</li>
+        <li><strong>TVI</strong> : \(f\) continue sur \([a,b]\) prend toutes les valeurs entre \(f(a)\) et \(f(b)\). Si \(f(a)f(b) &lt; 0\), \(f\) s'annule.</li>
+        <li><strong>Weierstrass</strong> : continue sur un segment, \(f\) est bornée et atteint son min et son max.</li>
+        <li><strong>Bijection</strong> : continue et strictement monotone sur \(I\), \(f\) est une bijection de \(I\) sur \(f(I)\), de réciproque continue et de même monotonie.</li>
+      </ul>
+    </div>
+
+    <h2 id="vocabulaire">Vocabulaire</h2>
+    <p>Une <strong>fonction</strong> réelle est une application \(f : U \to \mathbb{R}\), avec \(U \subset \mathbb{R}\) (souvent un intervalle ou une réunion d'intervalles) : son <strong>domaine de définition</strong>. Exemple : \(x \mapsto 1/x\) sur \(]-\infty, 0[ \cup ]0, +\infty[\). Le <strong>graphe</strong> est \(\Gamma_f = \{(x, f(x)) \mid x \in U\} \subset \mathbb{R}^2\).</p>
+
+    <h3 id="bornee">Bornée, monotone</h3>
+    <ul>
+      <li><strong>Majorée</strong> : \(\exists M\ \forall x \in U,\ f(x) \le M\). <strong>Minorée</strong> : \(\exists m\ \forall x,\ f(x) \ge m\). <strong>Bornée</strong> : les deux, soit \(\exists M\ \forall x,\ |f(x)| \le M\).</li>
+      <li><strong>Croissante</strong> : \(x \le y \Rightarrow f(x) \le f(y)\). <strong>Strictement croissante</strong> : \(x &lt; y \Rightarrow f(x) &lt; f(y)\). Idem pour décroissante (inégalité renversée).</li>
+      <li><strong>Monotone</strong> : croissante ou décroissante (sur tout \(U\)).</li>
+    </ul>
+    <p>Exemples : \(\sqrt{\ }\), \(\exp\) et \(\ln\) sont strictement croissantes. \(|x|\) n'est pas monotone sur \(\mathbb{R}\), mais l'est sur \([0, +\infty[\).</p>
+
+    <h3 id="parite">Parité, périodicité</h3>
+    <p>Sur un intervalle \(I\) symétrique par rapport à 0 :</p>
+    <ul>
+      <li><strong>Paire</strong> : \(f(-x) = f(x)\). Graphe symétrique par rapport à l'axe des ordonnées. Ex. : \(x^{2n}\), \(\cos\).</li>
+      <li><strong>Impaire</strong> : \(f(-x) = -f(x)\). Graphe symétrique par rapport à l'origine. Ex. : \(x^{2n+1}\), \(\sin\).</li>
+      <li><strong>Périodique</strong> de période \(T &gt; 0\) : \(f(x + T) = f(x)\) pour tout \(x\). Graphe invariant par translation de \(T\vec{i}\). Ex. : \(\sin, \cos\) sont \(2\pi\)-périodiques, \(\tan\) est \(\pi\)-périodique.</li>
+    </ul>
+    <div class="table-wrap"><table>
+      <thead><tr><th>\(f\), \(g\)</th><th>\(f + g\)</th><th>\(f \times g\)</th><th>\(g \circ f\)</th></tr></thead>
+      <tbody>
+        <tr><td>paire, paire</td><td>paire</td><td>paire</td><td>paire</td></tr>
+        <tr><td>impaire, impaire</td><td>impaire</td><td>paire</td><td>impaire</td></tr>
+        <tr><td>\(f\) paire, \(g\) impaire</td><td>en général ni l'un ni l'autre</td><td>impaire</td><td>paire</td></tr>
+      </tbody>
+    </table></div>
+    <p>(Réponses à l'exercice de la slide 9, à vérifier soi-même : par exemple pour \(f, g\) impaires, \((fg)(-x) = (-f(x))(-g(x)) = f(x)g(x)\). Si \(f\) est impaire et \(g\) paire, \(g \circ f\) est paire aussi.)</p>
+
+    <h2 id="limites">Limites</h2>
+    <p>\(f\) est définie sur un intervalle \(I\), et \(x_0\) est un point de \(I\) ou une extrémité de \(I\).</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Situation</th><th>Définition</th></tr></thead>
+      <tbody>
+        <tr><td>\(\lim_{x_0} f = \ell\)</td><td>\(\forall \varepsilon &gt; 0\ \exists \delta &gt; 0\ \forall x \in I,\ |x - x_0| &lt; \delta \Rightarrow |f(x) - \ell| &lt; \varepsilon\)</td></tr>
+        <tr><td>\(\lim_{x_0} f = +\infty\)</td><td>\(\forall A &gt; 0\ \exists \delta &gt; 0\ \forall x \in I,\ |x - x_0| &lt; \delta \Rightarrow f(x) &gt; A\)</td></tr>
+        <tr><td>\(\lim_{x_0} f = -\infty\)</td><td>\(\forall A &gt; 0\ \exists \delta &gt; 0\ \forall x \in I,\ |x - x_0| &lt; \delta \Rightarrow f(x) &lt; -A\)</td></tr>
+        <tr><td>\(\lim_{+\infty} f = \ell\)</td><td>\(\forall \varepsilon &gt; 0\ \exists B &gt; 0\ \forall x \in I,\ x &gt; B \Rightarrow |f(x) - \ell| &lt; \varepsilon\)</td></tr>
+        <tr><td>\(\lim_{+\infty} f = +\infty\)</td><td>\(\forall A &gt; 0\ \exists B &gt; 0\ \forall x \in I,\ x &gt; B \Rightarrow f(x) &gt; A\)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : le jeu \(\varepsilon\)-\(\delta\)</span>
+      <p>Un adversaire choisit une précision \(\varepsilon\) aussi petite qu'il veut (une bande horizontale autour de \(\ell\)). Vous devez répondre par une distance \(\delta\) (une bande verticale autour de \(x_0\)) telle que tout le graphe au-dessus de cette bande verticale reste dans la bande horizontale. La limite vaut \(\ell\) si vous gagnez à tous les coups. Pour \(+\infty\), le défi devient un seuil \(A\) à dépasser ; en \(+\infty\), la réponse est un seuil \(B\) sur \(x\).</p>
+    </div>
+    <p>Exemples : \(\lim_{x_0} \sqrt{x} = \sqrt{x_0}\) pour \(x_0 \ge 0\). La partie entière \(E\) n'a pas de limite aux points de \(\mathbb{Z}\).</p>
+
+    <h3 id="usuelles">Limites usuelles</h3>
+    <ul>
+      <li>Pour \(n \ge 1\) : \(\lim_{+\infty} x^n = +\infty\) ; \(\lim_{-\infty} x^n = +\infty\) si \(n\) pair, \(-\infty\) si \(n\) impair ; \(\lim_{\pm\infty} \frac{1}{x^n} = 0\).</li>
+      <li>Fraction rationnelle (\(a_n, b_m &gt; 0\), \(P\) de degré \(n\), \(Q\) de degré \(m\)) :</li>
+    </ul>
+    <div class="formula">\[ \lim_{x \to +\infty} \frac{P(x)}{Q(x)} = \begin{cases} +\infty &amp; \text{si } n &gt; m \\ a_n / b_m &amp; \text{si } n = m \\ 0 &amp; \text{si } n &lt; m \end{cases} \]</div>
+    <p>Idée : on factorise par le terme de plus haut degré. Ex. : \(\frac{3x^2 + 1}{2x^2 - x} \to \frac32\).</p>
+
+    <h3 id="gauche-droite">Limites à gauche et à droite</h3>
+    <p>Pour \(f\) définie sur \(]a, x_0[ \cup ]x_0, b[\) : la <strong>limite à droite</strong> \(\lim_{x_0^+} f\) (ou \(\lim_{x \to x_0,\, x &gt; x_0}\)) est la limite de \(f\) restreinte à \(]x_0, b[\) ; la <strong>limite à gauche</strong> \(\lim_{x_0^-} f\) celle de la restriction à \(]a, x_0[\).</p>
+    <ul>
+      <li>Si \(f\) a une limite en \(x_0\), les limites à gauche et à droite existent et sont égales à celle-ci.</li>
+      <li>Si les limites à gauche et à droite existent et valent toutes deux \(f(x_0)\), alors \(f\) a une limite en \(x_0\).</li>
+    </ul>
+    <p>Exemple : \(\lim_{2^+} E = 2\) et \(\lim_{2^-} E = 1\) : différentes, donc \(E\) n'a pas de limite en 2.</p>
+
+    <h3 id="operations">Opérations et formes indéterminées</h3>
+    <p>La limite, si elle existe, est <strong>unique</strong>. Si \(\lim_{x_0} f = \ell\) et \(\lim_{x_0} g = \ell'\) (réels, \(x_0\) réel ou \(\pm\infty\)) :</p>
+    <ul>
+      <li>\(\lim (\lambda f) = \lambda \ell\), \(\lim (f + g) = \ell + \ell'\), \(\lim (f g) = \ell \ell'\), et \(\lim \frac1f = \frac1\ell\) si \(\ell \ne 0\).</li>
+      <li>Si \(\lim_{x_0} f = \pm\infty\), alors \(\lim_{x_0} \frac1f = 0\).</li>
+      <li><strong>Composition</strong> : si \(\lim_{x_0} f = \ell\) et \(\lim_{\ell} g = \ell'\), alors \(\lim_{x_0} g \circ f = \ell'\).</li>
+    </ul>
+    <p>Exemple du cours : si \(u(x) \to 2\) en \(x_0\), alors \(\sqrt{1 + \frac{1}{u(x)^2} + \ln u(x)} \to \sqrt{1 + \frac14 + \ln 2}\) (on vérifie au passage que \(u &gt; 0\) et que le radicande est positif près de \(x_0\)).</p>
+    <div class="callout warn"><span class="callout-title">Piège classique : formes indéterminées</span>
+      <p>\(+\infty - \infty\), \(0 \times \infty\), \(\frac{\infty}{\infty}\), \(\frac00\), \(1^\infty\), \(\infty^0\) : les règles d'opérations ne disent rien, le résultat dépend des fonctions. Il faut transformer l'expression (factoriser, simplifier, utiliser l'exponentielle pour \(1^\infty\) et \(\infty^0\)). Ex. : \(1^\infty\) n'est pas « 1 » : \((1 + 1/x)^x \to e\).</p>
+    </div>
+
+    <h3 id="gendarmes">Inégalités et gendarmes</h3>
+    <p>On peut passer à la limite dans une inégalité <strong>large</strong> :</p>
+    <ul>
+      <li>Si \(f \le g\), \(\lim_{x_0} f = \ell\) et \(\lim_{x_0} g = \ell'\), alors \(\ell \le \ell'\).</li>
+      <li>Si \(f \le g\) et \(\lim_{x_0} f = +\infty\), alors \(\lim_{x_0} g = +\infty\).</li>
+    </ul>
+    <div class="callout key"><span class="callout-title">À retenir : théorème des gendarmes</span>
+      <p>Si \(f \le g \le h\) et \(\lim_{x_0} f = \lim_{x_0} h = \ell \in \mathbb{R}\), alors \(g\) a une limite en \(x_0\) et \(\lim_{x_0} g = \ell\).</p>
+    </div>
+    <div class="callout warn"><span class="callout-title">Piège classique : inégalité stricte</span>
+      <p>\(f &lt; g\) ne donne que \(\ell \le \ell'\) à la limite. Ex. : \(0 &lt; 1/x\) pour \(x &gt; 0\), mais les deux limites en \(+\infty\) valent 0.</p>
+    </div>
+
+    <h2 id="continuite">Continuité</h2>
+    <p>\(f : I \to \mathbb{R}\) est <strong>continue en \(x_0 \in I\)</strong> si</p>
+    <div class="formula">\[ \forall \varepsilon &gt; 0\ \exists \delta &gt; 0\ \forall x \in I,\quad |x - x_0| &lt; \delta \Rightarrow |f(x) - f(x_0)| &lt; \varepsilon, \]</div>
+    <p>c'est-à-dire si \(f\) a une limite en \(x_0\) (qui vaut alors forcément \(f(x_0)\)). Elle est <strong>continue sur \(I\)</strong> si elle l'est en tout point. Intuition : on trace le graphe « sans lever le crayon ».</p>
+    <ul>
+      <li><strong>Continues</strong> : constantes, \(\sqrt{x}\) sur \([0, +\infty[\), \(\sin\), \(\cos\), \(|x|\) et \(\exp\) sur \(\mathbb{R}\), \(\ln\) sur \(]0, +\infty[\).</li>
+      <li><strong>Opérations</strong> : si \(f, g\) sont continues en \(x_0\), alors \(\lambda f\), \(f + g\), \(f g\) le sont, et \(1/f\) aussi si \(f(x_0) \ne 0\). D'où : puissances \(x^n\), polynômes sur \(\mathbb{R}\), fractions rationnelles \(P/Q\) sur tout intervalle où \(Q\) ne s'annule pas.</li>
+      <li><strong>Composition</strong> : si \(f(I) \subset J\), \(f\) continue en \(x_0\) et \(g\) continue en \(f(x_0)\), alors \(g \circ f\) est continue en \(x_0\).</li>
+      <li><strong>Non continue</strong> : la partie entière \(E\) aux points de \(\mathbb{Z}\) (saut).</li>
+    </ul>
+
+    <h3 id="prolongement">Prolongement par continuité</h3>
+    <p>Si \(f\) est définie sur \(I \setminus \{x_0\}\) et a une <strong>limite finie</strong> \(\ell\) en \(x_0\), elle est <strong>prolongeable par continuité</strong> en \(x_0\). Le prolongement \(\tilde f(x) = f(x)\) pour \(x \ne x_0\), \(\tilde f(x_0) = \ell\) est continu en \(x_0\).</p>
+    <p>Exemple : \(f(x) = x \sin(1/x)\) sur \(\mathbb{R}^*\). Comme \(|f(x)| \le |x|\), gendarmes : \(f \to 0\) en 0. On pose \(\tilde f(0) = 0\).</p>
+
+    <h2 id="theoremes" data-toc="Grands théorèmes">Les grands théorèmes</h2>
+
+    <h3 id="tvi">Valeurs intermédiaires</h3>
+    <div class="callout key"><span class="callout-title">À retenir : TVI</span>
+      <p>Soit \(f : [a, b] \to \mathbb{R}\) <strong>continue</strong>. Pour tout réel \(y\) entre \(f(a)\) et \(f(b)\), il existe \(c \in [a, b]\) tel que \(f(c) = y\).</p>
+      <p><strong>Corollaire</strong> : si \(f(a) \cdot f(b) &lt; 0\), il existe \(c \in ]a, b[\) tel que \(f(c) = 0\).</p>
+    </div>
+    <ul>
+      <li>Le \(c\) n'est <strong>pas forcément unique</strong> (il peut y en avoir plusieurs).</li>
+      <li>Sans continuité, c'est faux : une fonction avec un saut peut « sauter par-dessus » \(y\).</li>
+      <li>Application : tout polynôme de <strong>degré impair</strong> a au moins une racine réelle (il tend vers \(-\infty\) d'un côté et \(+\infty\) de l'autre).</li>
+    </ul>
+
+    <h3 id="weierstrass">Théorème de Weierstrass</h3>
+    <div class="callout key"><span class="callout-title">À retenir : image d'un segment</span>
+      <p>Si \(f\) est continue sur le segment \([a, b]\), il existe \(m, M\) tels que \(f([a, b]) = [m, M]\). Autrement dit : \(f\) est <strong>bornée</strong> sur \([a, b]\) et <strong>atteint ses bornes</strong> (\(m\) est son minimum, \(M\) son maximum).</p>
+    </div>
+    <div class="callout warn"><span class="callout-title">Piège classique : il faut un segment</span>
+      <p>Sur un intervalle ouvert ou non borné, c'est faux : \(1/x\) est continue sur \(]0, 1]\) mais non majorée ; \(x\) sur \(]0, 1[\) est bornée mais n'atteint ni 0 ni 1.</p>
+    </div>
+
+    <h3 id="bijection">Bijections et théorème de la bijection</h3>
+    <p>Pour \(f : E \to F\) :</p>
+    <ul>
+      <li><strong>Injective</strong> : \(f(x) = f(x') \Rightarrow x = x'\) (chaque \(y\) a au plus un antécédent).</li>
+      <li><strong>Surjective</strong> : \(\forall y \in F\ \exists x \in E,\ y = f(x)\) (au moins un antécédent).</li>
+      <li><strong>Bijective</strong> : les deux, \(\forall y \in F\ \exists! x \in E,\ y = f(x)\) (exactement un).</li>
+    </ul>
+    <p>Si \(f\) est bijective, il existe une unique \(g = f^{-1} : F \to E\), la <strong>bijection réciproque</strong>, avec \(g(f(x)) = x\) pour tout \(x \in E\) et \(f(g(y)) = y\) pour tout \(y \in F\). Dans un repère orthonormé, les graphes de \(f\) et \(f^{-1}\) sont <strong>symétriques par rapport à la droite \(y = x\)</strong>.</p>
+    <div class="callout key"><span class="callout-title">À retenir : théorème de la bijection</span>
+      <p>Si \(f : I \to \mathbb{R}\) est <strong>continue et strictement monotone</strong> sur l'intervalle \(I\), alors \(f\) est une bijection de \(I\) sur l'intervalle \(J = f(I)\), et \(f^{-1} : J \to I\) est continue, strictement monotone, de <strong>même sens de variation</strong> que \(f\).</p>
+    </div>
+    <p>Exemple : \(x \mapsto x^2\) n'est pas injective sur \(\mathbb{R}\), mais sur \([0, +\infty[\) elle est continue strictement croissante : sa réciproque est \(\sqrt{\ }\). Sur \(]-\infty, 0]\), sa réciproque est \(y \mapsto -\sqrt{y}\).</p>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. \(x \mapsto x^3 \cos x\) est-elle paire, impaire ?</summary>
+      <p>Impaire : produit d'une fonction impaire (\(x^3\)) et d'une paire (\(\cos\)).</p>
+    </details>
+    <details><summary>2. Limite en \(+\infty\) de \(\frac{2x^3 - x}{5x^3 + 4}\) ?</summary>
+      <p>Même degré : rapport des coefficients dominants, \(\frac25\).</p>
+    </details>
+    <details><summary>3. La partie entière a-t-elle une limite en 3 ?</summary>
+      <p>Non : \(\lim_{3^-} E = 2\) et \(\lim_{3^+} E = 3\) sont différentes.</p>
+    </details>
+    <details><summary>4. Citez trois formes indéterminées.</summary>
+      <p>Par exemple \(\infty - \infty\), \(\frac00\), \(1^\infty\) (aussi \(0 \times \infty\), \(\frac\infty\infty\), \(\infty^0\)).</p>
+    </details>
+    <details><summary>5. Limite en 0 de \(x^2 \cos(1/x)\) ?</summary>
+      <p>\(-x^2 \le x^2 \cos(1/x) \le x^2\) et les deux bornes tendent vers 0 : gendarmes, la limite vaut 0.</p>
+    </details>
+    <details><summary>6. \(\frac{\sin x}{x}\) est-elle prolongeable par continuité en 0 ?</summary>
+      <p>Oui, car \(\frac{\sin x}{x} \to 1\) en 0 (limite finie) : on pose \(\tilde f(0) = 1\).</p>
+    </details>
+    <details><summary>7. Montrer que \(x^3 + x - 1\) s'annule sur \([0, 1]\).</summary>
+      <p>Fonction continue, \(f(0) = -1 &lt; 0\) et \(f(1) = 1 &gt; 0\) : par le TVI (corollaire), il existe \(c \in ]0, 1[\) avec \(f(c) = 0\).</p>
+    </details>
+    <details><summary>8. Une fonction continue sur \(]0, 1[\) est-elle forcément bornée ?</summary>
+      <p>Non, Weierstrass exige un segment : \(1/x\) est continue et non bornée sur \(]0, 1[\).</p>
+    </details>
+    <details><summary>9. Pourquoi \(\exp\) admet-elle une réciproque continue ?</summary>
+      <p>Elle est continue et strictement croissante sur \(\mathbb{R}\) : bijection de \(\mathbb{R}\) sur \(]0, +\infty[\), et sa réciproque \(\ln\) est continue et strictement croissante.</p>
+    </details>
+    <details><summary>10. Comment se lisent les graphes de \(f\) et \(f^{-1}\) ?</summary>
+      <p>Ils sont symétriques par rapport à la première bissectrice \(y = x\).</p>
+    </details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="03-series.html"><span>← Précédent</span>Séries</a>
+      <a class="next" href="05-derivees.html"><span>Suivant →</span>Dérivées</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

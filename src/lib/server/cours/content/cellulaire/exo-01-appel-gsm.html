@@ -26,7 +26,7 @@
       <ul>
         <li><a href="03-gsm-gprs.html">Chapitre 03 : GSM et GPRS</a> (trame TDMA, canaux logiques).</li>
         <li><a href="tp-traces-gsm.html">TP : analyse de traces GSM</a> (Paging, Channel Request, Immediate Assignment).</li>
-        <li>Les seuils de handover : qualité, niveau, distance, Power Budget avec marge HO_MARGIN.</li>
+        <li><a href="03-gsm-gprs.html#handover">Chapitre 03 : le handover</a> (causes, Power Budget et marge HO_MARGIN) pour la partie C.</li>
       </ul>
     </div>
 
@@ -77,13 +77,117 @@
     </ol>
 
     <h2 id="correction">Correction</h2>
-    <div class="callout warn"><span class="callout-title">Pas encore publiée</span>
-      <p>Cherche d'abord, même partiellement. La correction sera ajoutée ici, repliée question par question, après qu'on l'aura faite ensemble.</p>
-    </div>
+    <p>Cherche d'abord, puis déplie question par question.</p>
+
+    <h3 id="correction-a" data-toc="Correction A">Partie A</h3>
+    <details><summary>1. Appels simultanés et signalisation dédiée</summary>
+      <p>3 porteuses × 8 timeslots = 24 timeslots. TS0 et TS1 de C0 servent à la signalisation, il reste <strong>22 TCH/F, donc 22 appels</strong> (un TCH/F = un timeslot = un appel).</p>
+      <p>Le SDCCH/8 occupe <strong>un seul timeslot</strong> (TS1 de C0), découpé dans le temps en <strong>8 sous-canaux</strong> : <strong>8 mobiles</strong> en signalisation dédiée en même temps. Chaque sous-canal n'a qu'un bloc par multitrame de 51 trames, d'où la lenteur du SDCCH.</p>
+      <div class="callout warn"><span class="callout-title">Piège classique : porteuse et antenne</span>
+        <p>Une porteuse est une <strong>fréquence</strong>, pas une antenne. La BTS émet sur ses 3 porteuses avec la même antenne. Et les porteuses ne jouent pas des rôles différents : c'est le <strong>timeslot</strong> qui a un rôle. Seul le TS0 de C0 (la porteuse BCCH) est imposé.</p>
+      </div>
+    </details>
+    <details><summary>2. Débit d'un TCH et écart avec les 13 kbit/s du codec</summary>
+      <p>114 bits / 4,615 ms = <strong>24,7 kbit/s</strong>. On ne divise pas par 8 : les 114 bits sont déjà ce que le mobile reçoit dans <strong>son seul slot</strong> de la trame, le partage est déjà compté. Il faudrait diviser par 8 en partant du débit de la porteuse entière (270,8 kbit/s), et on trouverait 33,9 kbit/s : un burst de 156,25 bits ne porte que 2 × 57 = 114 bits de données (le reste : séquence d'apprentissage, bits de queue, bits de vol, garde).</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Étape</th><th>Débit</th><th>Pourquoi</th></tr></thead>
+        <tbody>
+          <tr><td>Codec voix</td><td>13 kbit/s</td><td>260 bits toutes les 20 ms</td></tr>
+          <tr><td>Codage canal</td><td>22,8 kbit/s</td><td>456 bits toutes les 20 ms : redondance pour corriger les erreurs radio</td></tr>
+          <tr><td>TCH sur l'air</td><td>24,7 kbit/s</td><td>Multitrame 26 : 24 trames de voix + 1 SACCH + 1 libre, et 24,7 × 24/26 = 22,8</td></tr>
+        </tbody>
+      </table></div>
+    </details>
+    <details><summary>3. Plus de capacité voix sans nouvelle porteuse</summary>
+      <p>Passer en <strong>demi-débit (TCH/H)</strong> : deux appels se partagent un timeslot, chacun une trame sur deux, avec un codec plus compressé (5,6 kbit/s). La cellule passe de 22 à <strong>44 appels</strong>.</p>
+      <p><strong>Coût :</strong> la qualité de la voix (plus compressée, plus « métallique ») et une moins bonne résistance aux erreurs radio, faute de place pour la redondance. En pratique, on ne l'active que quand la cellule sature (stade, concert). Le codec AMR fait ce choix automatiquement.</p>
+      <div class="callout warn"><span class="callout-title">Piège classique : le FDD n'ajoute pas de capacité</span>
+        <p>Le FDD sépare les <strong>deux sens d'un même appel</strong> (une fréquence pour monter, une pour descendre). Il est déjà en place sur chaque porteuse et un appel occupe les deux fréquences de la paire : il ne crée aucune case supplémentaire.</p>
+      </div>
+    </details>
+
+    <h3 id="correction-b" data-toc="Correction B">Partie B</h3>
+    <details><summary>4. L'ordre des messages, leur canal et leur sens</summary>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Message</th><th>Canal</th><th>Sens</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Paging Request</td><td>PCH</td><td>↓</td></tr>
+          <tr><td>2</td><td>Channel Request</td><td>RACH</td><td>↑</td></tr>
+          <tr><td>3</td><td>Immediate Assignment</td><td>AGCH</td><td>↓</td></tr>
+          <tr><td>4</td><td>Paging Response</td><td>SDCCH</td><td>↑</td></tr>
+          <tr><td>5</td><td>Authentication Request</td><td>SDCCH</td><td>↓</td></tr>
+          <tr><td>6</td><td>Ciphering Mode Command</td><td>SDCCH</td><td>↓</td></tr>
+          <tr><td>7</td><td>Assignment Command</td><td>SDCCH</td><td>↓</td></tr>
+          <tr><td>8</td><td>Connect</td><td>FACCH (sur le TCH)</td><td>↑</td></tr>
+        </tbody>
+      </table></div>
+      <div class="callout explain"><span class="callout-title">Pour comprendre : la méthode en trois questions</span>
+        <p><strong>L'ordre :</strong> chaque étape a besoin de la précédente. Prévenue (paging), Alice demande un canal, l'obtient, s'annonce dessus, est authentifiée, puis chiffrée (la clé Kc est calculée pendant l'authentification), reçoit un canal de voix, et décroche en dernier (action humaine).</p>
+        <p><strong>Le sens :</strong> qui parle ? Le réseau prévient, ordonne, attribue (Request du réseau, Command, Assignment : ↓). Alice demande, répond, décroche (Channel Request, Response, Connect : ↑).</p>
+        <p><strong>Le canal :</strong> qu'est-ce qu'Alice possède à ce moment-là ? Rien : canaux communs (PCH, RACH, AGCH). Un SDCCH : tout passe dessus. Un TCH : la signalisation vole des trames de voix (FACCH).</p>
+      </div>
+      <div class="callout warn"><span class="callout-title">Piège classique : l'Assignment Command</span>
+        <p>Il passe sur le <strong>SDCCH</strong>, pas sur le TCH : le réseau envoie l'ordre sur le canal où le mobile se trouve encore. Et le Connect est <strong>montant</strong> : c'est Alice qui décroche (le Connect descendant est celui que reçoit Bob).</p>
+      </div>
+      <p>Le vrai échange compte d'autres messages (Setup, Call Confirmed, Alerting, Connect Acknowledge) qui suivent la même logique.</p>
+      <h4>Est-ce toujours la même chose ?</h4>
+      <p>Le <strong>squelette</strong> ne change jamais, car chaque étape dépend de la précédente : prévenir (PCH), demander un canal (RACH), l'obtenir (AGCH), s'identifier puis sécurité (SDCCH), ressource utile (TCH ou SDCCH), échange. Les <strong>détails</strong> varient :</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Situation</th><th>Ce qui change</th></tr></thead>
+        <tbody>
+          <tr><td>Appel sortant</td><td>Pas de paging. Le mobile commence par le Channel Request (autre cause dans le RA) et envoie un <strong>CM Service Request</strong> au lieu d'une Paging Response.</td></tr>
+          <tr><td>SMS reçu (le TP)</td><td>Tout reste sur le SDCCH : pas d'Assignment Command ni de TCH.</td></tr>
+          <tr><td>Mise à jour de localisation</td><td>Pas de paging, et rien après la sécurité : le canal est libéré.</td></tr>
+          <tr><td>Authentification</td><td>Pas forcément refaite à chaque fois (clé réutilisée). Si elle a lieu, c'est avant le chiffrement.</td></tr>
+          <tr><td>Attribution du TCH</td><td>Avant la sonnerie (cas courant) ou après le décroché. Le Connect reste à la fin.</td></tr>
+          <tr><td>3G, 4G, 5G</td><td>Autres noms (RRC Connection Request, Security Mode Command...), même squelette.</td></tr>
+        </tbody>
+      </table></div>
+    </details>
+    <details><summary>5. Collision sur le RACH et destinataire de l'Immediate Assignment</summary>
+      <p><strong>Ce qui se passe :</strong> les trois bursts arrivent en même temps sur la même case, c'est une <strong>collision</strong> (le RACH est en ALOHA discrétisé, chacun émet sans permission). Soit la BTS ne décode rien et les trois demandes sont perdues, soit elle décode le plus fort (effet de capture) et les deux autres sont perdues. Un mobile sans réponse <strong>réessaie après un délai aléatoire</strong> (nombre d'essais et plage d'attente diffusés sur le BCCH). Le hasard évite que les mêmes mobiles se cognent à nouveau.</p>
+      <p><strong>À qui s'adresse la réponse :</strong> le Channel Request ne fait qu'un octet (RA), trop petit pour une identité. Il contient la <strong>cause</strong> (premiers bits) et un <strong>nombre aléatoire</strong>. L'Immediate Assignment renvoie une <strong>Request Reference</strong> : le même octet RA et le <strong>numéro de la trame</strong> où il a été reçu. Chaque mobile compare avec ce qu'il a envoyé et quand. Dans le TP : RA = 0x9C = 100 11100, « 100 » = réponse à un paging, le reste est l'aléa.</p>
+      <div class="callout explain"><span class="callout-title">Pour comprendre : si deux mobiles ont tiré le même nombre</span>
+        <p>Les deux sautent sur le même SDCCH. Chacun y envoie son premier message, qui contient sa vraie identité (la Paging Response avec le TMSI). Le réseau renvoie ce message à l'identique dans son acquittement : celui qui reconnaît son message a gagné, l'autre quitte le canal et recommence. Image : on lève la main avec un numéro tiré au hasard, et au guichet on montre sa carte d'identité au cas où quelqu'un d'autre aurait le même numéro.</p>
+      </div>
+    </details>
+
+    <h3 id="correction-c" data-toc="Correction C">Partie C</h3>
+    <details><summary>6. Handover ou pas, vers où, et pourquoi</summary>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Situation</th><th>Handover ?</th><th>Cible</th><th>Cause</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1</strong></td><td>Non</td><td>On reste sur A</td><td>Niveau (−85 dBm) et qualité (RXQUAL 1) bons. B n'est meilleure que de 3 dB, sous les 6 dB de HO_MARGIN.</td></tr>
+          <tr><td><strong>2</strong></td><td>Oui</td><td><strong>B</strong></td><td><strong>Power Budget</strong> : B est meilleure de 10 dB (−78 contre −88). C serait encore meilleure (13 dB) mais n'a aucun TCH libre : on passe à la candidate suivante.</td></tr>
+          <tr><td><strong>3</strong></td><td>Oui</td><td><strong>A, autre canal</strong> (handover intra-cellule)</td><td><strong>Qualité</strong> (RXQUAL 6 ≥ 5) avec un niveau excellent (−62 dBm) : c'est un brouilleur, pas un problème de distance. Les voisines (−95 et −99 dBm) seraient pires.</td></tr>
+        </tbody>
+      </table></div>
+      <div class="callout explain"><span class="callout-title">Pour comprendre : RXQUAL</span>
+        <p>RXQUAL mesure la <strong>qualité</strong> du lien à partir du taux d'erreur binaire (BER), de 0 (moins de 0,2 % d'erreurs) à 7 (plus de 12,8 %). Chaque cran double le BER : RXQUAL 5 correspond à 3,2 à 6,4 % d'erreurs. Plus c'est bas, mieux c'est. Le mobile la mesure en descendant, la BTS en montant, et le mobile la rapporte toutes les 480 ms sur le SACCH.</p>
+        <p>RXLEV mesure la <strong>puissance</strong> reçue. Les deux ne vont pas toujours ensemble : un brouilleur sur la même fréquence ajoute de la puissance tout en abîmant le signal. Niveau fort et qualité mauvaise, c'est sa signature (situation 3). Niveau faible et qualité mauvaise, c'est la distance : on cherche une voisine.</p>
+      </div>
+      <div class="callout warn"><span class="callout-title">Pièges classiques</span>
+        <p><strong>dB et dBm :</strong> un niveau se donne en dBm (une puissance), une <strong>différence</strong> entre deux niveaux en dB (un rapport). B est « meilleure de 10 dB », pas de 10 dBm.</p>
+        <p><strong>La meilleure voisine n'est pas forcément la cible :</strong> il faut aussi qu'elle ait un canal libre (situation 2).</p>
+      </div>
+    </details>
+    <details><summary>7. Le canal de l'ordre de handover</summary>
+      <p>Le Handover Command passe sur le <strong>FACCH</strong> : il prend la place d'un bloc de voix de 20 ms sur le TCH. Les bits de vol (<em>stealing flags</em>) du burst signalent au récepteur que ce bloc contient de la signalisation.</p>
+      <p><strong>Pas le SACCH, parce qu'il est trop lent :</strong> une seule trame sur 26 lui est réservée, et un message occupe 4 bursts, soit <strong>480 ms</strong> par message. Il est en plus déjà occupé par les Measurement Reports et le contrôle de puissance. Or un handover arrive souvent sur un lien qui se dégrade : si l'ordre traîne, l'appel tombe avant la bascule. Le FACCH dispose de tout le débit du TCH et passe en quelques dizaines de millisecondes.</p>
+      <p><strong>Le coût est négligeable :</strong> 20 ms de voix perdus de temps en temps ne s'entendent pas, le décodeur masque le trou en répétant la trame précédente.</p>
+    </details>
+    <details><summary>8. HO_MARGIN = 0 : le ping-pong</summary>
+      <p>Alice passerait A → B → A → B... à chaque petite variation : c'est le <strong>ping-pong</strong>. Pas besoin qu'elle zigzague : à la frontière, les deux niveaux sont proches et fluctuent de plusieurs dB à cause de l'évanouissement (trajets multiples, obstacles qui passent). Avec une marge nulle, la voisine passe devant au moindre écart.</p>
+      <p><strong>Ce que ça coûte :</strong> de la signalisation à chaque bascule (BSC, voire MSC), des trames de voix volées sur le FACCH et un petit blanc à chaque fois, et un risque d'échec, donc de coupure, multiplié par le nombre de handovers.</p>
+      <p><strong>Le rôle de la marge :</strong> c'est une hystérésis. Pour aller de A vers B, il faut B &gt; A + 6 dB. Pour revenir, il faut A &gt; B + 6 dB. Entre les deux s'étend une zone de 12 dB où l'on reste sur la cellule actuelle, quelle qu'elle soit.</p>
+      <div class="callout explain"><span class="callout-title">Pour comprendre : les autres garde-fous</span>
+        <p>Les réseaux réels ajoutent le <strong>lissage</strong> des mesures (moyenne glissante sur plusieurs Measurement Reports, les « moyennes lissées » de l'énoncé) et un <strong>délai minimal</strong> entre deux handovers, qui interdit de revenir tout de suite vers la cellule qu'on vient de quitter.</p>
+      </div>
+    </details>
 
     <div class="chapter-nav">
       <a class="prev" href="tp-traces-gsm.html"><span>← Précédent</span>TP : analyse de traces GSM</a>
-      <a class="next" href="index.html"><span>Suivant →</span>Retour au sommaire</a>
+      <a class="next" href="exo-02-mobilite-gprs.html"><span>Suivant →</span>Exo 2 : d'une antenne à l'autre</a>
     </div>
   </main>
 </div>

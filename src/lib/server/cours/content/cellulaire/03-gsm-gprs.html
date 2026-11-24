@@ -182,6 +182,75 @@
     </table></div>
     <p>Dans une trace : BCCH, <em>Channel Request</em> (RACH), <em>Immediate Assignment</em> (AGCH), SDCCH, puis TCH.</p>
 
+    <h2 id="handover">Le handover</h2>
+    <div class="callout warn"><span class="callout-title">Complément au cours</span>
+      <p>Les slides disent seulement que le BSC gère les handovers, que le SACCH porte les mesures et que le FACCH sert au handover. Cette section vient de la norme GSM (3GPP TS 45.008 et 44.018) : utile pour comprendre et pour l'exercice 1, mais pas forcément au programme de l'examen.</p>
+    </div>
+    <p>Le <strong>handover</strong> (transfert intercellulaire) fait passer une communication en cours d'un canal à un autre, en général d'une cellule à une autre, sans couper l'appel.</p>
+
+    <h3 id="ho-qui" data-toc="Qui décide ?">Qui décide : le mobile ou le réseau ?</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>État du mobile</th><th>Mécanisme</th><th>Qui décide</th></tr></thead>
+      <tbody>
+        <tr><td><strong>En veille</strong> (pas de canal dédié)</td><td><strong>Resélection</strong> de cellule</td><td><strong>Le mobile, seul.</strong> Le réseau ne connaît que sa zone de localisation (LA), pas sa cellule.</td></tr>
+        <tr><td><strong>En communication</strong> (TCH ou SDCCH)</td><td><strong>Handover</strong></td><td><strong>Le réseau (BSC).</strong> Le mobile mesure et rapporte, sans pouvoir de décision : handover <em>assisté par le mobile</em> (MAHO).</td></tr>
+      </tbody>
+    </table></div>
+    <p><strong>En veille</strong>, le mobile calcule pour chaque cellule un critère <strong>C1</strong> (la cellule est utilisable si C1 &gt; 0 : niveau reçu au-dessus du minimum exigé) et un critère <strong>C2</strong> (C1 corrigé de décalages fixés par l'opérateur pour orienter les mobiles). Il passe sur une voisine si son C2 est meilleur <strong>pendant 5 s</strong>, avec une marge supplémentaire (hystérésis) si elle est dans une autre zone de localisation, car changer de zone coûte une mise à jour de localisation.</p>
+
+    <h3 id="ho-mesures">Les mesures</h3>
+    <ul>
+      <li><strong>Le mobile</strong> envoie toutes les <strong>480 ms</strong> un <em>Measurement Report</em> sur le <strong>SACCH</strong> : <strong>RXLEV</strong> (niveau reçu, 0 à 63) et <strong>RXQUAL</strong> (qualité, 0 à 7, déduite du taux d'erreur) de sa cellule, et le RXLEV des <strong>6 meilleures voisines</strong> (parmi les porteuses BCCH listées dans les infos système).</li>
+      <li><strong>La BTS</strong> mesure le sens montant (RXLEV, RXQUAL) et le <strong>Timing Advance</strong>, qui donne la distance du mobile.</li>
+    </ul>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : quand le mobile mesure-t-il les voisines ?</span>
+      <p>Il n'utilise qu'un slot sur huit pour recevoir et un pour émettre : il mesure les voisines <strong>dans les slots où il ne fait rien</strong>. Pour identifier une voisine sans la confondre avec une cellule lointaine sur la même fréquence, il doit lire son <strong>BSIC</strong> sur le SCH. Il le fait pendant la <strong>trame libre</strong> de la multitrame de 26 : c'est à ça qu'elle sert.</p>
+    </div>
+
+    <h3 id="ho-causes" data-toc="La décision">La décision : causes et Power Budget</h3>
+    <p>La norme ne fixe pas l'algorithme (chaque constructeur a le sien), mais les principes sont toujours les mêmes :</p>
+    <ol class="steps">
+      <li><strong>Lisser les mesures</strong> : moyennes glissantes sur plusieurs rapports, et règle « N sur P » (le seuil doit être franchi dans N des P dernières moyennes). Une mesure isolée ne veut rien dire à cause du fading.</li>
+      <li><strong>Contrôle de puissance d'abord</strong> : si le niveau baisse, on augmente la puissance. Le handover sur niveau ne vient que si on est déjà au maximum.</li>
+      <li><strong>Tester les causes</strong>, de la plus urgente à la moins urgente :</li>
+    </ol>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Cause</th><th>Déclencheur</th><th>Idée</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Qualité</strong></td><td>RXQUAL au-dessus d'un seuil</td><td>Le lien se dégrade, il faut partir.</td></tr>
+        <tr><td><strong>Brouillage</strong> : handover <strong>intra-cellule</strong></td><td>Mauvaise qualité <strong>avec un bon niveau</strong></td><td>Le signal est fort mais pollué : le problème vient d'un brouilleur sur cette fréquence, pas de la distance. On change de canal dans la <strong>même</strong> cellule.</td></tr>
+        <tr><td><strong>Niveau</strong></td><td>RXLEV sous un seuil, puissance au maximum</td><td>Le mobile s'éloigne, couverture insuffisante.</td></tr>
+        <tr><td><strong>Distance</strong></td><td>Timing Advance au-dessus d'un maximum (63, environ 35 km)</td><td>Trop loin pour la cellule.</td></tr>
+        <tr><td><strong>Power Budget</strong> (PBGT)</td><td>Une voisine est meilleure d'une marge donnée</td><td>Pas une urgence : on passe sur une meilleure cellule pour réduire les puissances et le brouillage. C'est le handover « normal » en mobilité.</td></tr>
+        <tr><td><strong>Charge</strong></td><td>Cellule saturée</td><td>Déplacer des mobiles vers une voisine moins chargée.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout key"><span class="callout-title">À retenir : le Power Budget et sa marge</span>
+      <p>Simplifié : <strong>PBGT = RXLEV voisine − RXLEV actuelle</strong> (corrigé des puissances d'émission). Handover si <strong>PBGT &gt; HO_MARGIN</strong>. La cellule cible doit aussi avoir un niveau suffisant et <strong>un canal libre</strong> ; sinon on prend la candidate suivante.</p>
+    </div>
+    <div class="callout warn"><span class="callout-title">Piège classique : le ping-pong</span>
+      <p>Sans marge (HO_MARGIN = 0), un mobile qui longe la frontière entre deux cellules passerait de A à B dès que B est un peu meilleure, puis de B à A dès que A redevient un peu meilleure, et ainsi de suite. La marge est une <strong>hystérésis</strong> : la voisine doit être <strong>nettement</strong> meilleure.</p>
+    </div>
+
+    <h3 id="ho-execution" data-toc="L'exécution">L'exécution</h3>
+    <ol class="steps">
+      <li>Le BSC décide et <strong>réserve un canal</strong> dans la cellule cible.</li>
+      <li>Il envoie le <strong>Handover Command</strong> sur le <strong>FACCH</strong> (urgent : on vole des trames de voix). Il contient la fréquence BCCH et le BSIC de la cible, le canal, et une référence de handover.</li>
+      <li>Le mobile bascule et envoie des <strong>Handover Access</strong> : des <strong>access bursts</strong> (comme sur le RACH), car il ne connaît pas encore son Timing Advance dans la nouvelle cellule.</li>
+      <li>La nouvelle BTS mesure le délai et renvoie le Timing Advance (<strong>Physical Information</strong>). Exception : entre cellules du même site, horloges synchronisées, le mobile calcule lui-même son TA (handover synchronisé).</li>
+      <li>Le mobile envoie <strong>Handover Complete</strong>, l'ancien canal est libéré. <strong>En cas d'échec</strong>, il revient sur l'ancien canal (<em>Handover Failure</em>) : l'appel n'est pas perdu.</li>
+    </ol>
+    <p>C'est un <strong>hard handover</strong> : on coupe l'ancien lien avant d'établir le nouveau (<em>break before make</em>), d'où un blanc de 100 à 200 ms à peine audible. La 3G introduira le <strong>soft handover</strong>, relié à plusieurs cellules à la fois.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Type</th><th>Ce qui change</th><th>Qui pilote</th></tr></thead>
+      <tbody>
+        <tr><td>Intra-cellule</td><td>Le canal seulement</td><td>Le BSC</td></tr>
+        <tr><td>Intra-BSC</td><td>La BTS, sous le même BSC</td><td>Le BSC (le MSC est informé)</td></tr>
+        <tr><td>Inter-BSC</td><td>Le BSC</td><td>Le MSC (<em>Handover Required</em>, puis <em>Handover Request</em> au nouveau BSC)</td></tr>
+        <tr><td>Inter-MSC</td><td>Le MSC</td><td>Les MSC entre eux ; le premier reste <strong>MSC d'ancrage</strong> jusqu'à la fin de l'appel</td></tr>
+      </tbody>
+    </table></div>
+
     <h2 id="partage">Allocation dynamique et TBF</h2>
     <p>Les 8 slots d'une porteuse sont partagés entre GSM et GPRS. Le TS0 porte le BCCH ; les autres sont des <strong>TCH</strong> (un appel voix chacun) ou des <strong>PDCH</strong> (partagés par plusieurs mobiles GPRS). Le partage est <strong>dynamique</strong>, avec <strong>priorité à la voix</strong> : si un appel arrive et qu'aucun TCH n'est libre, un PDCH est repris et redevient TCH.</p>
     <p>Un <strong>TBF</strong> (<em>Temporary Block Flow</em>) est une connexion <strong>temporaire et unidirectionnelle</strong> entre un mobile et le réseau, qui ne dure que le temps du transfert. Il peut utiliser un ou plusieurs PDCH. Le réseau lui attribue un <strong>TFI</strong> (<em>Temporary Flow Identity</em>), unique par sens parmi les TBF actifs, porté dans l'en-tête RLC de chaque bloc.</p>
@@ -239,6 +308,15 @@
     </details>
     <details><summary>6. Dans une trace GSM, sur quels canaux voit-on la demande d'accès puis l'attribution du canal dédié ?</summary>
       <p><em>Channel Request</em> sur le <strong>RACH</strong> (montant), <em>Immediate Assignment</em> sur l'<strong>AGCH</strong> (descendant), tous deux dans le CCCH ; la suite se passe sur le <strong>SDCCH</strong>.</p>
+    </details>
+    <details><summary>7. Un mobile peut-il décider lui-même d'un handover ?</summary>
+      <p>Non : en communication, il mesure et rapporte (SACCH), le <strong>BSC décide</strong>. En veille en revanche, il choisit seul sa cellule (resélection, critères C1/C2).</p>
+    </details>
+    <details><summary>8. Signal fort mais mauvaise qualité : quel handover ?</summary>
+      <p>Un handover <strong>intra-cellule</strong> : un bon niveau avec une mauvaise qualité indique un brouilleur sur ce canal, pas un problème de distance. On change de canal dans la même cellule.</p>
+    </details>
+    <details><summary>9. À quoi sert HO_MARGIN ?</summary>
+      <p>C'est une hystérésis : la voisine doit être nettement meilleure que la cellule actuelle. Sans elle, un mobile à la frontière ferait du <strong>ping-pong</strong> entre les deux cellules.</p>
     </details>
 
     <div class="chapter-nav">

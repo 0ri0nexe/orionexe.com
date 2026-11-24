@@ -5,6 +5,28 @@
  * paragraph margins and heading weights, so those are restored here.
  */
 
+/* Light palette for the course pages (code blocks stay dark on purpose). */
+:root[data-theme='light'] .cours {
+	--bg: #f7f7f5;
+	--surface: #ffffff;
+	--surface-2: #f0f0ec;
+	--text: #1c1d21;
+	--muted: #5f6370;
+	--border: #e2e2dc;
+	--accent: #2f5bea;
+	--accent-soft: #e8eefe;
+	--def: #0f766e;
+	--def-soft: #e6f5f3;
+	--tip: #7c3aed;
+	--tip-soft: #f2ecfe;
+	--warn: #b45309;
+	--warn-soft: #fdf3e4;
+	--key: #be185d;
+	--key-soft: #fdebf3;
+	--code-bg: #15171c;
+	--code-text: #e6e6e6;
+}
+
 html:has(.cours) {
 	scroll-padding-top: 24px;
 }
@@ -535,4 +557,9 @@ html:has(.cours) {
 			break-inside: avoid;
 		}
 	}
+}
+
+/* Math in uppercase callout titles must keep its case (x is not X). */
+.cours .callout-title .katex {
+	text-transform: none;
 }

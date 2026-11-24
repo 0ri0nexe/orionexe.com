@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Algèbre linéaire · Fondements mathématiques</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}]})"></script>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Fondements mathématiques</a>
+    <div class="course-code">MAT 8457</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 08</div>
+    <h1>Algèbre linéaire</h1>
+    <p class="lead">On part des vecteurs à n composantes, réelles ou complexes, on construit bases et sous-espaces, puis les applications linéaires et leurs matrices. On cherche ensuite les directions propres pour diagonaliser, et on applique le tout à la descente du gradient sur une quadratique.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li><strong>Base</strong> = famille libre et génératrice. Toutes les bases ont le même nombre de vecteurs : la <strong>dimension</strong>.</li>
+        <li>\(f\) linéaire : \(f(\alpha u+\beta v)=\alpha f(u)+\beta f(v)\). <strong>Théorème du rang</strong> : \(\dim E=\dim\ker f+\operatorname{rg} f\).</li>
+        <li>La colonne \(j\) de la matrice de \(f\) contient \(f(b_j)\). Le produit \(AB\) représente \(f\circ g\) : <strong>le facteur de droite agit en premier</strong>, et \(AB\neq BA\) en général.</li>
+        <li>\(\det\begin{pmatrix}a&amp;b\\c&amp;d\end{pmatrix}=ad-bc\). \(\det A=0\iff\) colonnes liées \(\iff\ker A\neq\{0\}\iff A\) non inversible.</li>
+        <li>Changement de base : \(A'=P^{-1}AP\), la colonne \(j\) de \(P\) étant le \(j\)-ième nouveau vecteur écrit dans l'ancienne base.</li>
+        <li>Valeurs propres = racines de \(\chi_A(t)=\det(tI-A)\). Diagonalisable \(\iff\) base de vecteurs propres. Symétrique réelle : \(A=QDQ^T\) (théorème spectral).</li>
+        <li>Descente du gradient sur une quadratique : converge ssi \(0\lt\gamma\lt\frac2L\), pas optimal \(\frac{2}{m+L}\), taux \(\frac{\kappa-1}{\kappa+1}\).</li>
+      </ul>
+    </div>
+
+    <h2 id="vecteurs">Vecteurs, produit scalaire, Cauchy-Schwarz</h2>
+    <p>\(\mathbb{K}^n\) est l'ensemble des listes \(x=(x_1,\dots,x_n)^T\) de \(n\) scalaires ; somme et multiplication par un scalaire se font composante par composante. Une <strong>combinaison linéaire</strong> de \(v_1,\dots,v_p\) est \(\alpha_1v_1+\dots+\alpha_pv_p\). La <strong>base canonique</strong> \((e_1,\dots,e_n)\) (\(e_j\) : un 1 en position \(j\), des 0 ailleurs) permet d'écrire de façon unique \(x=x_1e_1+\dots+x_ne_n\).</p>
+    <div class="callout key"><span class="callout-title">À retenir : produit scalaire classique et norme</span>
+      \[\langle x,y\rangle=\sum_jx_jy_j\ (\mathbb{R}^n),\qquad\langle x,y\rangle=\sum_j\overline{x_j}\,y_j\ (\mathbb{C}^n),\qquad\|x\|=\sqrt{\sum_j|x_j|^2}\]
+      <p>En complexe, il est <strong>antilinéaire à gauche</strong> (\(\langle\alpha x,y\rangle=\overline\alpha\langle x,y\rangle\)), linéaire à droite, et \(\langle y,x\rangle=\overline{\langle x,y\rangle}\). \(x\) et \(y\) sont <strong>orthogonaux</strong> si \(\langle x,y\rangle=0\).</p>
+    </div>
+    <p>Exemples : \((1,2,-1)\) et \((2,0,2)\) sont orthogonaux dans \(\mathbb{R}^3\), et \(\|(1,2,-1)\|=\sqrt6\). Dans \(\mathbb{C}^2\), \(\langle(1,i),(i,1)\rangle=i-i=0\) et \(\|(1,i)\|=\sqrt2\).</p>
+    <div class="callout warn"><span class="callout-title">Piège classique : oublier le conjugué</span>
+      <p>Sans conjugué, \(u=(1,i)\) donnerait \(1^2+i^2=0\) alors que \(u\neq0\). Le conjugué garantit \(\langle x,x\rangle=\|x\|^2\ge0\).</p>
+    </div>
+    <div class="callout key"><span class="callout-title">À retenir : Cauchy-Schwarz et inégalité triangulaire</span>
+      \[|\langle x,y\rangle|\le\|x\|\,\|y\|,\qquad\|x+y\|\le\|x\|+\|y\|\]
+      <p>Égalité dans Cauchy-Schwarz si et seulement si \(x\) et \(y\) sont <strong>liés</strong> (l'un est nul ou multiple de l'autre). Exemple : \(x=(1,2)\), \(y=(3,4)\) : \(11\le5\sqrt5\), sans égalité.</p>
+    </div>
+    <p>Conséquence utile : en comparant \((a_j)\) à \((1,\dots,1)\), \((a_1+\dots+a_n)^2\le n\sum_ja_j^2\). Pythagore : \(\langle x,y\rangle=0\Rightarrow\|x+y\|^2=\|x\|^2+\|y\|^2\) (dans \(\mathbb{C}^n\) la réciproque demande seulement \(\operatorname{Re}\langle x,y\rangle=0\)).</p>
+
+    <h2 id="bases">Familles, bases et sous-espaces</h2>
+    <div class="callout key"><span class="callout-title">À retenir : libre, génératrice, base</span>
+      <ul>
+        <li><strong>Libre</strong> : \(\sum_j\alpha_jv_j=0\Rightarrow\) tous les \(\alpha_j=0\). Sinon <strong>liée</strong> (une relation non triviale existe). Toute famille contenant \(0\) est liée.</li>
+        <li><strong>Génératrice</strong> de \(E\) : tout vecteur de \(E\) est combinaison linéaire de la famille.</li>
+        <li><strong>Base</strong> : libre et génératrice. Tout \(x\) s'écrit alors de façon unique \(x=\sum_j\alpha_jb_j\) ; \([x]_B=(\alpha_1,\dots,\alpha_d)^T\) sont ses <strong>coordonnées</strong>.</li>
+      </ul>
+    </div>
+    <p>Exemple : \(b_1=(1,1)\), \(b_2=(1,-1)\) est une base de \(\mathbb{R}^2\) car \((x,y)=\frac{x+y}{2}b_1+\frac{x-y}{2}b_2\). Pour \(x=(3,1)\), \([x]_B=(2,1)^T\) : le vecteur ne change pas, seules ses coordonnées changent.</p>
+
+    <h3 id="dimension">Dimension</h3>
+    <div class="callout key"><span class="callout-title">À retenir : dimension (théorème admis)</span>
+      <p>Tout sous-espace de \(\mathbb{K}^n\) a une base finie, et toutes ses bases ont le même nombre \(d\) de vecteurs : la <strong>dimension</strong>. En dimension \(d\) :</p>
+      <ul>
+        <li>une famille libre a <strong>au plus</strong> \(d\) vecteurs, une famille génératrice <strong>au moins</strong> \(d\) ;</li>
+        <li>une famille de <strong>exactement \(d\)</strong> vecteurs est une base dès qu'elle est libre <strong>ou</strong> dès qu'elle est génératrice.</li>
+      </ul>
+      <p>\(\dim\mathbb{K}^n=n\), \(\dim\{0\}=0\). Si \(F\subseteq E\), \(\dim F\le\dim E\), avec égalité ssi \(F=E\).</p>
+    </div>
+    <div class="callout warn"><span class="callout-title">Piège classique : le corps compte</span>
+      <p>\(\mathbb{C}^n\) est de dimension \(n\) sur \(\mathbb{C}\) mais \(2n\) sur \(\mathbb{R}\). La famille \((1,i)\) de \(\mathbb{C}\) est libre sur \(\mathbb{R}\), mais liée sur \(\mathbb{C}\) : \(i\cdot1-1\cdot i=0\).</p>
+    </div>
+
+    <h3 id="sev">Sous-espaces vectoriels et Vect</h3>
+    <p>\(F\subseteq\mathbb{K}^n\) est un <strong>sous-espace vectoriel</strong> si \(0\in F\) et \(\alpha u+\beta v\in F\) pour tous \(u,v\in F\), \(\alpha,\beta\in\mathbb{K}\). \(\operatorname{Vect}(v_1,\dots,v_p)=\{\sum_j\alpha_jv_j\}\) est le <strong>plus petit</strong> sous-espace contenant les \(v_j\). Ajouter un vecteur redondant n'ajoute rien : \(\operatorname{Vect}(u,2u)=\operatorname{Vect}(u)\).</p>
+    <p>Les sous-espaces de \(\mathbb{R}^3\) sont \(\{0\}\), les droites et les plans <strong>passant par l'origine</strong>, et \(\mathbb{R}^3\). L'intersection de deux sous-espaces en est un ; la réunion en général non (les deux axes de \(\mathbb{R}^2\) : \((1,0)+(0,1)\) n'est sur aucun axe).</p>
+    <div class="callout key"><span class="callout-title">Méthode : base d'un sous-espace défini par des équations</span>
+      <ol class="steps">
+        <li>Résoudre les équations en exprimant certaines variables en fonction des autres (variables libres).</li>
+        <li>Écrire le vecteur général comme combinaison des variables libres : chaque variable libre donne un vecteur.</li>
+        <li>Ces vecteurs sont générateurs par construction ; vérifier qu'ils sont libres (comparer les composantes des variables libres).</li>
+      </ol>
+      <p>Exemple : \(F=\{z=x+y\}\), \((x,y,x+y)=x(1,0,1)+y(0,1,1)\), base \(((1,0,1),(0,1,1))\), \(\dim F=2\).</p>
+    </div>
+    <div class="callout warn"><span class="callout-title">Piège classique : oublier l'origine</span>
+      <p>Avant tout calcul, tester \(0\in F\). Le plan \(x+y=1\) ou \(z=1\) n'est pas un sous-espace. Et \(xy=0\) contient \(0\) mais pas \((1,0)+(0,1)\) : il faut aussi la stabilité.</p>
+    </div>
+
+    <h2 id="applications">Applications linéaires, noyau, image</h2>
+    <p>\(f:E\to F\) (même corps) est <strong>linéaire</strong> si \(f(\alpha u+\beta v)=\alpha f(u)+\beta f(v)\). Alors \(f(0)=0\). Exemple : \(f(x,y,z)=(x+2y,z)\) est linéaire ; \(g(x,y)=(x+1,y)\) ne l'est pas (\(g(0)\neq0\)) ; \(h(x)=x^2\) non plus (\(h(2)\neq2h(1)\)) bien que \(h(0)=0\).</p>
+    <div class="callout warn"><span class="callout-title">Piège classique : \(f(0)=0\) ne suffit pas</span>
+      <p>C'est une condition <strong>nécessaire</strong> seulement. Pour réfuter la linéarité, chercher un contre-exemple : origine, somme (\(xy\), \(x^2\)), ou multiplication par \(-1\) (\(|x|\)). La conjugaison \(z\mapsto\overline z\) est \(\mathbb{R}\)-linéaire mais pas \(\mathbb{C}\)-linéaire.</p>
+    </div>
+    <div class="callout key"><span class="callout-title">À retenir : noyau, image, rang</span>
+      <p>\(\ker f=\{x:f(x)=0\}\) (sous-espace de \(E\)), \(\operatorname{Im}f=\{f(x)\}\) (sous-espace de \(F\)), \(\operatorname{rg}f=\dim\operatorname{Im}f\).</p>
+      <ul>
+        <li>\(f\) injective \(\iff\ker f=\{0\}\) ; \(f\) surjective \(\iff\operatorname{Im}f=F\).</li>
+        <li><strong>Théorème du rang</strong> (\(E\) de dimension finie) : \(\dim E=\dim\ker f+\operatorname{rg}f\).</li>
+        <li>Si \(\dim E=\dim F\) (finie) : injective \(\iff\) surjective \(\iff\) bijective.</li>
+      </ul>
+    </div>
+    <p>Conséquence : le rang ne dépasse ni \(\dim E\) ni \(\dim F\). Une application \(\mathbb{R}^4\to\mathbb{R}^2\) n'est jamais injective, une application \(\mathbb{R}^2\to\mathbb{R}^4\) jamais surjective.</p>
+
+    <h3 id="exemple-noyau">Exemple traité : noyau et image</h3>
+    <p>\(f(x,y,z)=(x+y,\,y+z)\) de \(\mathbb{R}^3\) dans \(\mathbb{R}^2\).</p>
+    <ul>
+      <li><strong>Noyau</strong> : \(x+y=0\), \(y+z=0\), donc \(x=-y\), \(z=-y\) : \(\ker f=\operatorname{Vect}((-1,1,-1))\), dimension 1.</li>
+      <li><strong>Rang</strong> : \(3=1+\operatorname{rg}f\), donc \(\operatorname{rg}f=2\), et \(\operatorname{Im}f\) est un sous-espace de dimension 2 de \(\mathbb{R}^2\) : \(\operatorname{Im}f=\mathbb{R}^2\).</li>
+      <li>Conclusion : surjective, non injective.</li>
+    </ul>
+
+    <h3 id="transformations">Transformations fondamentales</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Transformation</th><th>Formule</th><th>Matrice</th><th>Remarque</th></tr></thead>
+      <tbody>
+        <tr><td>Identité</td><td>\(x\mapsto x\)</td><td>\(I_n\)</td><td>\(h_1\)</td></tr>
+        <tr><td>Homothétie</td><td>\(h_a(x)=ax\)</td><td>\(aI_n\)</td><td>bijective ssi \(a\neq0\), réciproque \(h_{1/a}\)</td></tr>
+        <tr><td>Projection</td><td>\(p\circ p=p\)</td><td>ex. \(\operatorname{diag}(1,1,0)\)</td><td>sur \(\operatorname{Im}p\) parallèlement à \(\ker p\)</td></tr>
+        <tr><td>Rotation d'angle \(\theta\)</td><td>\((x\cos\theta-y\sin\theta,\ x\sin\theta+y\cos\theta)\)</td><td>\(R_\theta=\begin{pmatrix}\cos\theta&amp;-\sin\theta\\\sin\theta&amp;\cos\theta\end{pmatrix}\)</td><td>conserve la norme, réciproque \(R_{-\theta}\)</td></tr>
+      </tbody>
+    </table></div>
+    <p>Pour une projection, tout \(x\) se décompose en \(x=p(x)+(x-p(x))\), avec \(p(x)\in\operatorname{Im}p\) et \(x-p(x)\in\ker p\), et \(\operatorname{Im}p\cap\ker p=\{0\}\). Une projection n'est <strong>pas forcément orthogonale</strong> : \(q(x,y)=(x-y,0)\) vérifie \(q\circ q=q\), a pour noyau la droite \(x=y\) et pour image l'axe horizontal (projection oblique).</p>
+
+    <h2 id="matrices">Matrices</h2>
+    <p>Une application linéaire est entièrement déterminée par les images d'une base, que l'on peut choisir librement. On les range dans une matrice.</p>
+    <div class="callout key"><span class="callout-title">À retenir : matrice d'une application linéaire</span>
+      <p>Bases \(B=(b_1,\dots,b_n)\) au départ, \(C=(c_1,\dots,c_m)\) à l'arrivée. \(A=(a_{ij})\in\mathbb{K}^{m\times n}\) est définie par \(f(b_j)=\sum_ia_{ij}c_i\) :</p>
+      <p><strong>la colonne \(j\) contient les coordonnées de \(f(b_j)\)</strong>. Ligne \(i\) = sortie, colonne \(j\) = entrée. On a alors \([f(x)]_C=A[x]_B\), avec</p>
+      \[AX=\sum_{j=1}^nx_jA_{\cdot j}\quad\text{(combinaison des colonnes)},\qquad(AX)_i=\sum_{j=1}^na_{ij}x_j.\]
+    </div>
+    <p>Exemple : \(f(x,y,z)=(x+2y,z)\). \(f(e_1)=(1,0)\), \(f(e_2)=(2,0)\), \(f(e_3)=(0,1)\), donc \(A=\begin{pmatrix}1&amp;2&amp;0\\0&amp;0&amp;1\end{pmatrix}\) (2 sorties, 3 entrées). Pour \(X=(3,-1,4)^T\) : \(AX=3\binom10-\binom20+4\binom01=\binom14\).</p>
+
+    <h3 id="produit">Somme et produit</h3>
+    <div class="callout key"><span class="callout-title">À retenir : opérations matricielles</span>
+      <ul>
+        <li>\((A+B)_{ij}=a_{ij}+b_{ij}\), \((\alpha A)_{ij}=\alpha a_{ij}\) : elles représentent \(f+g\) et \(\alpha f\).</li>
+        <li>\(A\in\mathbb{K}^{m\times n}\), \(B\in\mathbb{K}^{n\times p}\) : \((AB)_{ij}=\sum_{k=1}^na_{ik}b_{kj}\), de taille \(m\times p\). La colonne \(j\) de \(AB\) est \(A\) appliquée à la colonne \(j\) de \(B\).</li>
+        <li>\(AB\) représente \(f\circ g\) : \(B\) (à droite) agit <strong>en premier</strong>.</li>
+        <li>Associatif, distributif, \(I_mA=AI_n=A\), mais <strong>non commutatif</strong>.</li>
+      </ul>
+    </div>
+    <div class="callout warn"><span class="callout-title">Piège classique : ordre et tailles</span>
+      <p>Avec \(P=\operatorname{diag}(1,0)\) et \(R=R_{\pi/2}=\begin{pmatrix}0&amp;-1\\1&amp;0\end{pmatrix}\) : \(PR=\begin{pmatrix}0&amp;-1\\0&amp;0\end{pmatrix}\neq RP=\begin{pmatrix}0&amp;0\\1&amp;0\end{pmatrix}\). Tourner puis projeter n'est pas projeter puis tourner. Et \((m\times n)(n'\times p)\) n'existe que si \(n=n'\) : avec \(A\) \(2\times3\) et \(B\) \(3\times4\), \(AB\) existe (\(2\times4\)) mais pas \(BA\).</p>
+    </div>
+
+    <h3 id="determinant">Inverse, trace, déterminant</h3>
+    <p>\(A\) carrée est <strong>inversible</strong> s'il existe \(A^{-1}\) avec \(A^{-1}A=AA^{-1}=I_n\) ; elle représente alors une bijection. \((AB)^{-1}=B^{-1}A^{-1}\) (on défait d'abord la dernière transformation). La <strong>trace</strong> est \(\operatorname{tr}A=\sum_ja_{jj}\).</p>
+    <div class="callout key"><span class="callout-title">À retenir : déterminant et inversibilité</span>
+      \[\det\begin{pmatrix}a&amp;b\\c&amp;d\end{pmatrix}=ad-bc,\qquad A^{-1}=\frac{1}{ad-bc}\begin{pmatrix}d&amp;-b\\-c&amp;a\end{pmatrix}\ \text{si }ad-bc\neq0.\]
+      <p>Pour toute matrice carrée (résultat admis en dimension \(n\)), sont équivalents : \(\det A=0\) ; colonnes liées ; lignes liées ; \(\ker A\neq\{0\}\) ; \(A\) non inversible. Le déterminant d'une matrice <strong>diagonale ou triangulaire</strong> est le produit des termes diagonaux.</p>
+    </div>
+    <p>Exemples : \(\begin{pmatrix}1&amp;2\\3&amp;4\end{pmatrix}\) a trace 5, déterminant \(-2\). \(\begin{pmatrix}1&amp;2\\3&amp;6\end{pmatrix}\) a déterminant 0 (colonne 2 = 2 × colonne 1). \(R_\theta\) a trace \(2\cos\theta\), déterminant 1. \(|\det A|\) est l'aire du parallélogramme engendré par les colonnes : un déterminant nul correspond à un parallélogramme aplati.</p>
+    <div class="callout warn"><span class="callout-title">Piège classique : le déterminant d'une matrice rectangulaire</span>
+      <p>Trace et déterminant ne sont définis que pour des matrices <strong>carrées</strong>. Et dans la formule de l'inverse \(2\times2\), on <strong>échange</strong> \(a\) et \(d\) mais on change seulement le <strong>signe</strong> de \(b\) et \(c\).</p>
+    </div>
+
+    <h2 id="changement-base">Changement de base</h2>
+    <div class="callout key"><span class="callout-title">À retenir : matrice de passage</span>
+      <p>Ancienne base \(B\), nouvelle base \(B'=(b'_1,\dots,b'_n)\). \(P\) a pour colonne \(j\) les coordonnées \([b'_j]_B\). Elle convertit <strong>nouvelles coordonnées en anciennes</strong> :</p>
+      \[[x]_B=P[x]_{B'},\qquad[x]_{B'}=P^{-1}[x]_B,\qquad A'=P^{-1}AP.\]
+      <p>Lecture de \(P^{-1}AP\) de droite à gauche : convertir vers l'ancienne base, appliquer \(f\), revenir à la nouvelle base.</p>
+    </div>
+    <p>Exemple : \(B'=((1,1),(1,-1))\), \(P=\begin{pmatrix}1&amp;1\\1&amp;-1\end{pmatrix}\), \(P^{-1}=\frac12\begin{pmatrix}1&amp;1\\1&amp;-1\end{pmatrix}\). Pour \(A=\begin{pmatrix}2&amp;1\\1&amp;2\end{pmatrix}\), \(P^{-1}AP=\operatorname{diag}(3,1)\) : dans la nouvelle base, \(f\) multiplie la première coordonnée par 3 et la seconde par 1.</p>
+    <div class="callout warn"><span class="callout-title">Piège classique : le sens de \(P\)</span>
+      <p>Les conventions de vocabulaire varient. Plutôt que de retenir un nom, <strong>vérifier l'équation</strong> : \(P\) multiplié par les nouvelles coordonnées doit redonner les anciennes. Ici \(P(2,1)^T=(3,1)^T\). Pour \(f:E\to F\) avec deux changements de base différents, la formule devient \(Q^{-1}AP\).</p>
+    </div>
+
+    <h2 id="propres">Valeurs et vecteurs propres</h2>
+    <div class="callout key"><span class="callout-title">À retenir : éléments propres</span>
+      <p>\(v\) est un <strong>vecteur propre</strong> de \(A\) pour la <strong>valeur propre</strong> \(\lambda\) si \(v\neq0\) et \(Av=\lambda v\). L'<strong>espace propre</strong> est \(E_\lambda=\ker(A-\lambda I)\) (il contient 0, mais 0 n'est jamais un vecteur propre). Les valeurs propres ne changent pas par changement de base.</p>
+    </div>
+    <p>Sur \(\mathbb{R}\), une direction propre conserve sa droite : \(\lambda\gt0\) garde le sens, \(\lambda\lt0\) le renverse, \(\lambda=0\) écrase. Cas de référence :</p>
+    <ul>
+      <li><strong>Homothétie</strong> \(aI_n\) : tout vecteur non nul est propre, seule valeur propre \(a\).</li>
+      <li><strong>Projection</strong> : \(p^2=p\) impose \(\lambda(\lambda-1)=0\), donc \(\lambda\in\{0,1\}\), avec \(E_0=\ker p\), \(E_1=\operatorname{Im}p\).</li>
+      <li><strong>Rotation</strong> \(R_\theta\), \(\theta\notin\pi\mathbb{Z}\) : aucune valeur propre réelle (aucune droite conservée). Sur \(\mathbb{C}\) : \(R_\theta(1,-i)^T=e^{i\theta}(1,-i)^T\) et \(R_\theta(1,i)^T=e^{-i\theta}(1,i)^T\).</li>
+    </ul>
+    <div class="callout warn"><span class="callout-title">Piège classique : les rotations exceptionnelles</span>
+      <p>« Une rotation n'a pas de vecteur propre réel » est faux pour \(\theta\in2\pi\mathbb{Z}\) (\(R_\theta=I_2\), valeur propre 1) et \(\theta\in\pi+2\pi\mathbb{Z}\) (\(R_\theta=-I_2\), valeur propre \(-1\)). Autre piège : si \(u\), \(v\) sont propres pour des valeurs <strong>différentes</strong>, \(u+v\) n'est pas propre (ex. \(e_1+e_2\) pour \(\operatorname{diag}(1,2)\)).</p>
+    </div>
+
+    <h3 id="caracteristique">Polynôme caractéristique</h3>
+    <div class="callout key"><span class="callout-title">À retenir : polynôme caractéristique</span>
+      <p>\(\chi_A(t)=\det(tI_n-A)\), unitaire de degré \(n\). \(\lambda\) est valeur propre \(\iff\chi_A(\lambda)=0\). En dimension 2 :</p>
+      \[\chi_A(t)=t^2-\operatorname{tr}(A)\,t+\det A.\]
+      <p>Matrice triangulaire ou diagonale : les valeurs propres sont les termes diagonaux. <strong>Multiplicité algébrique</strong> : ordre de la racine dans \(\chi_A\) ; <strong>géométrique</strong> : \(\dim E_\lambda\).</p>
+    </div>
+    <p>Exemple : le quart de tour \(\begin{pmatrix}0&amp;-1\\1&amp;0\end{pmatrix}\) a \(\chi(t)=t^2+1\) : pas de valeur propre réelle, mais \(\pm i\) sur \(\mathbb{C}\).</p>
+
+    <h2 id="diagonalisation">Diagonalisation</h2>
+    <div class="callout key"><span class="callout-title">À retenir : diagonalisable</span>
+      <p>\(A\) est <strong>diagonalisable sur \(\mathbb{K}\)</strong> s'il existe \(P\) inversible et \(D\) diagonale (coefficients dans \(\mathbb{K}\)) avec \(P^{-1}AP=D\), soit \(A=PDP^{-1}\). C'est équivalent à l'existence d'une <strong>base de vecteurs propres</strong> (les colonnes de \(P\), dans le même ordre que les valeurs propres de \(D\)).</p>
+      <ul>
+        <li>Des vecteurs propres de valeurs propres distinctes sont libres : <strong>\(n\) valeurs propres distinctes \(\Rightarrow\) diagonalisable</strong>.</li>
+        <li>Critère général : \(\chi_A\) scindé sur \(\mathbb{K}\) <strong>et</strong>, pour chaque \(\lambda\), multiplicité géométrique = multiplicité algébrique.</li>
+        <li>Puissances : \(A^k=PD^kP^{-1}\), \(D^k=\operatorname{diag}(\lambda_1^k,\dots,\lambda_n^k)\).</li>
+      </ul>
+    </div>
+    <div class="callout key"><span class="callout-title">Méthode : diagonaliser une matrice</span>
+      <ol class="steps">
+        <li>Calculer \(\chi_A\) (en \(2\times2\) : \(t^2-\operatorname{tr}A\,t+\det A\)) et ses racines dans le corps choisi.</li>
+        <li>Pour chaque \(\lambda\), résoudre \((A-\lambda I)v=0\) et donner une base de \(E_\lambda\).</li>
+        <li>Compter : si on obtient \(n\) vecteurs propres indépendants, les ranger en colonnes de \(P\) ; \(D\) contient les \(\lambda\) dans le même ordre.</li>
+        <li>Vérifier \(AP=PD\) (plus rapide que de calculer \(P^{-1}AP\)).</li>
+      </ol>
+    </div>
+
+    <h3 id="exemple-diag" data-toc="Exemple : diagonalisation">Exemple traité : \(A=\begin{pmatrix}4&amp;1\\2&amp;3\end{pmatrix}\)</h3>
+    <ul>
+      <li>\(\operatorname{tr}A=7\), \(\det A=10\), donc \(\chi_A(t)=t^2-7t+10=(t-5)(t-2)\). Deux valeurs propres distinctes : diagonalisable.</li>
+      <li>\(\lambda=5\) : \(A-5I=\begin{pmatrix}-1&amp;1\\2&amp;-2\end{pmatrix}\), d'où \(y=x\) : \(E_5=\operatorname{Vect}((1,1))\).</li>
+      <li>\(\lambda=2\) : \(A-2I=\begin{pmatrix}2&amp;1\\2&amp;1\end{pmatrix}\), d'où \(y=-2x\) : \(E_2=\operatorname{Vect}((1,-2))\).</li>
+      <li>\(P=\begin{pmatrix}1&amp;1\\1&amp;-2\end{pmatrix}\), \(D=\operatorname{diag}(5,2)\), \(P^{-1}=\frac13\begin{pmatrix}2&amp;1\\1&amp;-1\end{pmatrix}\). Contrôle : \(AP=\begin{pmatrix}5&amp;2\\5&amp;-4\end{pmatrix}=PD\).</li>
+    </ul>
+    <p>Application aux récurrences : pour \(x_{k+1}=Ax_k\) avec \(A=\begin{pmatrix}2&amp;1\\1&amp;2\end{pmatrix}\) et \(x_0=(2,0)=(1,1)+(1,-1)\), on obtient directement \(x_k=3^k(1,1)+1^k(1,-1)=(3^k+1,\,3^k-1)\).</p>
+
+    <div class="callout warn"><span class="callout-title">Piège classique : racine double \(\neq\) échec</span>
+      <p>\(2I_2\) et \(J=\begin{pmatrix}2&amp;1\\0&amp;2\end{pmatrix}\) ont le même \(\chi(t)=(t-2)^2\). Mais \(\dim E_2=2\) pour \(2I_2\) (diagonalisable) et \(\dim E_2=1\) pour \(J\) (non diagonalisable, ni sur \(\mathbb{R}\) ni sur \(\mathbb{C}\)). Ce qui compte, c'est la dimension des espaces propres. À l'inverse, le quart de tour est diagonalisable sur \(\mathbb{C}\) mais pas sur \(\mathbb{R}\).</p>
+    </div>
+
+    <h3 id="spectral">Théorème spectral</h3>
+    <p>\(A\) réelle est <strong>symétrique</strong> si \(A^T=A\) ; \(A\) complexe est <strong>hermitienne</strong> si \(A^*=A\), avec \(A^*=\overline{A}^T\) (diagonale alors réelle). Une base \((q_j)\) est <strong>orthonormée</strong> si \(\langle q_i,q_j\rangle=0\) pour \(i\neq j\) et \(\|q_j\|=1\) ; la matrice \(Q\) de ses colonnes est <strong>orthogonale</strong> (\(Q^TQ=I\), donc \(Q^{-1}=Q^T\)) en réel, <strong>unitaire</strong> (\(U^*U=I\)) en complexe.</p>
+    <div class="callout key"><span class="callout-title">À retenir : théorème spectral (admis)</span>
+      <p>Toute matrice <strong>réelle symétrique</strong> admet une base orthonormée réelle de vecteurs propres : \(A=QDQ^T\), \(Q^TQ=I\), \(D\) diagonale réelle.</p>
+      <p>Toute matrice <strong>hermitienne</strong> admet une base orthonormée complexe de vecteurs propres et ses valeurs propres sont <strong>réelles</strong> : \(A=UDU^*\), \(U^*U=I\).</p>
+    </div>
+    <p>Exemple : \(\begin{pmatrix}2&amp;1\\1&amp;2\end{pmatrix}=QDQ^T\) avec \(Q=\frac1{\sqrt2}\begin{pmatrix}1&amp;1\\1&amp;-1\end{pmatrix}\), \(D=\operatorname{diag}(3,1)\). Pour \(H=\begin{pmatrix}2&amp;i\\-i&amp;2\end{pmatrix}\), \(\frac{(i,1)}{\sqrt2}\) et \(\frac{(-i,1)}{\sqrt2}\) sont propres pour 3 et 1.</p>
+    <div class="callout warn"><span class="callout-title">Piège classique : orthonormée seulement si symétrique</span>
+      <p>Une matrice diagonalisable quelconque n'a pas forcément de base propre orthonormée : la projection oblique \(\begin{pmatrix}1&amp;-1\\0&amp;0\end{pmatrix}\) se diagonalise avec \(P=\begin{pmatrix}1&amp;1\\0&amp;1\end{pmatrix}\), base non orthonormée (matrice non symétrique). En complexe, ne pas remplacer \(U^*\) par \(U^T\).</p>
+    </div>
+
+    <h2 id="gradient">Optimisation quadratique et descente du gradient</h2>
+    <p>On travaille dans \(\mathbb{R}^n\), avec \(H\) réelle symétrique et la quadratique centrée</p>
+    \[f(x)=\frac12(x-x^\star)^TH(x-x^\star),\qquad\nabla f(x)=H(x-x^\star).\]
+    <p>\(H\) est la hessienne de \(f\). Le gradient est la colonne des dérivées partielles, et \(f(x+h)=f(x)+\nabla f(x)^Th+o(\|h\|)\). La formule \(\nabla f=H(x-x^\star)\) <strong>utilise la symétrie</strong> (sinon on obtient \(\frac12(H+H^T)(x-x^\star)\)).</p>
+    <div class="callout key"><span class="callout-title">À retenir : définie positive</span>
+      <p>\(H\) symétrique est <strong>définie positive</strong> si \(v^THv\gt0\) pour tout \(v\neq0\) (semi-définie positive : \(\ge0\)). C'est équivalent à : <strong>toutes ses valeurs propres sont \(\gt0\)</strong>. Alors \(x^\star\) est l'unique minimum et \(f(x^\star)=0\).</p>
+    </div>
+    <p>Dans les coordonnées propres \(z=Q^T(x-x^\star)\), \(f=\frac12\sum_j\lambda_jz_j^2\) : en dimension 2 les lignes de niveau sont des ellipses de demi-axes proportionnels à \(1/\sqrt{\lambda_j}\). Grande valeur propre = forte courbure.</p>
+    <div class="callout key"><span class="callout-title">À retenir : convergence de la descente à pas constant</span>
+      <p>Itération : \(x_{k+1}=x_k-\gamma\nabla f(x_k)\), \(\gamma\gt0\). L'erreur \(e_k=x_k-x^\star\) vérifie \(e_{k+1}=(I-\gamma H)e_k\), et \(I-\gamma H\) a pour valeurs propres \(1-\gamma\lambda_j\). Avec \(H\) définie positive, \(m=\lambda_{\min}\), \(L=\lambda_{\max}\) :</p>
+      <ul>
+        <li>convergence pour tout \(x_0\) \(\iff0\lt\gamma\lt\frac2L\) ;</li>
+        <li>taux : \(q=\rho(I-\gamma H)=\max(|1-\gamma m|,|1-\gamma L|)\), avec \(\rho(M)=\max|\mu|\) sur les valeurs propres de \(M\) ;</li>
+        <li>\(\|e_k\|\le q^k\|e_0\|\) et \(f(x_k)-f(x^\star)\le q^{2k}\big(f(x_0)-f(x^\star)\big)\) ;</li>
+        <li>pas optimal \(\gamma_{\text{opt}}=\frac{2}{m+L}\), taux \(q_{\text{opt}}=\frac{L-m}{L+m}=\frac{\kappa-1}{\kappa+1}\), \(\kappa=\frac Lm\) (conditionnement) ;</li>
+        <li>pour garantir \(\|e_k\|\le\varepsilon\|e_0\|\) : \(k\ge\frac{\log\varepsilon}{\log q}\).</li>
+      </ul>
+    </div>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : chaque direction propre évolue seule</span>
+      <p>Dans la base propre, \(z_{k,j}=(1-\gamma\lambda_j)^kz_{0,j}\) : chaque coordonnée est une suite géométrique. Elle converge ssi \(|1-\gamma\lambda_j|\lt1\), soit \(0\lt\gamma\lambda_j\lt2\) ; la condition la plus dure porte sur \(L\). À \(\gamma=\frac2L\), la direction de \(L\) a facteur \(-1\) et oscille ; au-delà, elle diverge. Le pas optimal équilibre la direction lente (\(m\)) et la rapide (\(L\)) : \(1-\gamma m=-(1-\gamma L)\). Un grand \(\kappa\) (ellipses allongées) donne \(q_{\text{opt}}\) proche de 1, donc une convergence lente.</p>
+    </div>
+
+    <h3 id="exemple-gradient">Exemple traité : une descente complète</h3>
+    <p>\(H=\begin{pmatrix}3&amp;-1\\-1&amp;3\end{pmatrix}\), \(x^\star=(1,-1)\), \(x_0=(3,-1)\). \(\chi_H(t)=t^2-6t+8=(t-2)(t-4)\), donc \(m=2\), \(L=4\) : \(H\) est définie positive.</p>
+    <ul>
+      <li>Plage de pas : \(0\lt\gamma\lt\frac12\). Pas optimal \(\gamma=\frac{2}{2+4}=\frac13\), \(q=\frac{4-2}{4+2}=\frac13\), \(\kappa=2\).</li>
+      <li>\(M=I-\frac13H=\begin{pmatrix}0&amp;1/3\\1/3&amp;0\end{pmatrix}\), \(e_0=(2,0)\), \(e_1=(0,\frac23)\), \(e_2=(\frac29,0)\), donc \(x_1=(1,-\frac13)\), \(x_2=(\frac{11}9,-1)\).</li>
+      <li>\(\|e_k\|=2\cdot(\frac13)^k\) et \(f(x_k)=6\cdot(\frac19)^k\) : taux \(\frac13\) sur les points, \(\frac19\) sur la fonction.</li>
+    </ul>
+    <div class="callout warn"><span class="callout-title">Piège classique : erreur sur les points ou sur la fonction</span>
+      <p>Le taux sur \(f(x_k)-f(x^\star)\) est \(q^2\), pas \(q\). De plus \(q\) est un taux de <strong>pire cas</strong> : si \(e_0\) n'a pas de composante sur la direction la plus lente, la convergence est plus rapide (avec \(H=\operatorname{diag}(1,4)\), \(\gamma=\frac14\), \(x_0=(0,1)\) atteint 0 en un pas).</p>
+    </div>
+    <div class="callout warn"><span class="callout-title">Piège classique : la positivité est indispensable</span>
+      <p>Si \(H\) a une valeur propre nulle, la composante de l'erreur dans \(\ker H\) reste constante : on converge vers <strong>un</strong> minimum \(x^\star+v\), \(v\in\ker H\), qui n'est pas forcément \(x^\star\). Si \(H\) a une valeur propre négative, le facteur \(1-\gamma\lambda\gt1\) pour tout \(\gamma\) : divergence, et \(f\) n'est pas minorée.</p>
+    </div>
+    <p>En pratique, pour \(f(x)=\frac12x^THx-b^Tx+c\), \(\nabla f(x)=Hx-b\) et \(x^\star=H^{-1}b\), mais l'algorithme \(x_{k+1}=x_k-\gamma(Hx_k-b)\) n'a jamais besoin de calculer \(H^{-1}\). On s'arrête quand \(\|\nabla f(x_k)\|\) passe sous une tolérance.</p>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. \(((1,0,1),(0,1,1),(1,1,2))\) est-elle libre ? Quelle est la dimension de l'espace engendré ?</summary>
+      <p>Liée : \(v_1+v_2-v_3=0\). \((v_1,v_2)\) est libre, donc \(\operatorname{Vect}\) est de dimension 2 (le plan \(z=x+y\)), ce n'est pas \(\mathbb{R}^3\).</p>
+    </details>
+    <details><summary>2. Donnez une base et la dimension de \(F=\{x\in\mathbb{R}^4:x_1+x_2=0,\ x_3=x_4\}\).</summary>
+      <p>\(x=(x_1,-x_1,x_3,x_3)=x_1(1,-1,0,0)+x_3(0,0,1,1)\). Base \(((1,-1,0,0),(0,0,1,1))\), dimension 2.</p>
+    </details>
+    <details><summary>3. \((x,y)\mapsto(|x|,y)\) est-elle linéaire sur \(\mathbb{R}\) ?</summary>
+      <p>Non : \(f(-1\cdot(1,0))=(1,0)\neq-f(1,0)=(-1,0)\). Pourtant \(f(0)=0\).</p>
+    </details>
+    <details><summary>4. Noyau, image et rang de \(g(x,y,z)=(x+y,\,2x+2y,\,0)\) ?</summary>
+      <p>\(\ker g=\operatorname{Vect}((1,-1,0),(0,0,1))\), \(\operatorname{Im}g=\operatorname{Vect}((1,2,0))\), rang 1. Vérification : \(3=2+1\). Ni injective ni surjective.</p>
+    </details>
+    <details><summary>5. Matrice de \(f(x,y,z)=(2x-y,\,x+3z)\) dans les bases canoniques ?</summary>
+      <p>Colonnes \(f(e_1),f(e_2),f(e_3)\) : \(\begin{pmatrix}2&amp;-1&amp;0\\1&amp;0&amp;3\end{pmatrix}\). \(a_{23}=3\) est la deuxième coordonnée de \(f(e_3)\).</p>
+    </details>
+    <details><summary>6. Inverse de \(\begin{pmatrix}2&amp;1\\1&amp;1\end{pmatrix}\) ? Un vecteur du noyau de \(\begin{pmatrix}1&amp;2\\2&amp;4\end{pmatrix}\) ?</summary>
+      <p>Déterminant 1, inverse \(\begin{pmatrix}1&amp;-1\\-1&amp;2\end{pmatrix}\). La seconde a déterminant 0 et \((-2,1)\) dans son noyau.</p>
+    </details>
+    <details><summary>7. Avec \(B'=((1,0),(1,1))\), quelles sont les nouvelles coordonnées de \((4,3)\) ?</summary>
+      <p>\(P=\begin{pmatrix}1&amp;1\\0&amp;1\end{pmatrix}\), \(P^{-1}=\begin{pmatrix}1&amp;-1\\0&amp;1\end{pmatrix}\), \([x]_{B'}=(1,3)\). Contrôle : \(1\cdot(1,0)+3\cdot(1,1)=(4,3)\).</p>
+    </details>
+    <details><summary>8. Une valeur propre double interdit-elle la diagonalisation ?</summary>
+      <p>Non : \(2I_2\) est diagonale. Il faut comparer \(\dim E_\lambda\) à la multiplicité : \(\begin{pmatrix}2&amp;1\\0&amp;2\end{pmatrix}\) échoue car \(\dim E_2=1\lt2\).</p>
+    </details>
+    <details><summary>9. Pourquoi \(T=\begin{pmatrix}1&amp;0&amp;0\\0&amp;2&amp;1\\0&amp;0&amp;3\end{pmatrix}\) est-elle diagonalisable sans calcul de grand déterminant ?</summary>
+      <p>Triangulaire : valeurs propres 1, 2, 3 lues sur la diagonale, toutes distinctes. Base propre : \(e_1\), \(e_2\), \((0,1,1)\).</p>
+    </details>
+    <details><summary>10. Pour \(H=\operatorname{diag}(1,9)\), quels sont \(\gamma_{\text{opt}}\), \(q_{\text{opt}}\), et combien d'itérations pour réduire l'erreur d'un facteur \(10^{-3}\) ?</summary>
+      <p>\(m=1\), \(L=9\), \(\kappa=9\) : \(\gamma_{\text{opt}}=\frac15\), \(q_{\text{opt}}=\frac45\). \(k\ge\frac{\log10^{-3}}{\log(4/5)}\approx30{,}96\), donc 31 itérations. Au pas \(\frac1L=\frac19\), on n'aurait que \(q=\frac89\).</p>
+    </details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="07-fourier.html"><span>← Précédent</span>Fourier</a>
+      <a class="next" href="index.html"><span>Suivant →</span>Sommaire</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

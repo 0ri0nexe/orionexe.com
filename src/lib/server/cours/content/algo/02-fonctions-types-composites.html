@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fonctions et types composites · Algorithmique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Algorithmique</a>
+    <div class="course-code">CSC 8445</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 02</div>
+    <h1>Fonctions, récursivité et types composites</h1>
+    <p class="lead">Pour résoudre un gros problème, on le découpe en fonctions, dont certaines s'appellent elles-mêmes (récursivité). Pour représenter des données complexes, on compose les types simples en tableaux et en structures.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li><strong>Analyse descendante</strong> : décomposer en sous-problèmes supposés résolus, puis combiner leurs solutions.</li>
+        <li>Une fonction : <code>fonction [type] nom ( paramètres typés ) … ffct</code>. <code>retourner</code> renvoie une valeur et <strong>arrête</strong> la fonction.</li>
+        <li>À l'appel, les paramètres <strong>effectifs</strong> sont <strong>recopiés</strong> dans les paramètres <strong>formels</strong> (ordre et types respectés). Un paramètre n'est modifiable par l'appelé que s'il est précédé de <code>modifiable</code>.</li>
+        <li>L'exécution démarre par <code>fonction CodeRetour principale ( )</code>, qui <code>retourner OK</code>.</li>
+        <li>Récursivité : un <strong>cas de base</strong> sans appel récursif (terminaison) + un cas qui s'appelle sur un problème <strong>plus petit</strong>.</li>
+        <li>Tableau : éléments de <strong>même type</strong>, taille fixe N, indices de <strong>0 à N-1</strong>. Structure : champs de types différents, accès par <code>variable.champ</code>.</li>
+      </ul>
+    </div>
+
+    <h2 id="decomposer">Décomposer pour résoudre</h2>
+    <p>L'<strong>analyse descendante</strong> analyse la spécification selon une arborescence. À chaque niveau, on <strong>décompose</strong> le problème en sous-problèmes supposés résolus, on <strong>combine</strong> leurs solutions, et on traite chaque sous-problème de la même façon.</p>
+    <p>Exemple du cours (repris en TD2) : afficher une pyramide de chiffres de hauteur 1 à 9.</p>
+    <pre data-label="Affichage attendu (hauteur 4)"><code>      1
+    1 2 1
+  1 2 3 2 1
+1 2 3 4 3 2 1</code></pre>
+    <p>Décomposition : <code>afficherPyramide</code> appelle, pour chaque ligne, <code>afficherLigne</code>, qui enchaîne 1) <code>afficherEspaces</code>, 2) <code>afficherSuiteCroissante</code>, 3) <code>afficherSuiteDecroissante</code>. Chaque fonction est petite et a une seule tâche.</p>
+
+    <h2 id="fonction">Définir une fonction</h2>
+    <p>Une fonction est une partie de l'algorithme qui a une <strong>fonctionnalité unique</strong> : une action paramétrable qui peut produire une valeur.</p>
+    <ul>
+      <li><strong>En-tête</strong> (signature, prototype) : mot réservé <code>fonction</code>, type du résultat éventuel, identificateur, liste (éventuellement vide) de paramètres typés.</li>
+      <li><strong>Corps</strong> : variables locales, actions, et éventuellement <code>retourner valeur</code>. Fin par <code>ffct</code>.</li>
+    </ul>
+    <pre data-label="Algorithme"><code>fonction entier min ( entier n, entier m )
+    si n &lt; m alors
+        retourner n      <span class="cmt">// la fonction s'arrête ici si n &lt; m</span>
+    fsi
+    retourner m
+ffct</code></pre>
+
+    <h3 id="appel">Appeler une fonction</h3>
+    <p>On donne à la fonction un nom évocateur de son résultat, et on l'utilise dans une expression : <code>valMin = min(x, y)</code>, <code>si moyenne(e1, e2, e3) &gt; 10 alors …</code>. L'appelant fournit les <strong>paramètres effectifs</strong>, recopiés dans les <strong>paramètres formels</strong> dans l'ordre et en respectant les types.</p>
+    <pre data-label="Algorithme · séquence d'appel"><code>entier a = 5 , b = 7 , valMin
+valMin = min ( a , b )   <span class="cmt">// n reçoit 5, m reçoit 7 ; valMin vaut 5</span>
+afficher ( "Le minimum de " , a , " et de " , b , " vaut " , valMin )
+allerALaLigne ( )</code></pre>
+
+    <h3 id="sans-retour">Fonction sans valeur de retour</h3>
+    <p>Sans type de résultat, la fonction réalise une action (un affichage par exemple) et s'appelle comme une instruction.</p>
+    <pre data-label="Algorithme"><code>fonction afficheMin ( entier x, entier y )
+    entier valMin = min (x, y)     <span class="cmt">// variable locale</span>
+    afficher ( "Le minimum de " , x , " et de " , y , " vaut " , valMin )
+    allerALaLigne ( )
+ffct
+
+entier a = 5 , b = 7
+afficheMin (a, b)</code></pre>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : variables locales</span>
+      <p>Les paramètres formels et les variables déclarées dans le corps (ici <code>valMin</code>) sont <strong>locaux</strong> : ils n'existent que pendant l'exécution de la fonction et l'appelant ne les voit pas. Pour communiquer, la fonction n'a que deux canaux : <code>retourner</code> une valeur, ou modifier un paramètre <code>modifiable</code>.</p>
+    </div>
+
+    <h2 id="parametres">Paramètres : non modifiable ou modifiable</h2>
+    <p>Par défaut, un paramètre est <strong>non modifiable</strong> par l'appelé : la fonction travaille sur une <strong>copie</strong>. Pour que la modification soit visible chez l'appelant, on le précède du mot clé <code>modifiable</code>.</p>
+    <pre data-label="Algorithme · non modifiable"><code>fonction f ( entier a )
+    a = 1          <span class="cmt">// modifie seulement la copie locale</span>
+ffct
+
+entier x = 3
+f(x)
+afficher(x)        <span class="cmt">// x vaut 3</span></code></pre>
+    <pre data-label="Algorithme · modifiable"><code>constante PI = 3.14
+fonction calculerPerimetre ( réel rayon, modifiable réel perimetre )
+    perimetre = 2 × PI × rayon
+ffct
+
+réel r = 12, perimetre = 0
+calculerPerimetre( r, perimetre )
+afficher(perimetre)   <span class="cmt">// perimetre vaut 75.36</span></code></pre>
+
+    <h3 id="echanger">L'exemple qui résume tout : echanger</h3>
+    <pre data-label="Algorithme"><code>fonction echanger ( modifiable entier x, modifiable entier y )
+    entier aux = x
+    x = y
+    y = aux
+ffct
+
+entier a = 3 , b = 5
+echanger(a, b)
+afficher("a vaut", a, "et b vaut", b)   <span class="cmt">// a vaut 5 et b vaut 3</span></code></pre>
+    <div class="table-wrap"><table>
+      <thead><tr><th>En-tête</th><th>Après <code>echanger(a, b)</code></th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td><code>echanger(entier x, entier y)</code></td><td>a = 3, b = 5</td><td>On échange des copies, perdues à <code>ffct</code></td></tr>
+        <tr><td><code>echanger(modifiable entier x, modifiable entier y)</code></td><td>a = 5, b = 3</td><td>x et y désignent a et b eux-mêmes</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn"><span class="callout-title">Piège classique : oublier modifiable</span>
+      <p>Une fonction qui doit « fournir » plusieurs résultats à l'appelant (un min et un max, un prix et une position…) ne peut en <code>retourner</code> qu'un : les autres passent par des paramètres <code>modifiable</code>. Sans ce mot clé, l'algorithme « marche » dans la fonction mais l'appelant ne voit aucun changement.</p>
+    </div>
+
+    <h2 id="principale">La fonction principale</h2>
+    <p>C'est le <strong>point de départ</strong> de l'exécution. <code>CodeRetour</code> est un synonyme du type booléen, de valeurs <code>OK</code> et <code>KO</code>.</p>
+    <pre data-label="Algorithme"><code>fonction CodeRetour principale ( )
+    réel r , perimetre
+    saisir ( r )
+    calculerPerimetre( r, perimetre )
+    afficher ( " Le périmètre du cercle de rayon " , r , " est égal à " , perimetre )
+    allerALaLigne ( )
+    retourner OK
+ffct</code></pre>
+    <p>En TD, « n'oubliez pas la fonction principale » : elle fait les saisies, appelle les fonctions de calcul et affiche les résultats.</p>
+
+    <h2 id="recursivite">Récursivité</h2>
+    <p>Une fonction <strong>récursive</strong> est partiellement définie à partir d'elle-même. Pour la construire : <strong>paramétrer le problème</strong> par sa taille, et <strong>gérer la fin de la récursion</strong>.</p>
+    <pre data-label="Algorithme · schéma général"><code>fonction f ( … )
+    si condition alors
+        actions          <span class="cmt">// cas de base : aucun appel récursif ⇒ terminaison</span>
+    sinon
+        actions
+        f ( … )          <span class="cmt">// au moins un appel récursif, sur un problème plus petit</span>
+        actions
+    fsi
+ffct</code></pre>
+    <p>Exemple : n! avec taille n, cas triviaux 0! = 1! = 1, décomposition n! = n × (n − 1)!.</p>
+    <pre data-label="Algorithme"><code>fonction entier factorielle ( entier n )
+    si n ≤ 1 alors
+        retourner 1
+    sinon
+        retourner n × factorielle ( n-1 )
+    fsi
+ffct</code></pre>
+    <pre data-label="Trace de factorielle(4)"><code>factorielle(4)  4 &gt; 1 → 4 × factorielle(3)
+  factorielle(3)  3 &gt; 1 → 3 × factorielle(2)
+    factorielle(2)  2 &gt; 1 → 2 × factorielle(1)
+      factorielle(1)  1 ≤ 1 → retourne 1
+    ← 2 × 1 = 2
+  ← 3 × 2 = 6
+← 4 × 6 = 24</code></pre>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : la descente puis la remontée</span>
+      <p>Chaque appel <strong>attend</strong> le résultat de l'appel suivant avant de faire sa multiplication. On descend jusqu'au cas de base, puis les résultats remontent et chaque appel en suspens termine son calcul. Applications : relations de récurrence, tris récursifs (chapitre 3), parcours de listes, arbres et graphes.</p>
+    </div>
+    <div class="callout warn"><span class="callout-title">Piège classique : pas de cas de base, ou un problème qui ne diminue pas</span>
+      <p>Sans <code>si n ≤ 1 alors retourner 1</code>, ou avec un appel <code>factorielle(n)</code> au lieu de <code>factorielle(n-1)</code>, la fonction s'appelle à l'infini. Toujours vérifier : le paramètre se rapproche-t-il du cas de base à chaque appel ?</p>
+    </div>
+
+    <h2 id="composites">Les types composites</h2>
+    <p>Un type composé est construit à partir d'autres types. On le décrit par ses <strong>composants</strong> : leurs types, leur organisation, la façon d'y accéder. Deux types composites : le <strong>tableau</strong> et la <strong>structure</strong>.</p>
+
+    <h3 id="tableaux">Tableau à une dimension</h3>
+    <p>Collection <strong>indicée</strong> d'éléments de <strong>même type</strong>, de taille fixe (une constante N). Les indices vont de <strong>0 à N-1</strong> ; l'accès <code>t[i]</code> est direct (temps constant). Sur le tableau entier, seule opération : l'accès aux composants ; sur chaque composant, les opérations de son type.</p>
+    <pre data-label="Algorithme · déclarations et parcours"><code>constante N = 8
+entier t [N]                  <span class="cmt">// 8 cases : t[0] … t[7]</span>
+entier t1[ ] = { 1, 2, 3 }    <span class="cmt">// taille déduite : 3</span>
+type Vecteur = entier[N]      <span class="cmt">// définition d'un type tableau</span>
+
+x = t[i]                      <span class="cmt">// accès au ième élément</span>
+pour entier i = 0 à N-1 faire
+    traiterElement ( t[i] )
+fpour</code></pre>
+    <p>En paramètre, on passe le tableau <code>t[]</code> <strong>et sa taille</strong> <code>n</code>. Pour remplir le tableau, il doit être <code>modifiable</code>.</p>
+    <pre data-label="Algorithme · saisie et recherche"><code>fonction saisieTab ( modifiable entier t[], entier n )
+    pour entier i = 0 à n-1 faire
+        afficher("Donner la valeur ", i)
+        saisir (t[i])
+    fpour
+ffct
+
+fonction entier rechercheTab ( entier t[], entier n, entier x )
+    entier indice = -1            <span class="cmt">// -1 : x absent</span>
+    pour entier i = 0 à n-1 faire
+        si t[i] == x alors
+            indice = i
+        fsi
+    fpour
+    retourner indice
+ffct</code></pre>
+    <p>Trace : avec <code>t = {3, 8, -2, 0, 1, 8, -1, 5}</code> et <code>x = 8</code>, <code>indice</code> passe à 1 (i = 1) puis à 5 (i = 5) : la fonction renvoie <strong>5</strong>, la <strong>dernière</strong> occurrence. Avec <code>x = 4</code>, elle renvoie -1.</p>
+
+    <div class="callout warn"><span class="callout-title">Piège classique : l'indice N</span>
+      <p>Un tableau de taille N n'a <strong>pas</strong> de case <code>t[N]</code> : la boucle va de <code>0 à N-1</code>. Écrire <code>pour entier i = 1 à N</code> oublie la première case et sort du tableau à la dernière.</p>
+    </div>
+
+    <h3 id="tableaux-2d">Tableau à deux dimensions</h3>
+    <pre data-label="Algorithme"><code>constante N = 3, M = 4
+entier m1[N][M]                     <span class="cmt">// N lignes, M colonnes</span>
+pour entier i = 0 à N-1 faire       <span class="cmt">// 1re dimension : les lignes</span>
+    pour entier j = 0 à M-1 faire   <span class="cmt">// 2e dimension : les colonnes</span>
+        traiterElement ( m1[i][j] )
+    fpour
+fpour</code></pre>
+    <p><code>m1[i][j]</code> est l'élément ligne i, colonne j. Le parcours traite la matrice ligne par ligne (N × M = 12 éléments).</p>
+
+    <h3 id="structures">Les structures</h3>
+    <p>Une structure regroupe des informations de <strong>types différents</strong> ; ses composants s'appellent des <strong>champs</strong>.</p>
+    <pre data-label="Algorithme"><code>type Produit = structure
+    entier reference
+    chaîne nom
+    réel   prix
+fstruct
+
+Produit produit1, produit2
+Produit produit = {123, "Livre" , 10.00}   <span class="cmt">// initialisation dans l'ordre des champs</span>
+produit1 = produit2                        <span class="cmt">// affectation entre objets de même type</span>
+afficher ( produit1.reference )            <span class="cmt">// accès à un champ</span>
+produit2.prix = 3.5</code></pre>
+    <p>Opérations sur la structure entière : <strong>affectation</strong> et accès aux champs. Sur chaque champ : les opérations de son type.</p>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : tableau ou structure ?</span>
+      <div class="table-wrap"><table>
+        <thead><tr><th></th><th>Tableau</th><th>Structure</th></tr></thead>
+        <tbody>
+          <tr><td>Composants</td><td>Même type</td><td>Types quelconques</td></tr>
+          <tr><td>Accès</td><td>Par indice calculé : <code>t[i]</code></td><td>Par nom de champ : <code>p.prix</code></td></tr>
+          <tr><td>Affectation globale</td><td>Non (élément par élément)</td><td>Oui, si même type</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <h3 id="tableau-structures">Tableau de structures</h3>
+    <pre data-label="Algorithme"><code>type Personne = structure
+    chaîne nom, prenom
+    entier age
+fstruct
+constante N = 20
+Personne tab[N]
+
+afficher(tab[i].nom, " ", tab[i].prenom, " a ", tab[i].age, " ans.")
+allerALaLigne ( )</code></pre>
+    <p>On lit de gauche à droite : <code>tab[i]</code> est une <code>Personne</code>, et <code>tab[i].age</code> est son champ entier.</p>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. Que contiennent l'en-tête et le corps d'une fonction ?</summary>
+      <p>En-tête : <code>fonction</code>, type du résultat éventuel, nom, paramètres typés. Corps : variables locales, actions, <code>retourner</code> éventuel, puis <code>ffct</code>.</p></details>
+    <details><summary>2. Qu'affiche <code>afficher(min(9, 4))</code>, et quelle ligne de min est exécutée en dernier ?</summary>
+      <p>4. Comme 9 &lt; 4 est faux, on saute le <code>si</code> et on exécute <code>retourner m</code>. Si n &lt; m, <code>retourner n</code> aurait arrêté la fonction avant.</p></details>
+    <details><summary>3. Avec <code>fonction f(entier a) a = a + 10 ffct</code>, que vaut x après <code>entier x = 1</code> puis <code>f(x)</code> ? Et avec <code>modifiable entier a</code> ?</summary>
+      <p>1, car le paramètre est une copie. Avec <code>modifiable</code> : 11.</p></details>
+    <details><summary>4. Paramètre effectif ou formel : qui est qui dans <code>valMin = min(a, b)</code> ?</summary>
+      <p><code>a</code> et <code>b</code> sont les paramètres <strong>effectifs</strong> (chez l'appelant) ; <code>n</code> et <code>m</code> dans l'en-tête de <code>min</code> sont les paramètres <strong>formels</strong>.</p></details>
+    <details><summary>5. Quels sont les deux ingrédients d'une fonction récursive correcte ?</summary>
+      <p>Un cas de base sans appel récursif (terminaison) et un appel récursif sur un problème plus petit, qui se rapproche du cas de base.</p></details>
+    <details><summary>6. Combien d'appels de factorielle déclenche <code>factorielle(5)</code>, et que renvoie-t-il ?</summary>
+      <p>5 appels (paramètres 5, 4, 3, 2, 1) ; résultat 5 × 4 × 3 × 2 × 1 = 120.</p></details>
+    <details><summary>7. Pour <code>entier t[10]</code>, quels sont le premier et le dernier indice ?</summary>
+      <p>0 et 9 (N-1).</p></details>
+    <details><summary>8. Pourquoi <code>saisieTab</code> a-t-il <code>modifiable entier t[]</code> mais pas <code>rechercheTab</code> ?</summary>
+      <p><code>saisieTab</code> écrit dans les cases (le remplissage doit être visible chez l'appelant) ; <code>rechercheTab</code> ne fait que lire.</p></details>
+    <details><summary>9. Écrire l'accès au prix du 3e produit d'un tableau <code>Produit produits[N]</code>.</summary>
+      <p><code>produits[2].prix</code> : le 3e élément a l'indice 2, puis on accède au champ.</p></details>
+    <details><summary>10. Comment une fonction peut-elle fournir à la fois un minimum et un maximum ?</summary>
+      <p>Par deux paramètres <code>modifiable</code> (par exemple <code>fonction calculerMinMax(entier t[], entier n, modifiable entier min, modifiable entier max)</code>), puisque <code>retourner</code> ne renvoie qu'une valeur.</p></details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="01-notions-de-base.html"><span>← Précédent</span>Notions de base</a>
+      <a class="next" href="annexe-syntaxe.html"><span>Suivant →</span>Antisèche de syntaxe</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

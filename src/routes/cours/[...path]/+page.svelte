@@ -1,4 +1,5 @@
 <script lang="ts">
+	import 'katex/dist/katex.min.css';
 	import '$lib/cours.css';
 
 	let { data } = $props();

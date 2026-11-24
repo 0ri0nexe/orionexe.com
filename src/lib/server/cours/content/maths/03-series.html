@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Séries · Fondements mathématiques</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}]})"></script>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Fondements mathématiques</a>
+    <div class="course-code">MAT 8457</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 03</div>
+    <h1>Séries</h1>
+    <p class="lead">Une série, c'est la suite des sommes partielles d'une suite. Toute la question est de savoir si cette somme infinie a une valeur finie, et de le décider sans la calculer.</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>\(\sum u_k\) converge si \(S_n = u_0 + \dots + u_n\) a une limite finie \(S\), la <strong>somme</strong> de la série.</li>
+        <li><strong>Condition nécessaire</strong> : si \(\sum u_k\) converge, alors \(u_k \to 0\). La réciproque est fausse (\(\sum 1/k\) diverge).</li>
+        <li>Séries de référence : <strong>géométrique</strong> \(\sum q^k\) (converge ssi \(|q| &lt; 1\)), <strong>Riemann</strong> \(\sum 1/k^\alpha\) (converge ssi \(\alpha &gt; 1\)), <strong>exponentielle</strong> \(\sum x^k/k!\) (converge toujours).</li>
+        <li>Termes positifs : on compare. <strong>Comparaison</strong> (\(u_k \le v_k\)) et <strong>équivalents</strong> (\(u_k \sim v_k\) : même nature).</li>
+        <li><strong>D'Alembert</strong> (\(u_{k+1}/u_k \to \ell\)) et <strong>Cauchy</strong> (\(\sqrt[k]{u_k} \to \ell\)) : \(\ell &lt; 1\) converge, \(\ell &gt; 1\) diverge, \(\ell = 1\) on ne sait pas.</li>
+        <li>Absolument convergente (\(\sum |u_k|\) converge) implique convergente.</li>
+      </ul>
+    </div>
+
+    <h2 id="definitions">Définitions</h2>
+    <p>Soit \((u_k)_{k\ge 0}\) une suite réelle ou complexe. On pose</p>
+    <div class="formula">\[ S_n = u_0 + u_1 + \dots + u_n = \sum_{k=0}^{n} u_k. \]</div>
+    <ul>
+      <li>La suite \((S_n)\) est la <strong>série de terme général</strong> \(u_k\), notée \(\sum_{k\ge 0} u_k\). On l'appelle aussi suite des <strong>sommes partielles</strong>.</li>
+      <li>Si \((S_n)\) a une limite finie, la série est <strong>convergente</strong> et sa <strong>somme</strong> est \(S = \sum_{k=0}^{+\infty} u_k = \lim S_n\). Sinon elle est <strong>divergente</strong>.</li>
+      <li>La nature (convergente ou non) ne dépend pas des premiers termes : on peut toujours raisonner « à partir d'un certain rang ».</li>
+    </ul>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : deux objets, deux notations</span>
+      <p>\(\sum u_k\) désigne la série (l'objet, qui peut diverger). \(\sum_{k=0}^{+\infty} u_k\) désigne un <strong>nombre</strong>, qui n'existe que si la série converge. Paradoxe de Zénon : la flèche parcourt \(\tfrac12 + \tfrac14 + \tfrac18 + \dots\) de la distance, une infinité d'étapes, mais la somme vaut 1 : elle arrive bien.</p>
+    </div>
+
+    <h2 id="geometrique">Série géométrique</h2>
+    <div class="callout key"><span class="callout-title">À retenir : série géométrique</span>
+      <p>Pour \(q \in \mathbb{C}\), \(\sum q^k\) converge <strong>si et seulement si</strong> \(|q| &lt; 1\), et alors</p>
+      \[ \sum_{k=0}^{+\infty} q^k = 1 + q + q^2 + \dots = \frac{1}{1-q}. \]
+    </div>
+    <p>Idée : pour \(q \ne 1\), \((1-q)S_n = 1 - q^{n+1}\) (tout se simplifie), donc</p>
+    <div class="formula">\[ S_n = \frac{1 - q^{n+1}}{1-q}. \]</div>
+    <p>Si \(|q| &lt; 1\), \(q^{n+1} \to 0\). Si \(|q| \ge 1\), \((q^n)\) n'a pas de limite finie (ou \(S_n = n+1\) si \(q = 1\)). Exemple : \(\sum_{k\ge0} (1/2)^k = 2\).</p>
+
+    <h2 id="cn">Condition nécessaire</h2>
+    <div class="callout key"><span class="callout-title">À retenir : terme général</span>
+      <p>Si \(\sum u_k\) converge, alors \(u_k \to 0\). Contraposée : <strong>une série dont le terme général ne tend pas vers 0 diverge</strong> (divergence grossière).</p>
+    </div>
+    <p>Idée : \(u_n = S_n - S_{n-1} \to S - S = 0\). Exemples : \(\sum (1 + 1/k)\) et \(\sum k^2\) divergent.</p>
+    <div class="callout warn"><span class="callout-title">Piège classique : \(u_k \to 0\) ne suffit pas</span>
+      <p>La condition est nécessaire, pas suffisante. La <strong>série harmonique</strong> \(\sum_{k\ge1} 1/k\) a un terme général qui tend vers 0 et pourtant elle <strong>diverge</strong>.</p>
+    </div>
+
+    <h3 id="harmonique">La série harmonique diverge</h3>
+    <p>Idée : on regroupe les termes par paquets de 2, 4, 8, … termes. Chaque paquet \(\frac{1}{2^{j-1}+1} + \dots + \frac{1}{2^j}\) contient \(2^{j-1}\) termes tous \(\ge 1/2^j\), donc vaut au moins \(1/2\). Ainsi \(S_{2^m} \ge 1 + m/2\), qui dépasse n'importe quel \(M\).</p>
+
+    <h3 id="telescopique">Séries télescopiques</h3>
+    <p>Quand \(u_k = a_k - a_{k+1}\), la somme partielle se simplifie : \(S_n = a_0 - a_{n+1}\). Exemple du cours :</p>
+    <div class="formula">\[ \sum_{k=0}^{n} \frac{1}{(k+1)(k+2)} = \sum_{k=0}^{n}\left(\frac{1}{k+1} - \frac{1}{k+2}\right) = 1 - \frac{1}{n+2} \longrightarrow 1. \]</div>
+    <p>Par changement d'indice, \(\sum_{k\ge1} \frac{1}{k(k+1)}\) et \(\sum_{k\ge2} \frac{1}{k(k-1)}\) convergent aussi vers 1.</p>
+
+    <h2 id="positifs">Séries à termes positifs</h2>
+    <p>Si \(u_k \ge 0\), alors \(S_n - S_{n-1} = u_n \ge 0\) : \((S_n)\) est <strong>croissante</strong>. Une suite croissante converge si elle est majorée, sinon elle tend vers \(+\infty\). D'où :</p>
+    <div class="callout key"><span class="callout-title">À retenir : termes positifs</span>
+      <p>Une série à termes positifs converge <strong>ssi</strong> ses sommes partielles sont majorées : \(\exists M,\ \forall n,\ S_n \le M\). En cas de convergence, \(S_n \le S\) pour tout \(n\).</p>
+    </div>
+
+    <h3 id="comparaison">Théorème de comparaison</h3>
+    <p>Soient \(u_k, v_k \ge 0\) avec \(u_k \le v_k\) à partir d'un rang \(k_0\).</p>
+    <ul>
+      <li>Si \(\sum v_k\) converge, alors \(\sum u_k\) converge (le plus petit hérite).</li>
+      <li>Si \(\sum u_k\) diverge, alors \(\sum v_k\) diverge (le plus grand hérite).</li>
+    </ul>
+    <p>Exemples du cours :</p>
+    <ul>
+      <li>\(\frac{1}{2k^2} \le \frac{1}{(k+1)(k+2)}\) pour \(k \ge 4\), donc \(\sum 1/k^2\) <strong>converge</strong> (par linéarité).</li>
+      <li>\(\frac{1}{k!} \le \frac{1}{k(k-1)}\) pour \(k \ge 2\), donc la <strong>série exponentielle</strong> \(\sum 1/k!\) converge. Sa somme vaut \(e = \exp(1)\).</li>
+      <li>\(\frac{\ln k}{k} \ge \frac1k\) (pour \(k \ge 3\)) et \(\frac{1}{\sqrt k} \ge \frac1k\) : \(\sum \frac{\ln k}{k}\) et \(\sum \frac{1}{\sqrt k}\) <strong>divergent</strong>.</li>
+    </ul>
+
+    <h3 id="equivalents">Théorème des équivalents</h3>
+    <p>Pour \(u_k, v_k &gt; 0\), on note \(u_k \sim v_k\) si \(\lim u_k/v_k = 1\).</p>
+    <div class="callout key"><span class="callout-title">À retenir : équivalents</span>
+      <p>Si \(u_k\) et \(v_k\) sont <strong>strictement positifs</strong> et \(u_k \sim v_k\), alors \(\sum u_k\) et \(\sum v_k\) sont de <strong>même nature</strong>.</p>
+    </div>
+    <p>Idée : à partir d'un rang, \((1-\varepsilon)v_k &lt; u_k &lt; (1+\varepsilon)v_k\), puis comparaison. Méthode : on garde le terme dominant en haut et en bas, puis on compare à Riemann.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Série</th><th>Équivalent</th><th>Nature</th></tr></thead>
+      <tbody>
+        <tr><td>\(\sum \frac{k^2+3k+1}{k^4+2k^3+4}\)</td><td>\(\frac{1}{k^2}\)</td><td>converge</td></tr>
+        <tr><td>\(\sum \frac{k+\ln k}{k^3}\)</td><td>\(\frac{1}{k^2}\)</td><td>converge</td></tr>
+        <tr><td>\(\sum \frac{k^2+3k+1}{k^3+2k^2+4}\)</td><td>\(\frac{1}{k}\)</td><td>diverge</td></tr>
+        <tr><td>\(\sum \frac{k+\ln k}{k^2}\)</td><td>\(\frac{1}{k}\)</td><td>diverge</td></tr>
+        <tr><td>\(\sum \ln\left(1+\frac{1}{\sqrt{k^3}}\right)\)</td><td>\(\frac{1}{k^{3/2}}\)</td><td>converge</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn"><span class="callout-title">Piège classique : signe des termes</span>
+      <p>Comparaison et équivalents ne valent que pour des séries à <strong>termes positifs</strong> (au moins à partir d'un rang). Pour une série de signe quelconque, on passe d'abord par \(\sum |u_k|\).</p>
+    </div>
+
+    <h2 id="riemann">Séries de Riemann</h2>
+    <div class="callout key"><span class="callout-title">À retenir : Riemann</span>
+      <p>Pour \(\alpha &gt; 0\) réel : \(\displaystyle\sum_{k\ge1} \frac{1}{k^\alpha}\) <strong>converge si \(\alpha &gt; 1\)</strong> et <strong>diverge si \(0 &lt; \alpha \le 1\)</strong>.</p>
+    </div>
+    <p>C'est la série de référence pour les équivalents. Exemple : \(\ln(1 + 1/\sqrt{k^3}) \sim 1/k^{3/2}\) et \(3/2 &gt; 1\), donc la série converge.</p>
+
+    <h2 id="absolue">Convergence absolue</h2>
+    <ul>
+      <li>\(\sum u_k\) (réelle ou complexe) est <strong>absolument convergente</strong> si \(\sum |u_k|\) converge.</li>
+      <li><strong>Théorème</strong> : toute série absolument convergente est convergente.</li>
+      <li>Une série convergente mais pas absolument convergente est <strong>semi-convergente</strong>.</li>
+    </ul>
+    <p>Exemples : \(\sum_{k\ge1} \frac{\cos k}{k^2}\) est absolument convergente car \(\left|\frac{\cos k}{k^2}\right| \le \frac{1}{k^2}\). La série harmonique alternée \(\sum_{k\ge0} \frac{(-1)^k}{k+1}\) converge mais \(\sum \frac{1}{k+1}\) diverge : elle est semi-convergente.</p>
+
+    <h2 id="regles" data-toc="D'Alembert et Cauchy">Règles de d'Alembert et de Cauchy</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Règle</th><th>On calcule</th><th>\(\ell &lt; 1\)</th><th>\(\ell &gt; 1\)</th><th>\(\ell = 1\)</th></tr></thead>
+      <tbody>
+        <tr><td>Quotient (d'Alembert)</td><td>\(\lim \frac{u_{k+1}}{u_k} = \ell\)</td><td>converge</td><td>diverge</td><td>on ne sait pas</td></tr>
+        <tr><td>Racines (Cauchy)</td><td>\(\lim \sqrt[k]{u_k} = \ell\)</td><td>converge</td><td>diverge</td><td>on ne sait pas</td></tr>
+      </tbody>
+    </table></div>
+    <p>Hypothèses du cours : termes strictement positifs (d'Alembert), positifs (Cauchy). Pour une série quelconque, on applique la règle à \(|u_k|\) : si \(\ell &lt; 1\), la série est absolument convergente.</p>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : pourquoi ces règles marchent</span>
+      <p>Si \(\ell &lt; 1\), on choisit \(q\) avec \(\ell &lt; q &lt; 1\) : à partir d'un rang, \(u_{k+1} \le q\,u_k\) (ou \(\sqrt[k]{u_k} \le q\)), donc \(u_k \le c\,q^k\). La série est dominée par une <strong>série géométrique</strong> convergente. Si \(\ell &gt; 1\), le terme général ne tend pas vers 0 : divergence grossière.</p>
+    </div>
+    <p>Exemples :</p>
+    <ul>
+      <li><strong>Exponentielle</strong> : pour \(u_k = x^k/k!\), \(\left|\frac{u_{k+1}}{u_k}\right| = \frac{|x|}{k+1} \to 0 &lt; 1\) : \(\sum \frac{x^k}{k!}\) converge pour tout \(x\) réel.</li>
+      <li>\(\sum \left(\frac{2k+1}{3k+4}\right)^k\) : \(\sqrt[k]{u_k} = \frac{2k+1}{3k+4} \to \frac23 &lt; 1\), converge.</li>
+      <li>\(\sum \frac{2^k}{k^\alpha}\) (\(\alpha &gt; 0\)) : \(\sqrt[k]{u_k} = \frac{2}{(k^{1/k})^\alpha} \to 2 &gt; 1\) car \(k^{1/k} = e^{\frac{\ln k}{k}} \to 1\). Diverge.</li>
+    </ul>
+    <div class="callout warn"><span class="callout-title">Piège classique : le cas \(\ell = 1\)</span>
+      <p>Pour \(1/k\) et \(1/k^2\), les deux règles donnent \(\ell = 1\), alors que l'une diverge et l'autre converge. Dès qu'une puissance de \(k\) domine (fractions rationnelles, Riemann), d'Alembert et Cauchy sont inutiles : utilisez les équivalents.</p>
+    </div>
+
+    <h2 id="methode">Méthode : étudier la nature d'une série</h2>
+    <ol class="steps">
+      <li><strong>Le terme général tend-il vers 0 ?</strong> Sinon, divergence grossière.</li>
+      <li><strong>Forme reconnaissable ?</strong> Géométrique, Riemann, télescopique.</li>
+      <li><strong>Termes positifs</strong> : équivalent simple (souvent \(1/k^\alpha\)) ou majoration / minoration.</li>
+      <li><strong>Factorielles, puissances \(a^k\)</strong> : d'Alembert. <strong>Puissance \(k\)-ième</strong> \((\dots)^k\) : Cauchy.</li>
+      <li><strong>Signe quelconque</strong> : étudier \(\sum |u_k|\) (convergence absolue).</li>
+    </ol>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. Que vaut \(\sum_{k=0}^{+\infty} (1/3)^k\) ?</summary>
+      <p>Série géométrique avec \(|q| = 1/3 &lt; 1\) : \(\frac{1}{1 - 1/3} = \frac32\).</p>
+    </details>
+    <details><summary>2. \(\sum \frac{k}{k+1}\) converge-t-elle ?</summary>
+      <p>Non : \(\frac{k}{k+1} \to 1 \ne 0\), divergence grossière.</p>
+    </details>
+    <details><summary>3. Si \(u_k \to 0\), la série converge-t-elle forcément ?</summary>
+      <p>Non. Contre-exemple : la série harmonique \(\sum 1/k\) diverge.</p>
+    </details>
+    <details><summary>4. Nature de \(\sum \frac{1}{k^{1/2}}\) et de \(\sum \frac{1}{k^{3}}\) ?</summary>
+      <p>Riemann : \(\alpha = 1/2 \le 1\), diverge ; \(\alpha = 3 &gt; 1\), converge.</p>
+    </details>
+    <details><summary>5. Nature de \(\sum \frac{2k+5}{k^3+1}\) ?</summary>
+      <p>Termes positifs, \(\frac{2k+5}{k^3+1} \sim \frac{2}{k^2}\), Riemann avec \(\alpha = 2 &gt; 1\) : converge.</p>
+    </details>
+    <details><summary>6. Nature de \(\sum \frac{3^k}{k!}\) ?</summary>
+      <p>D'Alembert : \(\frac{u_{k+1}}{u_k} = \frac{3}{k+1} \to 0 &lt; 1\), converge (c'est la série exponentielle en \(x = 3\), de somme \(e^3\)).</p>
+    </details>
+    <details><summary>7. Que vaut \(\sum_{k\ge1} \frac{1}{k(k+1)}\) ?</summary>
+      <p>Télescopique : \(\frac{1}{k(k+1)} = \frac1k - \frac{1}{k+1}\), donc \(S_n = 1 - \frac{1}{n+1} \to 1\).</p>
+    </details>
+    <details><summary>8. Pourquoi d'Alembert ne sert à rien pour \(\sum 1/k^2\) ?</summary>
+      <p>\(\frac{k^2}{(k+1)^2} \to 1\) : cas \(\ell = 1\), pas de conclusion. On utilise Riemann.</p>
+    </details>
+    <details><summary>9. \(\sum \frac{(-1)^k}{k^2}\) converge-t-elle ?</summary>
+      <p>Oui : \(\left|\frac{(-1)^k}{k^2}\right| = \frac{1}{k^2}\), série de Riemann convergente. Elle est absolument convergente, donc convergente.</p>
+    </details>
+    <details><summary>10. Qu'est-ce qu'une série semi-convergente ?</summary>
+      <p>Une série convergente mais pas absolument convergente, comme \(\sum \frac{(-1)^k}{k+1}\).</p>
+    </details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="02-suites.html"><span>← Précédent</span>Suites</a>
+      <a class="next" href="04-fonctions.html"><span>Suivant →</span>Fonctions</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

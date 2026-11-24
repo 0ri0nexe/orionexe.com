@@ -2,6 +2,10 @@
 // content/ (written outside this repo); at build time we keep only its <main>,
 // rewrite its relative links to site routes and derive the sidebar from it.
 // Server-only on purpose: the raw HTML must not end up in the client bundle.
+// Math written as \( ... \) or \[ ... \] is rendered to HTML with KaTeX here,
+// so pages ship no math JavaScript.
+
+import katex from 'katex';
 
 const files = import.meta.glob<string>('./content/**/*.html', {
 	query: '?raw',
@@ -23,7 +27,11 @@ export type CoursPage = {
 
 const SUBJECTS: Record<string, string> = {
 	reseaux: 'Introduction aux réseaux',
-	cellulaire: 'Réseaux cellulaires'
+	cellulaire: 'Réseaux cellulaires',
+	maths: 'Fondements mathématiques',
+	algo: 'Algorithmique',
+	'droit-social': 'Droit social',
+	anglais: 'Anglais'
 };
 
 const ENTITIES: Record<string, string> = {
@@ -67,6 +75,19 @@ function rewriteLinks(html: string, subject: string) {
 	});
 }
 
+const unescape = (tex: string) => tex.replace(/&(amp|lt|gt);/g, (e) => ENTITIES[e]);
+
+/** \( inline \) and \[ display \] math become KaTeX HTML. */
+function renderMath(html: string) {
+	return html.replace(/\\\[([\s\S]+?)\\\]|\\\(([\s\S]+?)\\\)/g, (_, display, inline) =>
+		katex.renderToString(unescape(display ?? inline), {
+			displayMode: display !== undefined,
+			throwOnError: true,
+			strict: 'ignore'
+		})
+	);
+}
+
 function parse(file: string, raw: string): CoursPage {
 	const path = toPath(file);
 	const [subject, chapter] = path.split('/');
@@ -92,7 +113,7 @@ function parse(file: string, raw: string): CoursPage {
 		code: text(first(raw, /<div class="course-code">([\s\S]*?)<\/div>/)),
 		back,
 		toc,
-		html: rewriteLinks(main, subject ?? '')
+		html: renderMath(rewriteLinks(main, subject ?? ''))
 	};
 }
 

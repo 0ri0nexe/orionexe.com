@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dérivées · Fondements mathématiques</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}]})"></script>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Fondements mathématiques</a>
+    <div class="course-code">MAT 8457</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 05</div>
+    <h1>Dérivées</h1>
+    <p class="lead">Le nombre dérivé mesure la pente locale d'une fonction. Il sert à étudier les variations, trouver les extrema, lever des formes indéterminées et approcher une fonction par un polynôme (Taylor, DL).</p>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>\(f'(x_0)=\lim_{x\to x_0}\frac{f(x)-f(x_0)}{x-x_0}\) : la pente de la <strong>tangente</strong> \(y=(x-x_0)f'(x_0)+f(x_0)\).</li>
+        <li>Dérivable implique continue, <strong>pas l'inverse</strong> (\(|x|\) en 0).</li>
+        <li>Composée : \((g\circ f)'=g'(f)\,f'\). Réciproque : \((f^{-1})'(y)=1/f'(f^{-1}(y))\).</li>
+        <li>Extremum local sur un ouvert implique \(f'(x_0)=0\) (pas l'inverse : \(x^3\)).</li>
+        <li><strong>Rolle</strong> et <strong>accroissements finis</strong> : \(f(b)-f(a)=f'(c)(b-a)\). Signe de \(f'\) donne la monotonie.</li>
+        <li><strong>L'Hôpital</strong> pour les formes \(0/0\) ; <strong>Taylor-Young</strong> et les <strong>DL</strong> pour approcher et calculer des limites.</li>
+      </ul>
+    </div>
+
+    <h2 id="definition">Définition et tangente</h2>
+    <div class="callout key"><span class="callout-title">À retenir : nombre dérivé</span>
+      <p>Soit \(I\) un intervalle ouvert, \(f:I\to\mathbb{R}\), \(x_0\in I\). \(f\) est <strong>dérivable en \(x_0\)</strong> si le <strong>taux d'accroissement</strong> a une limite finie :</p>
+      \[f'(x_0)=\lim_{x\to x_0}\frac{f(x)-f(x_0)}{x-x_0}\]
+      <p>\(f\) est dérivable sur \(I\) si elle l'est en tout point ; \(x\mapsto f'(x)\) est la fonction dérivée, notée \(f'\) ou \(\frac{df}{dx}\).</p>
+    </div>
+    <p>Exemple : \(f(x)=x^2\). \(\frac{x^2-x_0^2}{x-x_0}=x+x_0\to 2x_0\), donc \(f'(x)=2x\).</p>
+    <p><strong>Tangente</strong> : la corde entre \((x_0,f(x_0))\) et \((x,f(x))\) a pour pente le taux d'accroissement ; à la limite on obtient la tangente :</p>
+    \[y=(x-x_0)f'(x_0)+f(x_0)\]
+
+    <h3 id="continuite">Dérivable implique continue</h3>
+    <p>Si \(f\) est dérivable en \(x_0\), elle est continue en \(x_0\). La réciproque est fausse.</p>
+    <div class="callout warn"><span class="callout-title">Piège classique : \(|x|\) en 0</span>
+      <p>\(\frac{|x|-0}{x-0}\) vaut \(+1\) si \(x\gt 0\) et \(-1\) si \(x\lt 0\) : limites à droite et à gauche différentes, donc pas de limite. \(|x|\) est continue en 0 mais <strong>pas dérivable</strong> (graphe en pointe).</p>
+    </div>
+
+    <h2 id="calcul">Règles de calcul</h2>
+    <h3 id="operations">Opérations</h3>
+    <p>Pour \(f,g\) dérivables sur \(I\) et \(\lambda\in\mathbb{R}\) :</p>
+    <ul>
+      <li>\((f+g)'=f'+g'\) et \((\lambda f)'=\lambda f'\)</li>
+      <li>\((fg)'=f'g+fg'\)</li>
+      <li>\(\left(\frac1f\right)'=-\frac{f'}{f^2}\) (si \(f\neq0\)) et \(\left(\frac fg\right)'=\frac{f'g-fg'}{g^2}\) (si \(g\neq0\))</li>
+    </ul>
+    <p>Idée pour le produit : on écrit \(\frac{f(x)g(x)-f(x_0)g(x_0)}{x-x_0}=\frac{f(x)-f(x_0)}{x-x_0}g(x)+\frac{g(x)-g(x_0)}{x-x_0}f(x_0)\) et on passe à la limite.</p>
+
+    <h3 id="usuelles">Dérivées usuelles</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Fonction</th><th>Dérivée</th><th>Avec \(u\)</th><th>Dérivée</th></tr></thead>
+      <tbody>
+        <tr><td>\(x^n\) (\(n\in\mathbb{Z}\))</td><td>\(nx^{n-1}\)</td><td>\(u^n\)</td><td>\(nu'u^{n-1}\)</td></tr>
+        <tr><td>\(\frac1x\)</td><td>\(-\frac1{x^2}\)</td><td>\(\frac1u\)</td><td>\(-\frac{u'}{u^2}\)</td></tr>
+        <tr><td>\(\sqrt x\)</td><td>\(\frac{1}{2\sqrt x}\)</td><td>\(\sqrt u\)</td><td>\(\frac{u'}{2\sqrt u}\)</td></tr>
+        <tr><td>\(x^\alpha\) (\(\alpha\in\mathbb{R}\))</td><td>\(\alpha x^{\alpha-1}\)</td><td>\(u^\alpha\)</td><td>\(\alpha u'u^{\alpha-1}\)</td></tr>
+        <tr><td>\(e^x\)</td><td>\(e^x\)</td><td>\(e^u\)</td><td>\(u'e^u\)</td></tr>
+        <tr><td>\(\ln x\)</td><td>\(\frac1x\)</td><td>\(\ln u\)</td><td>\(\frac{u'}{u}\)</td></tr>
+        <tr><td>\(\cos x\)</td><td>\(-\sin x\)</td><td>\(\cos u\)</td><td>\(-u'\sin u\)</td></tr>
+        <tr><td>\(\sin x\)</td><td>\(\cos x\)</td><td>\(\sin u\)</td><td>\(u'\cos u\)</td></tr>
+        <tr><td>\(\tan x\)</td><td>\(1+\tan^2x=\frac1{\cos^2x}\)</td><td>\(\tan u\)</td><td>\(u'(1+\tan^2u)=\frac{u'}{\cos^2u}\)</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3 id="composition">Composition et réciproque</h3>
+    <div class="callout key"><span class="callout-title">À retenir : dérivée d'une composée</span>
+      <p>Si \(f\) est dérivable en \(x_0\) et \(g\) dérivable en \(f(x_0)\) :</p>
+      \[(g\circ f)'(x_0)=g'(f(x_0))\,f'(x_0)\]
+    </div>
+    <p>Exemple : \(\frac{d}{dx}\ln(1+x^2)=\frac{2x}{1+x^2}\).</p>
+    <p><strong>Réciproque</strong> : si \(f:I\to J\) est une bijection dérivable et \(f'\) ne s'annule pas sur \(I\), alors \(g=f^{-1}\) est dérivable sur \(J\) et</p>
+    \[g'(y)=\frac{1}{f'(g(y))}\]
+    <p>Exemple : \(g=\ln=\exp^{-1}\) donne \(g'(y)=\frac1{e^{\ln y}}=\frac1y\).</p>
+
+    <h3 id="successives" data-toc="Dérivées successives, classe Cⁿ">Dérivées successives, classe \(\mathscr{C}^n\)</h3>
+    <p>\(f''=(f')'\), et plus généralement \(f^{(0)}=f\), \(f^{(n+1)}=(f^{(n)})'\). \(f\) est de <strong>classe \(\mathscr{C}^n\)</strong> si elle est \(n\) fois dérivable et \(f^{(n)}\) est continue ; \(\mathscr{C}^0\) = continue ; \(\mathscr{C}^\infty\) = \(\mathscr{C}^n\) pour tout \(n\).</p>
+
+    <h2 id="extrema">Extrema locaux</h2>
+    <p>\(x_0\) est un <strong>point critique</strong> si \(f'(x_0)=0\). \(f\) a un <strong>maximum local</strong> en \(x_0\) s'il existe un intervalle ouvert \(J\ni x_0\) avec \(f(x)\le f(x_0)\) pour tout \(x\in I\cap J\) (minimum local : \(\ge\)).</p>
+    <div class="callout key"><span class="callout-title">À retenir : condition nécessaire et condition suffisante</span>
+      <p><strong>Nécessaire</strong> : \(I\) ouvert, \(f\) dérivable, extremum local en \(x_0\) \(\Rightarrow f'(x_0)=0\).</p>
+      <p><strong>Suffisante</strong> (\(f\) deux fois dérivable) : \(f'(x_0)=0\) et \(f''(x_0)\gt 0\) \(\Rightarrow\) minimum local ; \(f'(x_0)=0\) et \(f''(x_0)\lt 0\) \(\Rightarrow\) maximum local.</p>
+    </div>
+    <p>Idée de la preuve : à gauche d'un maximum le taux d'accroissement est \(\ge0\), à droite il est \(\le0\) ; les deux limites valent \(f'(x_0)\), donc \(f'(x_0)=0\).</p>
+    <div class="callout warn"><span class="callout-title">Piège classique : point critique n'est pas extremum</span>
+      <p>\(f(x)=x^3\) : \(f'(0)=0\) mais 0 n'est ni max ni min. Et sur un <strong>fermé</strong> \([a,b]\), un extremum peut être en \(a\) ou \(b\) sans que \(f'\) s'y annule. Pour trouver \(\max_{[a,b]}f\) et \(\min_{[a,b]}f\) : comparer les valeurs aux points critiques <strong>et</strong> en \(a\), \(b\). Enfin \(f''(x_0)\gt0\) n'est pas nécessaire : \(x^4\) a un minimum en 0 avec \(f''(0)=0\).</p>
+    </div>
+
+    <h2 id="taf">Rolle et accroissements finis</h2>
+    <div class="callout key"><span class="callout-title">À retenir : théorème de Rolle</span>
+      <p>\(f\) continue sur \([a,b]\), dérivable sur \(]a,b[\), \(f(a)=f(b)\). Alors il existe \(c\in]a,b[\) tel que \(f'(c)=0\).</p>
+    </div>
+    <p>Idée : \(f\) continue sur un segment atteint son max (ou min) ; s'il n'est pas au bord, il est à l'intérieur, donc \(f'=0\) en ce point.</p>
+    <div class="callout key"><span class="callout-title">À retenir : théorème des accroissements finis (Lagrange)</span>
+      <p>\(f\) continue sur \([a,b]\), dérivable sur \(]a,b[\). Il existe \(c\in]a,b[\) tel que</p>
+      \[f(b)-f(a)=f'(c)\,(b-a)\]
+    </div>
+    <p>Géométriquement : il existe un point où la tangente est <strong>parallèle à la corde</strong> \((AB)\). Preuve : Rolle appliqué à \(g(x)=f(x)-\ell(x-a)\) avec \(\ell=\frac{f(b)-f(a)}{b-a}\).</p>
+    <p><strong>Application</strong> (TAF) : pour \(x\gt0\), sur \([0,x]\) avec \(t\mapsto\ln(1+t)\), \(\ln(1+x)=\frac{x}{1+c}\) avec \(c\in]0,x[\). Comme \(\frac1{1+x}\le\frac1{1+c}\le1\) :</p>
+    \[\frac{x}{1+x}\le\ln(1+x)\le x\]
+    <p>Une borne sur la dérivée donne une borne sur les variations de la fonction.</p>
+
+    <h3 id="monotonie">Monotonie et signe de la dérivée</h3>
+    <p>\(f\) continue sur \([a,b]\), dérivable sur \(]a,b[\) :</p>
+    <ul>
+      <li>\(f'\ge0\) sur \(]a,b[\) \(\iff\) \(f\) croissante ; \(f'\le0\) \(\iff\) décroissante ; \(f'=0\) \(\iff\) constante.</li>
+      <li>\(f'\gt0\) \(\Rightarrow\) strictement croissante ; \(f'\lt0\) \(\Rightarrow\) strictement décroissante.</li>
+    </ul>
+    <div class="callout warn"><span class="callout-title">Piège classique : la stricte n'est qu'une implication</span>
+      <p>\(x^3\) est strictement croissante mais \(f'(0)=0\). « Strictement croissante » n'implique pas \(f'\gt0\).</p>
+    </div>
+
+    <h2 id="hopital">Règle de l'Hôpital</h2>
+    <div class="callout key"><span class="callout-title">À retenir : règle de l'Hôpital</span>
+      <p>\(f,g\) dérivables sur \(I\), \(f(x_0)=g(x_0)=0\), \(g'(x)\neq0\) pour \(x\neq x_0\).</p>
+      \[\text{Si } \lim_{x\to x_0}\frac{f'(x)}{g'(x)}=\ell \text{ alors } \lim_{x\to x_0}\frac{f(x)}{g(x)}=\ell\]
+    </div>
+    <p>Exemple : \(\lim_{x\to1}\frac{\ln(x^2+x-1)}{\ln x}\). \(f(1)=g(1)=0\), \(\frac{f'}{g'}=\frac{(2x+1)/(x^2+x-1)}{1/x}=\frac{x(2x+1)}{x^2+x-1}\to3\). La limite vaut <strong>3</strong>.</p>
+    <div class="callout warn"><span class="callout-title">Piège classique : vérifier les hypothèses</span>
+      <p>La règle ne s'applique qu'à une forme \(0/0\) (dans ce cours). On dérive numérateur et dénominateur <strong>séparément</strong>, pas le quotient.</p>
+    </div>
+
+    <h2 id="taylor">Taylor et développements limités</h2>
+    <h3 id="petit-o">Notation petit o</h3>
+    <p>Au voisinage de \(a\), \(r(x)=o((x-a)^n)\) signifie \(\lim_{x\to a}\frac{r(x)}{(x-a)^n}=0\) : \(r\) est négligeable devant \((x-a)^n\). En 0 (\(K\in\mathbb{R}\)) :</p>
+    <ul>
+      <li>\(K\,o(x^a)=o(x^a)\), \(o(x^a)+o(x^a)=o(x^a)\), \(x^b\,o(x^a)=o(x^{a+b})\)</li>
+      <li>\((o(x^a))^b=o(x^{ab})\) (\(b\ge1\)) ; si \(a\le b\), \(o(x^a)+o(x^b)=o(x^a)\)</li>
+    </ul>
+    <p>Chaque \(o\) peut désigner une fonction différente : on ne simplifie jamais \(o(x^2)-o(x^2)\) en 0.</p>
+
+    <h3 id="taylor-young">Formule de Taylor-Young</h3>
+    <div class="callout key"><span class="callout-title">À retenir : Taylor-Young</span>
+      <p>\(f\) de classe \(\mathscr{C}^n\) sur un ouvert contenant \(a\). Lorsque \(x\to a\) :</p>
+      \[f(x)=\sum_{k=0}^{n}\frac{f^{(k)}(a)}{k!}(x-a)^k+o((x-a)^n)\]
+      <p>Ordre 1 : \(f(a+h)=f(a)+f'(a)h+o(h)\) (la tangente). Ordre 2 : \(f(a+h)=f(a)+f'(a)h+\frac{f''(a)}{2}h^2+o(h^2)\).</p>
+    </div>
+    <div class="callout explain"><span class="callout-title">Pour comprendre : approcher par un polynôme</span>
+      <p>La tangente est la meilleure droite qui « colle » au graphe en \(a\). On fait mieux avec une parabole, puis une cubique : pour \(e^x\) en 0, \(1+x\), puis \(1+x+\frac{x^2}{2}\), puis \(1+x+\frac{x^2}2+\frac{x^3}6\). Le polynôme de Taylor \(T_n\) a les mêmes dérivées que \(f\) en \(a\) jusqu'à l'ordre \(n\) ; le reste \(o((x-a)^n)\) dit que l'erreur devient négligeable devant \((x-a)^n\) près de \(a\).</p>
+    </div>
+    <p><strong>DL autour d'un point \(a\neq0\)</strong> : poser \(h=x-a\) et travailler avec \(h\to0\). Exemple : \(\sqrt x\) en 1, \(f(1)=1\), \(f'(1)=\frac12\), \(f''(1)=-\frac14\) :</p>
+    \[\sqrt x=1+\frac{x-1}{2}-\frac{(x-1)^2}{8}+o((x-1)^2)\]
+    <p>Pour \(x=1{,}04\) : \(\sqrt{1{,}04}\approx1+0{,}02-0{,}0002=1{,}0198\).</p>
+
+    <h3 id="taylor-lagrange">Formule de Taylor-Lagrange (reste explicite)</h3>
+    <p>\(f\) de classe \(\mathscr{C}^{n+1}\) sur \(I\), \(a,x\in I\). Il existe \(c\) entre \(a\) et \(x\) tel que</p>
+    \[f(x)=T_n(x)+\frac{f^{(n+1)}(c)}{(n+1)!}(x-a)^{n+1},\quad T_n(x)=\sum_{k=0}^{n}\frac{f^{(k)}(a)}{k!}(x-a)^k\]
+    <p>Si \(|f^{(n+1)}|\le M\) sur \(I\) : \(|f(x)-T_n(x)|\le M\frac{|x-a|^{n+1}}{(n+1)!}\). C'est un TAF généralisé (ordre 0 : \(f(x)=f(a)+f'(c)(x-a)\)).</p>
+    <p>Exemple : \(\sin(0{,}01)\approx0{,}01-\frac{(0{,}01)^3}{6}\), erreur \(\le\frac{(0{,}01)^4}{24}\approx4{,}2\cdot10^{-10}\).</p>
+
+    <h3 id="dl-usuels">DL usuels en 0</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Fonction</th><th>DL en 0</th></tr></thead>
+      <tbody>
+        <tr><td>\(e^x\)</td><td>\(1+x+\frac{x^2}{2!}+\dots+\frac{x^n}{n!}+o(x^n)=\sum_{k=0}^n\frac{x^k}{k!}+o(x^n)\)</td></tr>
+        <tr><td>\(\cos x\)</td><td>\(1-\frac{x^2}{2!}+\frac{x^4}{4!}-\dots+(-1)^n\frac{x^{2n}}{(2n)!}+o(x^{2n+1})\)</td></tr>
+        <tr><td>\(\sin x\)</td><td>\(x-\frac{x^3}{3!}+\frac{x^5}{5!}-\dots+(-1)^n\frac{x^{2n+1}}{(2n+1)!}+o(x^{2n+2})\)</td></tr>
+        <tr><td>\(\ln(1+x)\)</td><td>\(x-\frac{x^2}{2}+\frac{x^3}{3}-\dots+(-1)^{n-1}\frac{x^n}{n}+o(x^n)\)</td></tr>
+        <tr><td>\((1+x)^\alpha\)</td><td>\(1+\alpha x+\frac{\alpha(\alpha-1)}{2!}x^2+\dots+\frac{\alpha(\alpha-1)\cdots(\alpha-n+1)}{n!}x^n+o(x^n)\)</td></tr>
+        <tr><td>\(\frac1{1+x}\)</td><td>\(1-x+x^2-x^3+\dots+(-1)^nx^n+o(x^n)\)</td></tr>
+        <tr><td>\(\frac1{1-x}\)</td><td>\(1+x+x^2+\dots+x^n+o(x^n)\)</td></tr>
+        <tr><td>\(\sqrt{1+x}\)</td><td>\(1+\frac x2-\frac{x^2}{8}+o(x^2)\)</td></tr>
+        <tr><td>\(\tan x\)</td><td>\(x+\frac{x^3}{3}+o(x^4)\)</td></tr>
+      </tbody>
+    </table></div>
+    <p><strong>Produit</strong> : on multiplie les DL et on ne garde que les termes de degré \(\le n\). Exemple à l'ordre 2 :</p>
+    \[\cos x\sqrt{1+x}=\left(1-\tfrac{x^2}{2}\right)\left(1+\tfrac x2-\tfrac{x^2}{8}\right)+o(x^2)=1+\frac x2-\frac58x^2+o(x^2)\]
+
+    <h3 id="limites">Limites, équivalents</h3>
+    <p>Le premier terme non nul d'un DL donne un <strong>équivalent</strong> : \(u\sim v\) si \(u/v\to1\). En 0 : \(\ln(1+x)\sim x\), \(\sin x\sim x\), \(1-\cos x\sim\frac{x^2}{2}\).</p>
+    <p>Exemple : \(\frac{x\sin(x^3)}{1-\cos(x^2)}\sim\frac{x\cdot x^3}{x^4/2}=2\).</p>
+    <div class="callout warn"><span class="callout-title">Piège classique : pas d'équivalents dans une somme</span>
+      <p>Les équivalents se <strong>multiplient</strong> et se <strong>divisent</strong>, mais ne s'additionnent pas. Pour une somme ou une différence, utiliser des DL à un ordre suffisant pour voir les annulations. Exemple : \(\ln(1+x)-\tan x+\frac12\sin^2x\) : les termes en \(x\), \(x^2\), \(x^3\) s'annulent, il faut aller à l'<strong>ordre 4</strong> pour trouver \(-\frac5{12}x^4\). Avec \(3x^2\sin^2x\sim3x^4\), la limite du quotient vaut \(-\frac5{36}\).</p>
+    </div>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. \(f(x)=|x|\) est-elle dérivable en 0 ? continue ?</summary>
+      <p>Continue oui, dérivable non : le taux d'accroissement vaut \(+1\) à droite et \(-1\) à gauche.</p>
+    </details>
+    <details><summary>2. Dérivez \(\ln(1+x^2)\) et \(e^{\sin x}\).</summary>
+      <p>\(\frac{2x}{1+x^2}\) (forme \(u'/u\)) et \(\cos x\,e^{\sin x}\) (forme \(u'e^u\)).</p>
+    </details>
+    <details><summary>3. Dérivées secondes de \(\ln x\) et de \(1/\cos x\) ?</summary>
+      <p>\((\ln x)''=-\frac1{x^2}\). \(\left(\frac1{\cos x}\right)'=\frac{\sin x}{\cos^2x}\), puis \(\left(\frac1{\cos x}\right)''=\frac{\cos^2x+2\sin^2x}{\cos^3x}=\frac{1+\sin^2x}{\cos^3x}\).</p>
+    </details>
+    <details><summary>4. \(f'(x_0)=0\) suffit-il pour un extremum ? \(f''(x_0)\gt0\) est-il nécessaire pour un minimum ?</summary>
+      <p>Non et non : \(x^3\) a \(f'(0)=0\) sans extremum ; \(x^4\) a un minimum en 0 avec \(f''(0)=0\).</p>
+    </details>
+    <details><summary>5. Énoncez le TAF et son interprétation géométrique.</summary>
+      <p>\(f\) continue sur \([a,b]\), dérivable sur \(]a,b[\) : il existe \(c\in]a,b[\) avec \(f(b)-f(a)=f'(c)(b-a)\). Une tangente est parallèle à la corde \((AB)\).</p>
+    </details>
+    <details><summary>6. Calculez \(\lim_{x\to0}\frac{\sin x}{x}\) par l'Hôpital.</summary>
+      <p>Forme \(0/0\), \(\frac{\cos x}{1}\to1\). La limite vaut 1.</p>
+    </details>
+    <details><summary>7. DL à l'ordre 3 de \(e^x\) en 1 ?</summary>
+      <p>Toutes les dérivées valent \(e\) en 1. Avec \(h=x-1\) : \(e^x=e\left(1+h+\frac{h^2}{2}+\frac{h^3}{6}\right)+o(h^3)\).</p>
+    </details>
+    <details><summary>8. DL à l'ordre 3 de \(\sin x\) en \(\pi/2\) ?</summary>
+      <p>\(\sin(\pi/2+h)=\cos h=1-\frac{h^2}{2}+o(h^3)\), avec \(h=x-\pi/2\).</p>
+    </details>
+    <details><summary>9. Pourquoi ne peut-on pas écrire \(\sin x-x\sim x-x=0\) ?</summary>
+      <p>Les équivalents ne passent pas aux différences. Le DL donne \(\sin x-x=-\frac{x^3}{6}+o(x^3)\), donc \(\sin x-x\sim-\frac{x^3}{6}\).</p>
+    </details>
+    <details><summary>10. Équation de la tangente à \(\sqrt x\) en 1 ?</summary>
+      <p>\(f(1)=1\), \(f'(1)=\frac12\) : \(y=\frac12(x-1)+1\).</p>
+    </details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="04-fonctions.html"><span>← Précédent</span>Fonctions</a>
+      <a class="next" href="06-integrales.html"><span>Suivant →</span>Intégrales</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

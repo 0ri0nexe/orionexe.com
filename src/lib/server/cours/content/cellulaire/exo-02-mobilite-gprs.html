@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exo 2 : d'une antenne à l'autre · Réseaux cellulaires</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Réseaux cellulaires</a>
+    <div class="course-code">NET 8465 · Exercice</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Exercice 2</div>
+    <h1>D'une antenne à l'autre</h1>
+    <p class="lead">Bilan radio et Timing Advance, partage des timeslots GPRS, exécution complète d'un handover, puis ce que changent la 3G et la 4G.</p>
+
+    <div class="callout key">
+      <span class="callout-title">À revoir avant de commencer</span>
+      <ul>
+        <li><a href="01-environnement-radio.html">Chapitre 01 : l'environnement radio</a> (affaiblissement, trajets multiples) pour la partie A.</li>
+        <li><a href="03-gsm-gprs.html">Chapitre 03 : GSM et GPRS</a> (burst, TBF, TFI, USF, exécution du handover) pour les parties A, B et C.</li>
+        <li><a href="02-acces-multiple.html">Chapitre 02 : accès multiple</a> (CDMA, préfixe cyclique), <a href="04-umts.html">04 : UMTS</a> et <a href="05-lte.html">05 : LTE</a> pour la partie D.</li>
+        <li><a href="exo-01-appel-gsm.html">Exercice 1</a> : les seuils de handover et l'enchaînement RACH, AGCH, SDCCH servent à nouveau.</li>
+      </ul>
+    </div>
+
+    <h2 id="contexte">Le décor</h2>
+    <p>Alice habite en périphérie. Sa ville est couverte par des cellules GSM/GPRS à <strong>900 MHz</strong>. Quelques repères :</p>
+    <ul>
+      <li>un timeslot dure 576,9 µs et contient 156,25 bits ; la lumière parcourt 300 m par µs ;</li>
+      <li>les seuils de handover sont ceux de l'exercice 1 : niveau si RXLEV &lt; −100 dBm, qualité si RXQUAL ≥ 5, Power Budget avec <strong>HO_MARGIN = 6 dB</strong> ;</li>
+      <li>\( \text{FSPL(dB)} = 20 \log_{10}(d) + 20 \log_{10}(f) + 92{,}45 \), avec d en km et f en GHz.</li>
+    </ul>
+
+    <h2 id="radio" data-toc="A. Le lien radio">Partie A : le lien radio</h2>
+    <ol class="steps">
+      <li>Calcule l'affaiblissement en espace libre à <strong>2 km</strong> et à <strong>8 km</strong> de l'antenne, à 900 MHz. Que deviennent ces valeurs à 1800 MHz ? Pourquoi un opérateur préfère-t-il le 900 MHz pour couvrir la campagne ?</li>
+      <li>En ville, la loi en distance n'est plus en \( d^{-2} \) mais plutôt en \( d^{-4} \). Alice reçoit −80 dBm à 2 km de son antenne. Que reçoit-elle à 8 km ? Comparer avec le seuil de handover sur niveau, et avec ce que donnerait l'espace libre.</li>
+      <li>Le <strong>Timing Advance</strong> (TA) compte, en durées de bit, l'aller-retour du signal entre la BTS et le mobile.
+        <ul>
+          <li>Calcule la durée d'un bit, puis la distance qui correspond à un pas de TA. Retrouve la portée maximale d'une cellule (TA = 63).</li>
+          <li>Alice a un TA de 14. À quelle distance est-elle de l'antenne ?</li>
+          <li>Si elle émettait <strong>sans</strong> avance, de combien de bits son burst déborderait-il sur le slot suivant ? Le temps de garde de 8,25 bits suffit-il ?</li>
+        </ul>
+      </li>
+      <li>Entre Alice et l'antenne, une colline renvoie un écho dont le trajet est plus long de <strong>1,1 km</strong>.
+        <ul>
+          <li>Quel est le retard de l'écho, en µs puis en bits GSM ? Quel phénomène cela provoque-t-il ?</li>
+          <li>Quelle partie du burst GSM permet au récepteur de s'en sortir, et comment ?</li>
+          <li>Le même écho en LTE (symbole de 66,7 µs, préfixe cyclique de 4,7 µs) pose-t-il problème ?</li>
+        </ul>
+      </li>
+    </ol>
+
+    <h2 id="gprs" data-toc="B. Le partage GPRS">Partie B : le partage GPRS</h2>
+    <p>On regarde la porteuse C1 de la cellule d'Alice : <strong>TS0 à TS3 sont des TCH</strong>, tous occupés par des appels, et <strong>TS4 à TS7 sont des PDCH</strong>. Le PCU applique ces règles :</p>
+    <ul>
+      <li>au plus <strong>2 TBF par PDCH</strong> ;</li>
+      <li>il attribue d'abord les PDCH les moins chargés, et à égalité ceux de plus haut numéro ;</li>
+      <li>un TBF garde ses slots jusqu'à sa fin (le PCU ne réorganise pas les TBF en cours) ;</li>
+      <li>un PDCH écoule <strong>20 kbit/s</strong>, partagés à parts égales entre les TBF qui l'utilisent.</li>
+    </ul>
+    <ol class="steps" start="5">
+      <li>Trois téléchargements démarrent dans cet ordre : <strong>Bob</strong> demande 4 slots, <strong>Carla</strong> 2 slots, <strong>Dan</strong> 3 slots (tous en descendant). Quels slots obtient chacun ? Quel débit ? Qu'est-ce qui surprend pour Bob ?</li>
+      <li>Le téléchargement de Carla se termine. Que devient son TBF ? Quel est alors le débit de Bob ? Puis un appel voix arrive alors que TS0 à TS3 sont toujours occupés : que fait le réseau, et quel est le nouveau débit de Bob ? Pourquoi la voix passe-t-elle en premier ?</li>
+      <li>Dan commence aussi à envoyer des fichiers : il obtient un TBF <strong>montant</strong> sur TS4 et TS5, avec le <strong>TFI 5</strong> et l'<strong>USF 2</strong>. Eve a un TBF montant sur TS5 avec l'USF 4. En descendant, le TBF de Bob a le TFI 3 et celui de Dan le TFI 5. Voici quatre blocs descendants successifs sur <strong>TS5</strong> :
+        <div class="table-wrap"><table>
+          <thead><tr><th>Bloc</th><th>TFI</th><th>USF</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>3</td><td>2</td></tr>
+            <tr><td>2</td><td>5</td><td>4</td></tr>
+            <tr><td>3</td><td>5</td><td>2</td></tr>
+            <tr><td>4</td><td>3</td><td>libre (R)</td></tr>
+          </tbody>
+        </table></div>
+        Pour chaque bloc : qui garde les données, et qui émet sur le bloc montant correspondant ? Dan a le TFI 5 dans les deux sens : est-ce une erreur ?
+      </li>
+    </ol>
+
+    <h2 id="handover" data-toc="C. Le handover complet">Partie C : le handover, de bout en bout</h2>
+    <p>Alice est en communication dans la cellule <strong>A</strong>, gérée par le <strong>BSC1</strong>. Elle s'éloigne vers la cellule <strong>D</strong>, gérée par le <strong>BSC2</strong> (les deux BSC dépendent du même MSC). Mesures lissées :</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Cellule A (actuelle)</th><th>Voisine D</th><th>Voisine E</th></tr></thead>
+      <tbody>
+        <tr><td>−97 dBm, RXQUAL 2, TA 14</td><td>−84 dBm, TCH libre</td><td>−93 dBm, TCH libre</td></tr>
+      </tbody>
+    </table></div>
+    <ol class="steps" start="8">
+      <li>Y a-t-il un handover ? Passe en revue chaque cause (qualité, niveau, distance, Power Budget). Vers quelle cellule ? Quel type de handover, et qui le pilote ?</li>
+      <li>Voici, dans le désordre, les messages du handover. Remets-les dans l'ordre et, pour chacun, indique qui l'envoie à qui, et sur quel canal (ou quelle interface) :
+        <div class="callout explain"><span class="callout-title">Messages</span>
+          <p>Handover Complete · Handover Command · Handover Required · Physical Information · Handover Access · Handover Request · Measurement Report</p>
+        </div>
+      </li>
+      <li>Pourquoi Alice envoie-t-elle ses Handover Access sous forme d'<strong>access bursts</strong> ? Un access burst ne porte que 88 bits ; le reste du slot, <strong>68,25 bits</strong>, est un temps de garde. Jusqu'à quelle distance ce burst tient-il dans son slot ? Compare avec la question 3.</li>
+      <li>Alice n'arrive pas à se synchroniser sur D. Que se passe-t-il ? Et quand tout marche, pourquoi entend-on parfois un très court blanc ?</li>
+      <li>L'appel se termine. Alice, en veille, continue de marcher et entre dans la cellule <strong>F</strong>, qui appartient à une autre zone de localisation. Qui décide qu'elle change de cellule ? Que doit-elle faire, et sur quels canaux ? Pourquoi exige-t-on une marge plus grande à une frontière de zone de localisation ?</li>
+    </ol>
+
+    <h2 id="evolutions" data-toc="D. Et en 3G, 4G ?">Partie D : et en 3G, en 4G ?</h2>
+    <ol class="steps" start="13">
+      <li>Le téléphone d'Alice passe en 3G. Entre deux Node B du même RNC, elle est en <strong>soft handover</strong> : les deux lui envoient le même bit, B1 avec le code \( c_1 = (+1, +1, -1, -1) \) et B2 avec \( c_2 = (+1, -1, +1, -1) \).
+        <ul>
+          <li>Vérifie que les deux codes sont orthogonaux.</li>
+          <li>Le signal de B2 arrive deux fois plus faible. Alice reçoit \( Z = (+1{,}5 ;\ +0{,}5 ;\ -0{,}5 ;\ -1{,}5) \). Décode le bit venant de chaque Node B. Qu'apporte le fait d'en écouter deux ?</li>
+          <li>Pourquoi ce « lien double » est-il possible en WCDMA et pas en GSM ? Dans le sens montant, qui combine les deux réceptions ? Et si B2 dépendait d'un autre RNC ?</li>
+          <li>Pourquoi le contrôle de puissance est-il vital en 3G, alors qu'en GSM il sert surtout à économiser la batterie et à limiter le brouillage des voisines ?</li>
+        </ul>
+      </li>
+      <li>Le téléphone d'Alice passe en 4G et change d'eNodeB pendant un appel vidéo. Qui décide du handover ? Par quelle interface les deux eNodeB se coordonnent-ils ? Quel nœud du cœur ne change pas, et pourquoi l'appel vidéo ne coupe-t-il pas ? Ce handover est-il « soft » ou « hard » ?</li>
+    </ol>
+
+    <h2 id="correction">Correction</h2>
+    <p>Cherche d'abord, puis déplie question par question.</p>
+
+    <h3 id="correction-a" data-toc="Correction A">Partie A</h3>
+    <details><summary>1. Affaiblissement en espace libre</summary>
+      <p>À 900 MHz, \( 20 \log_{10}(0{,}9) \approx -0{,}9 \) dB.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Distance</th><th>900 MHz</th><th>1800 MHz</th></tr></thead>
+        <tbody>
+          <tr><td>2 km</td><td>6,0 − 0,9 + 92,45 ≈ <strong>97,6 dB</strong></td><td>103,6 dB</td></tr>
+          <tr><td>8 km</td><td>18,1 − 0,9 + 92,45 ≈ <strong>109,6 dB</strong></td><td>115,6 dB</td></tr>
+        </tbody>
+      </table></div>
+      <p>De 2 à 8 km : deux doublements de distance, donc <strong>+12 dB</strong>. Doubler la fréquence ajoute <strong>6 dB</strong> à toutes les distances.</p>
+      <p><strong>Pourquoi le 900 MHz à la campagne :</strong> 6 dB de moins à distance égale, c'est une portée nettement plus grande, donc moins de sites pour couvrir un territoire peu peuplé. En ville, on ajoute du 1800 MHz pour la <strong>capacité</strong> : des cellules plus petites, plus nombreuses, qui réutilisent les fréquences plus souvent.</p>
+    </details>
+    <details><summary>2. La même distance, en ville</summary>
+      <p>En \( d^{-4} \), multiplier la distance par 4 divise la puissance par \( 4^4 = 256 \) : \( 40 \log_{10}(4) \approx 24 \) dB. Alice reçoit <strong>−80 − 24 = −104 dBm</strong>, sous le seuil de −100 dBm : le BSC chercherait une voisine (handover sur niveau, si Alice émet déjà au maximum).</p>
+      <p>En espace libre, on n'aurait perdu que 12 dB : −92 dBm, encore confortable. C'est le « la portée s'effondre » du chapitre 01 : l'exposant compte bien plus que la distance elle-même.</p>
+    </details>
+    <details><summary>3. Le Timing Advance</summary>
+      <p><strong>Un bit :</strong> 576,9 µs / 156,25 = <strong>3,69 µs</strong>.</p>
+      <p><strong>Un pas de TA :</strong> le TA mesure l'<strong>aller-retour</strong>. Un bit d'aller-retour correspond donc à une distance de \( 300 \times 3{,}69 / 2 \approx 554 \) m. TA = 63 donne 63 × 0,554 ≈ <strong>35 km</strong> : c'est la portée maximale d'une cellule GSM (le critère « distance » du chapitre 03).</p>
+      <p><strong>Alice :</strong> 14 × 0,554 ≈ <strong>7,8 km</strong> (à ±280 m près, la moitié d'un pas).</p>
+      <p><strong>Sans avance :</strong> l'aller-retour à 7,8 km dure 2 × 7 750 / 300 ≈ 51,7 µs, soit <strong>14 bits</strong>. Le temps de garde n'en absorbe que 8,25 : le burst d'Alice mordrait d'environ <strong>6 bits</strong> sur le slot suivant, celui d'un autre mobile.</p>
+      <div class="callout explain"><span class="callout-title">Pour comprendre : pourquoi l'aller-retour ?</span>
+        <p>Le mobile se cale sur ce qu'il <strong>reçoit</strong> de la BTS, qui lui arrive déjà en retard d'un trajet. S'il répond « à l'heure » selon sa propre horloge, son burst met encore un trajet pour revenir : il arrive en retard de deux trajets. Il doit donc émettre en avance de l'aller-retour complet.</p>
+      </div>
+      <div class="callout warn"><span class="callout-title">Piège classique : le temps de garde ne remplace pas le TA</span>
+        <p>8,25 bits de garde couvrent un aller-retour de 30 µs, soit à peine 4,6 km. Le temps de garde absorbe les petites imprécisions ; c'est le TA qui compense la distance.</p>
+      </div>
+    </details>
+    <details><summary>4. L'écho de la colline</summary>
+      <p><strong>Retard :</strong> 1 100 / 300 ≈ <strong>3,7 µs</strong>, soit environ <strong>1 bit</strong> GSM (3,69 µs). Chaque bit arrive mélangé à l'écho du bit précédent : c'est de l'<strong>interférence entre symboles</strong> (ISI).</p>
+      <p><strong>Ce qui sauve le GSM : la séquence d'apprentissage</strong> (les 26 bits du milieu du burst). Le récepteur connaît ces bits à l'avance. En comparant ce qu'il reçoit à ce qu'il attendait, il mesure les échos du canal (leur retard et leur force), puis un <strong>égaliseur</strong> les retranche des bits de données. Elle est au milieu pour être au plus près de tous les bits de données, car le canal change pendant le burst.</p>
+      <p><strong>En LTE :</strong> 3,7 µs, c'est moins que le préfixe cyclique de 4,7 µs. L'écho tombe entièrement dans le préfixe et disparaît, sans égaliseur compliqué. Il ne représente d'ailleurs que 5,5 % d'un symbole de 66,7 µs, contre un symbole entier en GSM : c'est tout l'intérêt de l'OFDM (des symboles longs, en parallèle).</p>
+    </details>
+
+    <h3 id="correction-b" data-toc="Correction B">Partie B</h3>
+    <details><summary>5. L'attribution des slots</summary>
+      <div class="table-wrap"><table>
+        <thead><tr><th>TBF</th><th>Demande</th><th>Slots obtenus</th><th>Pourquoi</th></tr></thead>
+        <tbody>
+          <tr><td>Bob</td><td>4</td><td>TS4, TS5, TS6, TS7</td><td>Tout est libre.</td></tr>
+          <tr><td>Carla</td><td>2</td><td>TS6, TS7</td><td>Les 4 PDCH ont 1 TBF : à égalité, les plus hauts numéros.</td></tr>
+          <tr><td>Dan</td><td>3</td><td>TS4, TS5 seulement</td><td>TS6 et TS7 sont pleins (2 TBF). Il reste une place sur TS4 et TS5.</td></tr>
+        </tbody>
+      </table></div>
+      <p>Chaque PDCH porte 2 TBF, donc 10 kbit/s chacun. <strong>Bob : 4 × 10 = 40 kbit/s. Carla : 20 kbit/s. Dan : 20 kbit/s.</strong> Total : 80 kbit/s, soit bien 4 PDCH × 20.</p>
+      <p><strong>Ce qui surprend :</strong> Bob a 4 slots mais seulement le débit de 2 slots pleins. Le nombre de slots ne dit rien du débit tant qu'on ne sait pas avec combien de TBF chacun est partagé.</p>
+    </details>
+    <details><summary>6. Fin de TBF et reprise d'un PDCH par la voix</summary>
+      <p><strong>Fin de Carla :</strong> son TBF est <strong>relâché aussitôt</strong> (dernier bloc acquitté) et son TFI redevient disponible. C'est toute la différence avec un TCH, réservé pendant tout l'appel. Bob est désormais seul sur TS6 et TS7 : 10 + 10 + 20 + 20 = <strong>60 kbit/s</strong>.</p>
+      <p><strong>L'appel voix :</strong> aucun TCH libre, donc le réseau <strong>reprend un PDCH</strong> et le transforme en TCH. Il choisit celui qui gêne le moins : TS6 ou TS7, qui ne portent qu'un TBF (on prend TS7). Bob se replie sur TS4, TS5 et TS6 : 10 + 10 + 20 = <strong>40 kbit/s</strong>. Il ralentit, mais ne perd rien.</p>
+      <p><strong>Pourquoi la voix d'abord :</strong> un appel est en mode circuit et en temps réel (classe <em>conversational</em> du chapitre 04) : il ne peut pas attendre, sinon il est refusé. Un téléchargement (classe <em>interactive</em> ou <em>background</em>) supporte un délai : il va simplement moins vite.</p>
+    </details>
+    <details><summary>7. TFI et USF sur TS5</summary>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Bloc</th><th>Les données sont pour...</th><th>Émet ensuite en montant</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Bob (TFI 3)</td><td>Dan (USF 2)</td></tr>
+          <tr><td>2</td><td>Dan (TFI 5)</td><td>Eve (USF 4)</td></tr>
+          <tr><td>3</td><td>Dan (TFI 5)</td><td>Dan (USF 2)</td></tr>
+          <tr><td>4</td><td>Bob (TFI 3)</td><td>Personne d'attribué : le bloc montant est un <strong>PRACH</strong>, où un nouveau mobile peut envoyer un Packet Channel Request</td></tr>
+        </tbody>
+      </table></div>
+      <p>Tous les mobiles lisent tous les blocs : chacun garde les données dont le TFI est le sien, et émet si l'USF est le sien. Au bloc 3, Dan reçoit et a la parole : rien d'anormal, ce sont deux TBF différents.</p>
+      <p><strong>TFI 5 dans les deux sens :</strong> pas d'erreur. Le TFI est unique <strong>par sens</strong> parmi les TBF actifs. Un TBF est unidirectionnel : Dan en a deux, un descendant et un montant, et chacun a son TFI, qui peuvent avoir la même valeur.</p>
+      <div class="callout warn"><span class="callout-title">Pièges classiques</span>
+        <p><strong>« Ensuite » et pas « en même temps » :</strong> l'USF donne la parole sur un bloc montant ultérieur, le temps que le mobile décode l'USF (décalage montant/descendant).</p>
+        <p><strong>Le PRACH, c'est le RACH du GPRS :</strong> accès libre, donc collisions possibles, comme dans la question 5 de l'exercice 1.</p>
+      </div>
+    </details>
+
+    <h3 id="correction-c" data-toc="Correction C">Partie C</h3>
+    <details><summary>8. La décision</summary>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Cause</th><th>Test</th><th>Déclenchée ?</th></tr></thead>
+        <tbody>
+          <tr><td>Qualité</td><td>RXQUAL 2 &lt; 5</td><td>Non</td></tr>
+          <tr><td>Niveau</td><td>−97 dBm &gt; −100 dBm</td><td>Non (mais on s'en approche)</td></tr>
+          <tr><td>Distance</td><td>TA 14 &lt; 63</td><td>Non</td></tr>
+          <tr><td>Power Budget</td><td>D : −84 − (−97) = 13 dB &gt; 6. E : 4 dB &lt; 6</td><td><strong>Oui, vers D</strong></td></tr>
+        </tbody>
+      </table></div>
+      <p>Handover <strong>Power Budget vers D</strong>. D dépend d'un autre BSC : c'est un handover <strong>inter-BSC</strong>. Le BSC1 décide qu'il faut partir, mais ne contrôle pas la cible : c'est le <strong>MSC</strong> qui pilote.</p>
+    </details>
+    <details><summary>9. L'ordre des messages</summary>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Message</th><th>De → vers</th><th>Canal / interface</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Measurement Report</td><td>Alice → BTS A, BSC1</td><td>SACCH ↑</td></tr>
+          <tr><td>2</td><td>Handover Required</td><td>BSC1 → MSC</td><td>Interface A</td></tr>
+          <tr><td>3</td><td>Handover Request</td><td>MSC → BSC2, qui réserve un TCH dans D</td><td>Interface A</td></tr>
+          <tr><td>4</td><td>Handover Command</td><td>BSC1 → Alice, via BTS A</td><td>FACCH ↓ (ancien canal)</td></tr>
+          <tr><td>5</td><td>Handover Access</td><td>Alice → BTS D</td><td>Nouveau canal ↑ (access bursts)</td></tr>
+          <tr><td>6</td><td>Physical Information</td><td>BTS D → Alice (avec son TA)</td><td>FACCH ↓ (nouveau canal)</td></tr>
+          <tr><td>7</td><td>Handover Complete</td><td>Alice → BSC2, puis MSC</td><td>FACCH ↑ (nouveau canal)</td></tr>
+        </tbody>
+      </table></div>
+      <p>Le MSC fait ensuite libérer l'ancien canal par le BSC1.</p>
+      <div class="callout warn"><span class="callout-title">Piège classique : qui envoie le Handover Command ?</span>
+        <p>L'<strong>ancienne</strong> cellule, sur l'ancien canal : c'est là qu'Alice se trouve encore. Même logique que l'Assignment Command de l'exercice 1, envoyé sur le SDCCH et pas sur le futur TCH. Le contenu (canal, fréquence, BSIC de D) a été préparé par le BSC2 et remonté par le MSC.</p>
+      </div>
+    </details>
+    <details><summary>10. Pourquoi des access bursts</summary>
+      <p>En arrivant sur D, Alice ne connaît pas sa distance à la nouvelle BTS, donc pas son TA. Un burst normal, émis sans avance, déborderait sur le slot voisin (question 3). L'access burst est court et suivi d'une longue garde : il arrive dans son slot même en retard.</p>
+      <p><strong>Jusqu'où :</strong> 68,25 bits × 3,69 µs ≈ 252 µs d'aller-retour, soit 252 × 300 / 2 ≈ <strong>37,8 km</strong>. C'est un peu plus que les 35 km du TA maximal : l'access burst couvre toute la cellule. La BTS D mesure son retard et renvoie le TA dans le Physical Information ; Alice passe alors aux bursts normaux.</p>
+      <p>C'est exactement pour la même raison que le Channel Request (RACH) de l'exercice 1 est un access burst : au premier contact, personne ne connaît la distance.</p>
+    </details>
+    <details><summary>11. Échec et blanc</summary>
+      <p><strong>Échec :</strong> Alice revient sur son <strong>ancien canal</strong> dans A (que le réseau n'a pas encore libéré) et envoie un Handover Failure. L'appel continue ; le BSC tentera une autre cible ou réessaiera plus tard.</p>
+      <p><strong>Le blanc :</strong> le GSM fait du <strong>hard handover</strong> (<em>break before make</em>) : Alice quitte A avant d'être établie dans D. Pendant 100 à 200 ms, elle n'est reliée à personne.</p>
+    </details>
+    <details><summary>12. En veille : resélection et mise à jour de localisation</summary>
+      <p><strong>Qui décide :</strong> Alice, seule. En veille, il n'y a pas de handover mais une <strong>resélection de cellule</strong> (critères C1 et C2). Le réseau ne sait même pas dans quelle cellule elle se trouve : il ne connaît que sa zone de localisation (LA).</p>
+      <p><strong>Ce qu'elle doit faire :</strong> en changeant de LA, elle doit prévenir le réseau, sinon un appel entrant la chercherait (paging) dans l'ancienne zone. C'est une <strong>mise à jour de localisation</strong> : Channel Request (RACH ↑), Immediate Assignment (AGCH ↓), puis tout sur le SDCCH (demande de mise à jour, authentification, chiffrement, acceptation), et le canal est libéré. Pas de paging au début, pas de TCH à la fin : c'est la ligne « mise à jour de localisation » du tableau de l'exercice 1.</p>
+      <p><strong>Pourquoi une marge plus grande :</strong> chaque changement de LA coûte une mise à jour (un SDCCH occupé, de la signalisation jusqu'au VLR, de la batterie). Un mobile qui hésiterait à la frontière ferait du ping-pong de mises à jour : c'est l'hystérésis de la question 8 de l'exercice 1, appliquée à la veille.</p>
+    </details>
+
+    <h3 id="correction-d" data-toc="Correction D">Partie D</h3>
+    <details><summary>13. Le soft handover en 3G</summary>
+      <p><strong>Orthogonalité :</strong> \( c_1 \cdot c_2 = (+1)(+1) + (+1)(-1) + (-1)(+1) + (-1)(-1) = 1 - 1 - 1 + 1 = 0 \).</p>
+      <p><strong>Décodage :</strong></p>
+      <ul>
+        <li>B1 : \( (1{,}5 \times 1 + 0{,}5 \times 1 + (-0{,}5)(-1) + (-1{,}5)(-1)) / 4 = 4 / 4 = +1 \) ;</li>
+        <li>B2 : \( (1{,}5 \times 1 + 0{,}5 \times (-1) + (-0{,}5)(+1) + (-1{,}5)(-1)) / 4 = 2 / 4 = +0{,}5 \).</li>
+      </ul>
+      <p>Les deux donnent un bit <strong>+1</strong> (B2 avec une amplitude réduite de moitié). On a bien \( Z = c_1 + 0{,}5\, c_2 \). Écouter deux Node B, c'est avoir deux copies indépendantes du même bit : si l'une s'évanouit (fading), l'autre passe. C'est la <strong>macro-diversité</strong>, et c'est ce qui supprime le blanc du hard handover : on ajoute la nouvelle cellule avant de lâcher l'ancienne (<em>make before break</em>).</p>
+      <p><strong>Pourquoi pas en GSM :</strong> deux cellules GSM voisines émettent sur des <strong>fréquences différentes</strong>, et le mobile n'écoute qu'une porteuse dans son slot. En WCDMA, toutes les cellules partagent la même bande de 5 MHz et se distinguent par leurs codes : le mobile peut en décoder plusieurs à la fois, simplement en corrélant avec chaque code.</p>
+      <p><strong>Sens montant :</strong> les deux Node B reçoivent Alice et transmettent au <strong>RNC</strong>, qui combine (il garde la meilleure trame). Si B2 dépendait d'un autre RNC, celui-ci serait <strong>DRNC</strong> et prêterait ses ressources via <strong>Iur</strong> ; le SRNC d'Alice garderait seul l'interface Iu vers le cœur.</p>
+      <p><strong>Contrôle de puissance :</strong> en CDMA, tout le monde émet <strong>en même temps sur la même bande</strong>. Un mobile proche qui émet trop fort noie les mobiles lointains (problème <strong>near-far</strong>) : sans contrôle de puissance permanent, la cellule s'écroule. En GSM, chaque mobile a son slot et sa fréquence : un mobile trop fort ne gêne pas ceux de sa cellule.</p>
+    </details>
+    <details><summary>14. Le handover en 4G</summary>
+      <ul>
+        <li><strong>Qui décide :</strong> l'<strong>eNodeB source</strong>, d'après les mesures de l'UE. Il n'y a plus de BSC ni de RNC : l'eNodeB a absorbé leur rôle.</li>
+        <li><strong>Interface :</strong> <strong>X2</strong>, directement entre les deux eNodeB, sans passer par le cœur. La source prépare la cible, puis lui fait suivre les paquets en transit pendant la bascule, pour ne rien perdre.</li>
+        <li><strong>Ce qui ne change pas :</strong> la <strong>Serving GW</strong> (ancre de mobilité) et la <strong>PDN GW</strong>. Le MME fait seulement basculer le tunnel S1-U vers le nouvel eNodeB. L'adresse IP d'Alice, attribuée par la P-GW, reste la même : l'appel vidéo ne voit rien.</li>
+        <li><strong>Hard :</strong> l'UE n'est relié qu'à un eNodeB à la fois, comme en GSM. Mais la préparation par X2 et le transfert des paquets rendent la coupure très courte.</li>
+      </ul>
+      <div class="callout explain"><span class="callout-title">Pour comprendre : la même question à travers les générations</span>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>GSM</th><th>UMTS</th><th>LTE</th></tr></thead>
+          <tbody>
+            <tr><td>Qui décide</td><td>BSC (MSC si inter-BSC)</td><td>RNC</td><td>eNodeB</td></tr>
+            <tr><td>Type</td><td>Hard</td><td>Soft (même bande, codes)</td><td>Hard, préparé par X2</td></tr>
+            <tr><td>Ordre envoyé sur</td><td>FACCH</td><td>RRC</td><td>RRC</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="exo-01-appel-gsm.html"><span>← Précédent</span>Exo 1 : un appel dans une cellule GSM</a>
+      <a class="next" href="index.html"><span>Suivant →</span>Retour au sommaire</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

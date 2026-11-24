@@ -160,7 +160,9 @@ content/
 
 `src/lib/server/cours/index.ts` keeps each page's `<main>`, rewrites its relative
 links (`05-vlans.html`, `index.html`, `assets/x`) to site routes and builds the
-sidebar from its `h2`/`h3` ids. A single route, `src/routes/cours/[...path]`,
+sidebar from its `h2`/`h3` ids. Math written as `\( ... \)` or `\[ ... \]` is rendered with KaTeX
+at build time, so pages ship no math JavaScript (a heading containing math needs
+a plain-text `data-toc` label for the sidebar). A single route, `src/routes/cours/[...path]`,
 prerenders them all. The load runs server-side so the raw HTML is never bundled
 into the client; styling lives in `src/lib/cours.css`, scoped under `.cours`.
 

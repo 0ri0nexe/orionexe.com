@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notions de base · Algorithmique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="home" href="index.html">← Algorithmique</a>
+    <div class="course-code">CSC 8445</div>
+    <nav></nav>
+    <button class="theme-toggle" type="button">Thème clair / sombre</button>
+  </aside>
+  <main>
+    <div class="eyebrow">Chapitre 01</div>
+    <h1>Introduction et notions de base</h1>
+    <p class="lead">Un algorithme décrit, dans un langage simple, la suite d'actions qui transforme les données d'un problème en résultats. Ce chapitre pose les briques du langage algorithmique du cours : types, variables, affectation, et les trois structures de contrôle.</p>
+
+    <div class="callout explain"><span class="callout-title">Organisation du module (CSC 8445)</span>
+      <p><strong>Séances :</strong> 6 séances de 3 h (cours, TD, corrigé) : 1) notions de base, 2) fonctions et types composites, 3) tris itératifs et récursifs, 4) listes, piles et files, 5) arbres, 6) révision.</p>
+      <p><strong>Évaluation :</strong> deux contrôles sur papier, CC et CF1, plus une note de participation NP. NF1 = (2×NP + 6×CC + 12×CF1) / 20. Si besoin, un CF2 : NF2 = (2×NP + 6×CC + 12×CF2) / 20. Note finale : NF = max(NF1, min(NF2, 13)).</p>
+      <p><strong>Outils :</strong> papier et crayon, dans le langage algorithmique du cours (voir l'<a href="annexe-syntaxe.html">antisèche de syntaxe</a>). Supports et TD sur le portail informatique.</p>
+    </div>
+
+    <div class="callout key">
+      <span class="callout-title">L'essentiel en 30 secondes</span>
+      <ul>
+        <li>Démarche : <strong>problème → spécification → algorithme → programme</strong>. On spécifie les <strong>données</strong>, les <strong>résultats</strong> et leurs relations, puis on décrit la méthode.</li>
+        <li>Types prédéfinis : <code>entier</code>, <code>réel</code>, <code>caractère</code>, <code>chaîne</code>, <code>booléen</code>. Toute variable est <strong>déclarée</strong> avec son type (<code>entier n, m = 3</code>).</li>
+        <li>Affectation : <code>variable = expression</code> ; comparaison d'égalité : <code>==</code>. Entrées/sorties : <code>saisir</code>, <code>afficher</code>, <code>allerALaLigne</code>.</li>
+        <li>Sur les entiers : <code>div</code> (quotient) et <code>mod</code> (reste) ; sur les réels : <code>/</code>.</li>
+        <li>Trois structures de contrôle : <strong>séquence</strong>, <strong>choix</strong> (<code>si … fsi</code>, <code>cas où … fcas</code>), <strong>itération</strong> (<code>tant que … ftq</code>, <code>faire … tant que</code>, <code>pour … fpour</code>).</li>
+      </ul>
+    </div>
+
+    <h2 id="demarche">Du problème au programme</h2>
+    <p>Un programme est caractérisé par un ensemble de <strong>données</strong>, un ensemble de <strong>résultats</strong>, et une solution : la description, dans un langage, d'actions à exécuter dans un certain ordre. Exemple de problème : déterminer l'élément minimum d'une suite d'entiers.</p>
+    <p>Trois principes méthodologiques :</p>
+    <ul>
+      <li><strong>Abstraire</strong> : retarder le plus possible le codage ; décrire d'abord les actions dans un langage simple.</li>
+      <li><strong>Décomposer</strong> : diviser chaque difficulté en sous-problèmes (Descartes).</li>
+      <li><strong>Combiner</strong> : résoudre le problème global en assemblant les solutions des sous-problèmes.</li>
+    </ul>
+    <p>Un <strong>algorithme</strong> est la description précise du processus de résolution d'un problème bien spécifié : une séquence ordonnée d'actions sur les données qui produit le résultat. Il doit être lisible sans connaître le langage cible.</p>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : ce qu'on attend en TD</span>
+      <p>Chaque exercice commence par un <strong>énoncé du problème</strong> en trois rubriques : <em>Données</em> (ex. deux entiers <code>nbPersonnes</code>, <code>nbGroupes</code>), <em>Résultats</em> (ex. quatre entiers), <em>Relations entre données et résultats</em> (ex. l'effectif des petits groupes vaut <code>nbPersonnes div nbGroupes</code>). Ensuite seulement on écrit l'algorithme : saisie, calcul, affichage.</p>
+    </div>
+
+    <h2 id="types-variables">Types et variables</h2>
+    <p>Un <strong>type</strong> définit l'ensemble des valeurs possibles d'une information et les opérations permises dessus. Tout type a un nom ; toute information a un type et un identifiant.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Type prédéfini</th><th>Exemple de valeur</th></tr></thead>
+      <tbody>
+        <tr><td><code>entier</code></td><td><code>3</code></td></tr>
+        <tr><td><code>réel</code></td><td><code>3.5</code></td></tr>
+        <tr><td><code>caractère</code></td><td><code>'A'</code> (apostrophes simples)</td></tr>
+        <tr><td><code>chaîne</code></td><td><code>"Algo"</code> (guillemets doubles)</td></tr>
+        <tr><td><code>booléen</code></td><td><code>vrai</code> ou <code>faux</code></td></tr>
+      </tbody>
+    </table></div>
+    <p>Une <strong>variable</strong> est une donnée modifiable : un contenant (abstraction d'un emplacement mémoire) dont la valeur peut changer. La <strong>définition est obligatoire</strong>, l'initialisation facultative :</p>
+    <pre data-label="Algorithme"><code>réel x
+entier n, m = 3     <span class="cmt">// n non initialisée, m vaut 3</span></code></pre>
+
+    <h2 id="actions">Actions et opérateurs</h2>
+    <h3 id="affectation">Affectation, saisie, affichage</h3>
+    <p>L'<strong>affectation</strong> <code>variable = valeur</code> range dans la variable la valeur d'une expression, évaluée à l'exécution avec l'état courant des variables. Dans <code>x = x + 1</code>, on lit l'ancien <code>x</code>, on ajoute 1, puis on écrase <code>x</code>.</p>
+    <pre data-label="Algorithme"><code>saisir ( x )                     <span class="cmt">// x : variable de type simple</span>
+afficher ( "x + 1 = " , x + 1 )  <span class="cmt">// affiche plusieurs éléments à la suite</span>
+allerALaLigne ( )                <span class="cmt">// passe à la ligne suivante</span></code></pre>
+    <p>La saisie modifie la variable : elle utilise implicitement l'affectation. Une <strong>action composée</strong> est un ensemble d'actions simples organisées par les structures de contrôle.</p>
+
+    <h3 id="operateurs">Les opérateurs</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Catégorie</th><th>Opérateurs</th></tr></thead>
+      <tbody>
+        <tr><td>Logiques (booléens)</td><td><code>non</code>, <code>et</code>, <code>ou</code></td></tr>
+        <tr><td>Arithmétiques (entier et réel)</td><td><code>+</code>, <code>−</code>, <code>×</code></td></tr>
+        <tr><td>Entiers seulement</td><td><code>div</code> (division entière), <code>mod</code> (reste)</td></tr>
+        <tr><td>Réels seulement</td><td><code>/</code> (division réelle)</td></tr>
+        <tr><td>Comparaison</td><td><code>==</code> (égalité), <code>≠</code> (différent), et dans les exemples <code>&lt;</code>, <code>&gt;</code>, <code>≤</code>, <code>≥</code></td></tr>
+      </tbody>
+    </table></div>
+    <p>Exemples : <code>17 div 5</code> vaut 3, <code>17 mod 5</code> vaut 2. Un entier <code>n</code> est pair si <code>n mod 2 == 0</code>. <code>n div 10</code> retire le dernier chiffre de <code>n</code>, <code>n mod 10</code> donne ce chiffre.</p>
+
+    <div class="callout warn"><span class="callout-title">Piège classique : = et ==</span>
+      <p><code>=</code> est l'<strong>affectation</strong> (une action), <code>==</code> la <strong>comparaison</strong> (une expression booléenne). On écrit <code>si x == 3 alors</code>, jamais <code>si x = 3 alors</code>. De même, <code>/</code> est réservé aux réels : pour un quotient entier, c'est <code>div</code>.</p>
+    </div>
+
+    <h2 id="sequence">Le schéma séquentiel</h2>
+    <p>Les actions s'exécutent <strong>dans l'ordre où elles apparaissent</strong>. Un algorithme se compose de la déclaration des variables puis du corps.</p>
+    <pre data-label="Algorithme · somme de deux entiers"><code>entier a, b, c       <span class="cmt">// déclaration des variables</span>
+saisir(a)            <span class="cmt">// corps de l'algorithme</span>
+saisir(b)
+c = a + b
+afficher(c)</code></pre>
+
+    <h3 id="echange">Exemple : échanger deux variables</h3>
+    <pre data-label="Algorithme · échange"><code>entier n , m , aux
+saisir ( n )
+saisir ( m )   <span class="cmt">// #0 : n = 5, m = 7</span>
+aux = n        <span class="cmt">// #1 : sauvegarde de n</span>
+n = m          <span class="cmt">// #2 : m copié dans n</span>
+m = aux        <span class="cmt">// #3 : ancienne valeur de n copiée dans m</span>
+afficher ( n ) <span class="cmt">// affiche 7</span>
+afficher ( m ) <span class="cmt">// affiche 5</span></code></pre>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Point</th><th>n</th><th>m</th><th>aux</th></tr></thead>
+      <tbody>
+        <tr><td>#0</td><td>5</td><td>7</td><td>?</td></tr>
+        <tr><td>#1</td><td>5</td><td>7</td><td>5</td></tr>
+        <tr><td>#2</td><td>7</td><td>7</td><td>5</td></tr>
+        <tr><td>#3</td><td>7</td><td>5</td><td>5</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn"><span class="callout-title">Piège classique : échanger sans variable auxiliaire</span>
+      <p>Écrire <code>n = m</code> puis <code>m = n</code> donne <code>n = 7, m = 7</code> : la valeur 5 est <strong>écrasée</strong> dès la première affectation. Il faut la sauvegarder dans <code>aux</code> avant.</p>
+    </div>
+
+    <h2 id="choix">Le schéma alternatif (de choix)</h2>
+    <p>Une ou des actions sont conditionnées par une expression booléenne, la <strong>condition</strong>. Mots réservés : <code>si alors sinon fsi</code>. La branche <code>sinon</code> est optionnelle.</p>
+    <pre data-label="Algorithme · maximum de deux entiers (2 solutions)"><code>entier x , y , max
+saisir(x)
+saisir(y)
+si x &gt; y alors           <span class="cmt">// solution 1 : si … sinon</span>
+    max = x
+sinon
+    max = y
+fsi
+
+max = x                  <span class="cmt">// solution 2 : forme simplifiée</span>
+si x &lt; y alors
+    max = y
+fsi</code></pre>
+
+    <h3 id="cas">Le choix généralisé : cas où</h3>
+    <p>Évite une cascade de <code>si</code> imbriqués : compare une valeur <code>v</code> <strong>entière</strong> à une série de constantes entières. On exécute l'action de la première constante égale à <code>v</code>, puis on <strong>quitte</strong> le <code>cas</code>. <code>autre</code> (optionnel) s'exécute si aucune constante ne correspond.</p>
+    <pre data-label="Algorithme"><code>entier jour
+saisir(jour)
+cas où jour vaut
+    6 : afficher("samedi")
+    7 : afficher("dimanche")
+    autre : afficher("semaine")
+fcas</code></pre>
+
+    <h2 id="iteration">Les schémas itératifs</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Schéma</th><th>Nombre de tours</th><th>Test</th></tr></thead>
+      <tbody>
+        <tr><td><code>tant que condition faire … ftq</code></td><td>Inconnu à l'avance, <strong>éventuellement 0</strong></td><td>Avant l'action</td></tr>
+        <tr><td><code>faire … tant que condition</code></td><td>Inconnu, <strong>au moins 1</strong></td><td>Après l'action</td></tr>
+        <tr><td><code>pour entier i = a à b [pas h] faire … fpour</code></td><td>Connu (parcours d'un ensemble indicé)</td><td>Compteur, pas 1 par défaut</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3 id="tantque">tant que et faire … tant que</h3>
+    <pre data-label="Algorithme · compter les chiffres de n (quiz 1)"><code>entier n
+saisir(n)
+entier c = 0
+tant que n ≠ 0 faire
+    n = n div 10
+    c = c + 1
+ftq
+afficher(c)</code></pre>
+    <p>Trace avec <code>n = 472</code> : (n, c) passe par (472, 0), (47, 1), (4, 2), (0, 3). La condition <code>n ≠ 0</code> devient fausse, on affiche 3.</p>
+    <pre data-label="Algorithme · saisie contrôlée"><code>entier note
+faire
+    saisir(note)
+tant que note &lt; 0 ou note &gt; 20   <span class="cmt">// on redemande tant que c'est invalide</span></code></pre>
+
+    <div class="callout explain"><span class="callout-title">Pour comprendre : quand choisir quelle boucle</span>
+      <p>Nombre de tours connu (parcourir 1 à n, les cases d'un tableau) : <code>pour</code>. Arrêt sur une condition, possiblement sans aucun tour : <code>tant que</code>. Action à faire au moins une fois (saisie à vérifier, menu) : <code>faire … tant que</code>. Dans un <code>tant que</code>, l'action <strong>doit modifier</strong> une variable de la condition, sinon la boucle ne s'arrête jamais.</p>
+    </div>
+
+    <h3 id="pour">La boucle pour</h3>
+    <pre data-label="Algorithme · somme des entiers de 1 à n, puis des pairs"><code>entier n
+saisir(n)
+entier somme = 0
+pour entier i = 1 à n faire
+    somme = somme + i
+fpour
+afficher( somme )
+
+entier sommePairs = 0
+pour entier i = 2 à n pas 2 faire   <span class="cmt">// i = 2, 4, 6, …</span>
+    sommePairs = sommePairs + i
+fpour</code></pre>
+    <p>Les bornes sont <strong>incluses</strong> : <code>pour entier i = 1 à n</code> fait n tours. Avec <code>n = 4</code>, <code>somme</code> passe par 1, 3, 6, 10.</p>
+
+    <div class="callout warn"><span class="callout-title">Piège classique : boucles imbriquées</span>
+      <p>La boucle intérieure est entièrement rejouée à <strong>chaque</strong> tour de la boucle extérieure : 3 tours × 2 tours = 6 exécutions du corps. Si la borne intérieure dépend de <code>i</code> (<code>pour entier j = 1 à i</code>), le nombre de tours change à chaque ligne : 1, 2, 3…</p>
+    </div>
+
+    <h2 id="revision">Testez-vous</h2>
+    <details><summary>1. Combien de valeurs sont affichées ? (quiz 1)</summary>
+      <pre data-label="Algorithme"><code>pour entier i = 1 à 3 faire
+    pour entier j = 1 à 2 faire
+        afficher(i × j)
+    fpour
+fpour</code></pre>
+      <p><strong>6</strong> : 3 tours de <code>i</code>, et pour chacun 2 tours de <code>j</code>.</p></details>
+    <details><summary>2. Valeur finale de x ? (quiz 1)</summary>
+      <pre data-label="Algorithme"><code>entier x = 0
+pour entier i = 1 à 5 faire
+    si i mod 2 == 0 alors
+        x = x + i
+    sinon
+        x = x - i
+    fsi
+fpour</code></pre>
+      <p><strong>-3</strong> : on ajoute les pairs et retire les impairs : x vaut -1, 1, -2, 2, -3.</p></details>
+    <details><summary>3. Combien d'itérations ? (quiz 1)</summary>
+      <pre data-label="Algorithme"><code>entier x = 0
+tant que x &lt; 5 faire
+    si x == 3 alors
+        x = x + 2
+    sinon
+        x = x + 1
+    fsi
+ftq</code></pre>
+      <p><strong>4</strong> : x vaut 0, 1, 2, 3 au début de chaque tour ; au 4e tour, x passe de 3 à 5 et la condition devient fausse.</p></details>
+    <details><summary>4. Que fait <code>tant que n ≠ 0 faire n = n div 10 ; c = c + 1 ftq</code> avec c = 0 au départ ? (quiz 1)</summary>
+      <p>Il <strong>compte le nombre de chiffres</strong> de n : chaque <code>div 10</code> enlève un chiffre. (Attention : pour n = 0, la boucle ne tourne pas et c vaut 0.)</p></details>
+    <details><summary>5. Qu'affiche ce double pour ? (quiz 1)</summary>
+      <pre data-label="Algorithme"><code>pour entier i = 1 à 4 faire
+    pour entier j = 1 à i faire
+        afficher('x')
+    fpour
+    allerALaLigne()
+fpour</code></pre>
+      <p>Un triangle : <code>x</code>, <code>xx</code>, <code>xxx</code>, <code>xxxx</code> sur 4 lignes. La ligne i contient i caractères.</p></details>
+    <details><summary>6. Que valent 23 div 4 et 23 mod 4 ? Comment tester qu'un entier a est divisible par b ?</summary>
+      <p>5 et 3, car 23 = 4 × 5 + 3. Divisible si <code>a mod b == 0</code>.</p></details>
+    <details><summary>7. Quelle différence entre <code>tant que … ftq</code> et <code>faire … tant que</code> ?</summary>
+      <p>Le <code>tant que</code> teste avant : l'action peut ne jamais être exécutée. Le <code>faire … tant que</code> teste après : l'action est exécutée au moins une fois.</p></details>
+    <details><summary>8. Après <code>entier a = 2, b = 9</code> puis <code>a = b</code> et <code>b = a</code>, que valent a et b ?</summary>
+      <p>a = 9 et b = 9 : l'ancienne valeur de a est perdue. Pour échanger, il faut une variable <code>aux</code>.</p></details>
+    <details><summary>9. Dans <code>cas où v vaut</code>, quel type doit avoir v, et que se passe-t-il si aucune constante ne correspond ?</summary>
+      <p>v est une valeur <strong>entière</strong>. Si aucune constante n'est égale à v, on exécute la branche <code>autre</code> si elle existe, sinon rien.</p></details>
+
+    <div class="chapter-nav">
+      <a class="prev" href="index.html"><span>← Précédent</span>Sommaire</a>
+      <a class="next" href="02-fonctions-types-composites.html"><span>Suivant →</span>Fonctions et types composites</a>
+    </div>
+  </main>
+</div>
+<script src="../../assets/app.js"></script>
+</body>
+</html>
